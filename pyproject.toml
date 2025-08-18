@@ -1,0 +1,11 @@
+[project]
+name = "low_bit_vllm"
+version = "0.1.0"
+description = "Low bit inference with vLLM using different quantization and optimization tools."
+readme = "README.md"
+requires-python = ">=3.12"
+authors = [
+    { name = "Vipul Sharma", email = "vipuls181999@gmail.com" }
+]
+
+dependencies = []
