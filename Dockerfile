@@ -21,10 +21,11 @@ RUN sh /uv-installer.sh && rm /uv-installer.sh
 ENV PATH="/root/.local/bin/:$PATH"
 
 WORKDIR /app
+ADD uv.lock /app/uv.lock
+ADD pyproject.toml /app/pyproject.toml
+
 # split the dependency installation from the workspace members' installation
 RUN --mount=type=cache,target=/root/.cache/uv \
-    --mount=type=bind,source=uv.lock,target=uv.lock \
-    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     uv sync --locked --no-install-project
 
 RUN --mount=type=cache,target=/root/.cache/uv \
