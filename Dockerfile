@@ -26,21 +26,21 @@ ADD pyproject.toml /app/pyproject.toml
 ADD .python-version /app/.python-version
 
 # split the dependency installation from the workspace members' installation
-RUN --mount=type=cache,target=/root/.cache/uv \
+RUN --mount=type=cache,target=/mnt/.cache/uv \
     uv sync --locked --no-install-project
 
-RUN --mount=type=cache,target=/root/.cache/uv \
+RUN --mount=type=cache,target=/mnt/.cache/uv \
     uv sync --locked --no-install-project --group gemlite
 
-RUN --mount=type=cache,target=/root/.cache/uv \
+RUN --mount=type=cache,target=/mnt/.cache/uv \
     uv sync --locked --no-install-project --group tensorRT
 
-RUN --mount=type=cache,target=/root/.cache/uv \
+RUN --mount=type=cache,target=/mnt/.cache/uv \
     uv sync --locked --no-install-project --group torchao
 
 ADD . /app
 
-RUN --mount=type=cache,target=/root/.cache/uv \
+RUN --mount=type=cache,target=/mnt/.cache/uv \
     uv sync --locked
 
 CMD ["bash"]
