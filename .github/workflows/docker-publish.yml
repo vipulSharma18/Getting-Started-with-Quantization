@@ -30,6 +30,11 @@ jobs:
       id-token: write
 
     steps:
+      - name: cleanup space on github vm
+        run: |
+          rm -rf /usr/share/dotnet
+          rm -rf "$AGENT_TOOLSDIRECTORY"
+          df -h
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
