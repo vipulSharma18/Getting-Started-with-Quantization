@@ -23,6 +23,7 @@ ENV PATH="/root/.local/bin/:$PATH"
 WORKDIR /app
 ADD uv.lock /app/uv.lock
 ADD pyproject.toml /app/pyproject.toml
+ADD .python-version /app/.python-version
 
 # split the dependency installation from the workspace members' installation
 RUN --mount=type=cache,target=/root/.cache/uv \
