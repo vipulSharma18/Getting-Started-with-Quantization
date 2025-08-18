@@ -2,6 +2,7 @@ FROM debian:bookworm-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV UV_LINK_MODE=copy
+ENV UV_CACHE_DIR=/mnt/.cache/uv
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
