@@ -8,4 +8,32 @@ authors = [
     { name = "Vipul Sharma", email = "vipuls181999@gmail.com" }
 ]
 
-dependencies = []
+dependencies = [
+    "torch>=2.8.0",
+    "torchvision",
+]
+
+[project.optional-dependencies]
+gemlite = [
+    "transformers==4.53.2",
+    "gemlite",
+    "hqq",
+]
+tensorRT = [
+    "tensorrt-llm>=0.21.0",
+]
+torchao = [
+    "torchao>=0.12.0",
+]
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu128" }
+torchvision = { index = "pytorch-cu128" }
+torchao = { index = "pytorch-cu128" }
+gemlite = { git = "git+https://github.com/mobiusml/hqq/" }
+hqq = { git = "git+https://github.com/mobiusml/gemlite/" }
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
