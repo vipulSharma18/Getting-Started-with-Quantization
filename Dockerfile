@@ -30,15 +30,6 @@ ADD .python-version /app/.python-version
 RUN --mount=type=cache,target=/mnt/.cache/uv \
     uv sync --locked --no-install-project
 
-RUN --mount=type=cache,target=/mnt/.cache/uv \
-    uv sync --locked --no-install-project --group gemlite
-
-RUN --mount=type=cache,target=/mnt/.cache/uv \
-    uv sync --locked --no-install-project --group tensorRT
-
-RUN --mount=type=cache,target=/mnt/.cache/uv \
-    uv sync --locked --no-install-project --group torchao
-
 ADD . /app
 
 RUN --mount=type=cache,target=/mnt/.cache/uv \
