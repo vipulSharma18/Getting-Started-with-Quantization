@@ -9,11 +9,11 @@ authors = [
 ]
 
 dependencies = [
-    "torch>=2.8.0",
+    "torch>=2.7.0",
     "torchvision",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 gemlite = [
     "transformers==4.53.2",
     "gemlite",
@@ -26,12 +26,21 @@ torchao = [
     "torchao>=0.12.0",
 ]
 
+[tool.uv]
+conflicts = [
+    [
+        { group = "gemlite" },
+        { group = "tensorRT" },
+        { group = "torchao" },
+    ]
+]
+
 [tool.uv.sources]
 torch = { index = "pytorch-cu128" }
 torchvision = { index = "pytorch-cu128" }
 torchao = { index = "pytorch-cu128" }
-gemlite = { git = "git+https://github.com/mobiusml/hqq/" }
-hqq = { git = "git+https://github.com/mobiusml/gemlite/" }
+hqq = { git = "git+https://github.com/mobiusml/hqq/" }
+gemlite = { git = "git+https://github.com/mobiusml/gemlite/" }
 
 [[tool.uv.index]]
 name = "pytorch-cu128"
