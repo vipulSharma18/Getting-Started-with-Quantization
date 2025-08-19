@@ -2,7 +2,6 @@ FROM debian:bookworm-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV UV_LINK_MODE=copy
-ENV UV_CACHE_DIR=/mnt/.cache/uv
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
@@ -27,12 +26,12 @@ ADD pyproject.toml /app/pyproject.toml
 ADD .python-version /app/.python-version
 
 # split the dependency installation from the workspace members' installation
-RUN --mount=type=cache,target=/mnt/.cache/uv \
+RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-install-project
 
 ADD . /app
 
-RUN --mount=type=cache,target=/mnt/.cache/uv \
+RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked
 
 # install gh/github cli for git creds management
