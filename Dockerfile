@@ -13,6 +13,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-pip \
     ca-certificates \
     openssh-client \
+    openssh-server \
+    tmux \
     && rm -rf /var/lib/apt/lists/*
 
 ADD https://astral.sh/uv/install.sh /uv-installer.sh
@@ -24,11 +26,6 @@ WORKDIR /app
 ADD uv.lock /app/uv.lock
 ADD pyproject.toml /app/pyproject.toml
 ADD .python-version /app/.python-version
-
-# split the dependency installation from the workspace members' installation
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked --no-install-project
-
 ADD . /app
 
 RUN --mount=type=cache,target=/root/.cache/uv \
