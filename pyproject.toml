@@ -16,6 +16,7 @@ dependencies = [
     "jupyterlab",
     "notebook",
     "ipykernel",
+    "huggingface_hub[cli]",
 ]
 
 [dependency-groups]

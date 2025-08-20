@@ -2,6 +2,7 @@ FROM debian:bookworm-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV UV_LINK_MODE=copy
+ENV HF_HOME=/root/.cache/huggingface
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
@@ -41,6 +42,13 @@ RUN (type -p wget >/dev/null || (apt update && apt install wget -y)) \
 && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
 && apt update \
 && apt install gh -y
+
+RUN mkdir -p ${HF_HOME}
+RUN huggingface-cli download \
+    --repo-type model \
+    unsloth/Meta-Llama-3.1-8B-Instruct \
+    --local-dir $HF_HOME/hub/models/unsloth__Meta-Llama-3.1-8B-Instruct \
+    --local-dir-use-symlinks false
 
 ENTRYPOINT [ "./entrypoint.sh" ]
 
