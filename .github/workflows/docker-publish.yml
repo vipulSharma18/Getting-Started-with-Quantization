@@ -40,21 +40,53 @@ jobs:
         with:
           persist-credentials: false
 
-      # Configure Docker to use /mnt for data storage
-      - name: Configure Docker data root
+      # Configure Docker to use unified storage across / and /mnt
+      - name: Configure unified Docker storage
         run: |
           echo "Available space before Docker configuration:"
           df -h
-          sudo mkdir -p /mnt/docker
+          
+          # Create unified storage structure
+          sudo mkdir -p /mnt/unified-storage
+          sudo mkdir -p /mnt/unified-storage/docker
+          sudo mkdir -p /mnt/unified-storage/buildkit
+          
+          # Create bind mounts to unify storage
+          sudo mount --bind /mnt/unified-storage/docker /var/lib/docker
+          sudo mount --bind /mnt/unified-storage/buildkit /var/lib/buildkit
+          
+          # Ensure mounts persist
+          echo "/mnt/unified-storage/docker /var/lib/docker none bind 0 0" | sudo tee -a /etc/fstab
+          echo "/mnt/unified-storage/buildkit /var/lib/buildkit none bind 0 0" | sudo tee -a /etc/fstab
+          
+          # Stop Docker and configure
           sudo systemctl stop docker
           sudo mkdir -p /etc/docker
-          echo '{"data-root": "/mnt/docker"}' | sudo tee /etc/docker/daemon.json
+          
+          # Configure Docker with multiple storage drivers and unified root
+          cat << EOF | sudo tee /etc/docker/daemon.json
+          {
+            "data-root": "/var/lib/docker",
+            "storage-driver": "overlay2",
+            "storage-opts": [
+              "overlay2.override_kernel_check=true"
+            ],
+            "max-concurrent-downloads": 10,
+            "max-concurrent-uploads": 5
+          }
+          EOF
+          
+          # Start Docker
           sudo systemctl start docker
           sudo systemctl status docker
-          echo "Docker data root configured at:"
-          docker info | grep "Docker Root Dir"
-          echo "Available space after Docker configuration:"
+          
+          echo "Unified storage configured:"
+          echo "Docker root: $(docker info | grep 'Docker Root Dir')"
+          echo "BuildKit root: /var/lib/buildkit"
+          echo "Available space after configuration:"
           df -h
+          echo "Mount points:"
+          mount | grep -E "(docker|buildkit)"
 
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
@@ -71,7 +103,7 @@ jobs:
         with:
           driver-opts: |
             image=moby/buildkit:v0.12.4
-          buildkitd-flags: --root /mnt/buildkit
+          buildkitd-flags: --root /var/lib/buildkit
 
       # Login against a Docker registry except on PR
       # https://github.com/docker/login-action
