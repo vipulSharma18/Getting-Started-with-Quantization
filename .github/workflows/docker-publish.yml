@@ -51,6 +51,10 @@ jobs:
           sudo mkdir -p /mnt/unified-storage/docker
           sudo mkdir -p /mnt/unified-storage/buildkit
           
+          # Create mount point directories if they don't exist
+          sudo mkdir -p /var/lib/docker
+          sudo mkdir -p /var/lib/buildkit
+          
           # Create bind mounts to unify storage
           sudo mount --bind /mnt/unified-storage/docker /var/lib/docker
           sudo mount --bind /mnt/unified-storage/buildkit /var/lib/buildkit
