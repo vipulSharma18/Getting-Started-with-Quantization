@@ -11,6 +11,9 @@ authors = [
 dependencies = [
     "torch>=2.7.0",
     "torchvision",
+    "tensorboard",
+    "tensorboard-data-server",
+    "torch-tb-profiler",
 ]
 
 [dependency-groups]
