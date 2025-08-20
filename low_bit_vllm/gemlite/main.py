@@ -10,16 +10,23 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 import gemlite
 from gemlite.helper import *
 from gemlite import DType, GemLiteLinear
+from hqq.utils.generation_hf import HFGenerator
+
 gemlite.set_autotune("fast") #Use max for the best perf
-from contextlib import nullcontext
 
 device        = 'cuda:0'
 compute_dtype = torch.float16
 cache_dir     = None
-model_id      = "meta-llama/Llama-3.1-8B-Instruct"
+model_id      = "unsloth/Meta-Llama-3.1-8B-Instruct"
 
 tokenizer = AutoTokenizer.from_pretrained(model_id, cache_dir=cache_dir)
-model     = AutoModelForCausalLM.from_pretrained(model_id, torch_dtype=compute_dtype, attn_implementation="sdpa", cache_dir=cache_dir, device_map="cpu")
+model     = AutoModelForCausalLM.from_pretrained(
+    model_id,
+    torch_dtype=compute_dtype,
+    attn_implementation="sdpa",
+    cache_dir=cache_dir,
+    device_map="cpu"
+)
 
 quantize_activations = False
 W_nbits = 1
@@ -121,7 +128,6 @@ model = model.to(device)
 torch.cuda.synchronize()
 
 ################################################################################################################
-from hqq.utils.generation_hf import HFGenerator
 
 # use CUDA_BLOCKING_MODE=1 to do sync after each kernel dispatch and to know precisely what part of code is slow.
 
