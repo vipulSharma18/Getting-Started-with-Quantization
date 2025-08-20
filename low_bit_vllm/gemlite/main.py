@@ -5,6 +5,7 @@
 #pip install git+https://github.com/mobiusml/gemlite/;
 #TRITON_PRINT_AUTOTUNING=1 ipython ...
 ################################################################################################################
+import os
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import gemlite
@@ -16,15 +17,14 @@ gemlite.set_autotune("fast") #Use max for the best perf
 
 device        = 'cuda:0'
 compute_dtype = torch.float16
-cache_dir     = None
 model_id      = "unsloth/Meta-Llama-3.1-8B-Instruct"
 
-tokenizer = AutoTokenizer.from_pretrained(model_id, cache_dir=cache_dir)
+tokenizer = AutoTokenizer.from_pretrained(model_id, local_files_only=True)
 model     = AutoModelForCausalLM.from_pretrained(
     model_id,
     torch_dtype=compute_dtype,
     attn_implementation="sdpa",
-    cache_dir=cache_dir,
+    local_files_only=True,
     device_map="cpu"
 )
 

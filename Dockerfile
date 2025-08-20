@@ -3,6 +3,7 @@ FROM debian:bookworm-slim
 ENV DEBIAN_FRONTEND=noninteractive
 ENV UV_LINK_MODE=copy
 ENV HF_HOME=/root/.cache/huggingface
+ENV TRANSFORMERS_CACHE=${HF_HOME}
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
@@ -43,12 +44,9 @@ RUN (type -p wget >/dev/null || (apt update && apt install wget -y)) \
 && apt update \
 && apt install gh -y
 
-RUN mkdir -p ${HF_HOME}
-RUN . /app/.venv/bin/activate && huggingface-cli download \
-    --repo-type model \
-    unsloth/Meta-Llama-3.1-8B-Instruct \
-    --local-dir $HF_HOME/hub/models/unsloth__Meta-Llama-3.1-8B-Instruct \
-    --local-dir-use-symlinks false
+RUN mkdir -p ${TRANSFORMERS_CACHE}
+RUN . /app/.venv/bin/activate && \
+    huggingface-cli download --repo-type model unsloth/Meta-Llama-3.1-8B-Instruct
 
 ENTRYPOINT [ "./entrypoint.sh" ]
 
