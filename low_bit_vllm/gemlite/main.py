@@ -123,18 +123,21 @@ torch.cuda.synchronize()
 ################################################################################################################
 from hqq.utils.generation_hf import HFGenerator
 
+# use CUDA_BLOCKING_MODE=1 to do sync after each kernel dispatch and to know precisely what part of code is slow.
+
 with torch.profiler.profile(
     activities = [
         torch.profiler.ProfilerActivity.CPU,
         torch.profiler.ProfilerActivity.CUDA,
     ],
-    schedule = torch.profiler.schedule(wait = 1, warmup = 1, active = 3, repeat =2 ),
-    on_trace_ready = torch.profiler.tensorboard_trace_handler('./log/transformer'),
+    schedule = torch.profiler.schedule(skip_first=10, wait = 1, warmup = 1, active = 3, repeat =2 ),
+    on_trace_ready = torch.profiler.tensorboard_trace_handler('./log/gemlite'),
     record_shapes = True,
     profile_memory = True,
-    with_stack = True
+    with_stack = True,  # this will add overhead, set it to False for benchmarking.
+    with_flops = True,
 ) as prof:
-    for i in range(10):  # 2*(1+1+3) wait, warmup, active
+    for i in range(20):  # 2*(1+1+3) wait, warmup, active + 10 skip_first cycles
         with torch.inference_mode():
             gen = HFGenerator(
                 model,
@@ -148,4 +151,9 @@ with torch.profiler.profile(
             out = gen.generate("Write an essay about large language models.", print_tokens=False)
         prof.step()
 print("profiling complete")
-print(prof.key_averages(group_by_stack_n=True).table(sort_by="cpu_time_total", row_limit=100))
+
+print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=100))
+print("-"*20)
+print(prof.key_averages(group_by_stack_n=8).table(sort_by="cpu_time_total", row_limit=100))
+
+prof.export_chrome_trace("trace.json")

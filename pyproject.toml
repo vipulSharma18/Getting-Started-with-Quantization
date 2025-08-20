@@ -11,9 +11,11 @@ authors = [
 dependencies = [
     "torch>=2.7.0",
     "torchvision",
-    "tensorboard",
-    "tensorboard-data-server",
-    "torch-tb-profiler",
+    "HolisticTraceAnalysis",
+    "ipython",
+    "jupyterlab",
+    "notebook",
+    "ipykernel",
 ]
 
 [dependency-groups]
