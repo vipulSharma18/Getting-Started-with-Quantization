@@ -44,7 +44,7 @@ RUN (type -p wget >/dev/null || (apt update && apt install wget -y)) \
 && apt install gh -y
 
 RUN mkdir -p ${HF_HOME}
-RUN source /app/.venv/bin/activate && huggingface-cli download \
+RUN . /app/.venv/bin/activate && huggingface-cli download \
     --repo-type model \
     unsloth/Meta-Llama-3.1-8B-Instruct \
     --local-dir $HF_HOME/hub/models/unsloth__Meta-Llama-3.1-8B-Instruct \
