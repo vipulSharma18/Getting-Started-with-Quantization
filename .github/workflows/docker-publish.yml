@@ -40,43 +40,55 @@ jobs:
         with:
           persist-credentials: false
 
-      # Configure Docker to use unified storage across / and /mnt
-      - name: Configure unified Docker storage
+      # Configure Docker to use split storage across / and /mnt
+      - name: Configure split Docker storage
         run: |
           echo "Available space before Docker configuration:"
           df -h
           
-          # Create unified storage structure
-          sudo mkdir -p /mnt/unified-storage
-          sudo mkdir -p /mnt/unified-storage/docker
-          sudo mkdir -p /mnt/unified-storage/buildkit
-          
-          # Create mount point directories if they don't exist
+          # Create storage directories on both filesystems
           sudo mkdir -p /var/lib/docker
+          sudo mkdir -p /mnt/docker-storage
           sudo mkdir -p /var/lib/buildkit
+          sudo mkdir -p /mnt/buildkit-storage
           
-          # Create bind mounts to unify storage
-          sudo mount --bind /mnt/unified-storage/docker /var/lib/docker
-          sudo mount --bind /mnt/unified-storage/buildkit /var/lib/buildkit
+          # Create symbolic links to split storage intelligently
+          sudo mkdir -p /var/lib/docker/overlay2
+          sudo mkdir -p /var/lib/docker/containers
+          sudo mkdir -p /var/lib/docker/image
+          sudo mkdir -p /var/lib/docker/volumes
           
-          # Ensure mounts persist
-          echo "/mnt/unified-storage/docker /var/lib/docker none bind 0 0" | sudo tee -a /etc/fstab
-          echo "/mnt/unified-storage/buildkit /var/lib/buildkit none bind 0 0" | sudo tee -a /etc/fstab
+          # Link large directories to /mnt, keep small ones on /
+          sudo ln -sf /mnt/docker-storage/overlay2 /var/lib/docker/overlay2
+          sudo ln -sf /mnt/docker-storage/containers /var/lib/docker/containers
+          sudo ln -sf /mnt/docker-storage/volumes /var/lib/docker/volumes
+          
+          # Keep image metadata on root (small files, fast access)
+          # sudo ln -sf /mnt/docker-storage/image /var/lib/docker/image
+          
+          # Create BuildKit storage on /mnt
+          sudo ln -sf /mnt/buildkit-storage /var/lib/buildkit
           
           # Stop Docker and configure
           sudo systemctl stop docker
           sudo mkdir -p /etc/docker
           
-          # Configure Docker with multiple storage drivers and unified root
+          # Configure Docker with optimized storage settings
           cat << EOF | sudo tee /etc/docker/daemon.json
           {
             "data-root": "/var/lib/docker",
             "storage-driver": "overlay2",
             "storage-opts": [
-              "overlay2.override_kernel_check=true"
+              "overlay2.override_kernel_check=true",
+              "overlay2.size=10G"
             ],
             "max-concurrent-downloads": 10,
-            "max-concurrent-uploads": 5
+            "max-concurrent-uploads": 5,
+            "log-driver": "json-file",
+            "log-opts": {
+              "max-size": "100m",
+              "max-file": "3"
+            }
           }
           EOF
           
@@ -84,13 +96,16 @@ jobs:
           sudo systemctl start docker
           sudo systemctl status docker
           
-          echo "Unified storage configured:"
+          echo "Split storage configured:"
           echo "Docker root: $(docker info | grep 'Docker Root Dir')"
           echo "BuildKit root: /var/lib/buildkit"
+          echo "Storage distribution:"
+          echo "  Root (/): Image metadata, logs, configs"
+          echo "  /mnt: Large files (layers, containers, volumes)"
           echo "Available space after configuration:"
           df -h
-          echo "Mount points:"
-          mount | grep -E "(docker|buildkit)"
+          echo "Symbolic links:"
+          ls -la /var/lib/docker/ | grep "^l"
 
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
