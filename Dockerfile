@@ -42,4 +42,6 @@ RUN (type -p wget >/dev/null || (apt update && apt install wget -y)) \
 && apt update \
 && apt install gh -y
 
+ENTRYPOINT [ "./entrypoint.sh" ]
+
 CMD ["bash"]
