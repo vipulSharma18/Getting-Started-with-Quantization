@@ -12,7 +12,8 @@ git config --global user.name "Vipul Sharma"
 ```
 
 ## Benchmarking Roadmap:
-[ ] calculate theoretical performance limit and roofline model for Llama-3.1 8B to have a target.
+- [ ] Calculate theoretical performance limit and roofline model for Llama-3.1 8B to have a target.
+- [ ] HTA trace.
 
 ## Benchmarking Notes:
 Run with CUDA_LAUNCH_BLOCKING=1 to make GPU-CPU sync after each kernel, to get more interpretable profiling results for each kernel.    
