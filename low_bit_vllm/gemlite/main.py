@@ -11,6 +11,7 @@ import gemlite
 from gemlite.helper import *
 from gemlite import DType, GemLiteLinear
 gemlite.set_autotune("fast") #Use max for the best perf
+from contextlib import nullcontext
 
 device        = 'cuda:0'
 compute_dtype = torch.float16
@@ -122,13 +123,29 @@ torch.cuda.synchronize()
 ################################################################################################################
 from hqq.utils.generation_hf import HFGenerator
 
-gen = HFGenerator(
-    model,
-    tokenizer,
-    max_new_tokens=1024,
-    do_sample=False,
-    compile="partial",
-    compile_options={"mode": "max-autotune-no-cudagraphs", "fullgraph": True},
-).enable_cuda_graph().warmup()
+with torch.profiler.profile(
+    activities = [
+        torch.profiler.ProfilerActivity.CPU,
+        torch.profiler.ProfilerActivity.CUDA,
+    ],
+    schedule = torch.profiler.schedule(wait = 1, warmup = 1, active = 3, repeat =2 ),
+    on_trace_ready = torch.profiler.tensorboard_trace_handler('./log/transformer'),
+    record_shapes = True,
+    profile_memory = True,
+    with_stack = True
+) as prof:
+    for i in range(10):  # 2*(1+1+3) wait, warmup, active
+        with torch.inference_mode():
+            gen = HFGenerator(
+                model,
+                tokenizer,
+                max_new_tokens=1024,
+                do_sample=False,
+                compile="partial",
+                compile_options={"mode": "max-autotune-no-cudagraphs", "fullgraph": True},
+            ).enable_cuda_graph().warmup()
 
-out = gen.generate("Write an essay about large language models.", print_tokens=False)
+            out = gen.generate("Write an essay about large language models.", print_tokens=False)
+        prof.step()
+print("profiling complete")
+print(prof.key_averages(group_by_stack_n=True).table(sort_by="cpu_time_total", row_limit=100))
