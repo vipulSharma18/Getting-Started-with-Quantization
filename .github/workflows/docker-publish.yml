@@ -46,41 +46,38 @@ jobs:
           echo "Available space before Docker configuration:"
           df -h
           
+          # Stop Docker first to avoid conflicts
+          sudo systemctl stop docker || true
+          
           # Create storage directories on both filesystems
           sudo mkdir -p /var/lib/docker
           sudo mkdir -p /mnt/docker-storage
           sudo mkdir -p /var/lib/buildkit
           sudo mkdir -p /mnt/buildkit-storage
           
-          # Create symbolic links to split storage intelligently
-          sudo mkdir -p /var/lib/docker/overlay2
-          sudo mkdir -p /var/lib/docker/containers
-          sudo mkdir -p /var/lib/docker/image
-          sudo mkdir -p /var/lib/docker/volumes
+          # Create subdirectories for Docker storage
+          sudo mkdir -p /mnt/docker-storage/overlay2
+          sudo mkdir -p /mnt/docker-storage/containers
+          sudo mkdir -p /mnt/docker-storage/volumes
+          sudo mkdir -p /mnt/docker-storage/image
           
-          # Link large directories to /mnt, keep small ones on /
-          sudo ln -sf /mnt/docker-storage/overlay2 /var/lib/docker/overlay2
-          sudo ln -sf /mnt/docker-storage/containers /var/lib/docker/containers
-          sudo ln -sf /mnt/docker-storage/volumes /var/lib/docker/volumes
-          
-          # Keep image metadata on root (small files, fast access)
-          # sudo ln -sf /mnt/docker-storage/image /var/lib/docker/image
+          # Use bind mounts instead of symbolic links for better compatibility
+          sudo mount --bind /mnt/docker-storage/overlay2 /var/lib/docker/overlay2 2>/dev/null || true
+          sudo mount --bind /mnt/docker-storage/containers /var/lib/docker/containers 2>/dev/null || true
+          sudo mount --bind /mnt/docker-storage/volumes /var/lib/docker/volumes 2>/dev/null || true
+          sudo mount --bind /mnt/docker-storage/image /var/lib/docker/image 2>/dev/null || true
           
           # Create BuildKit storage on /mnt
-          sudo ln -sf /mnt/buildkit-storage /var/lib/buildkit
-          
-          # Stop Docker and configure
-          sudo systemctl stop docker
-          sudo mkdir -p /etc/docker
+          sudo mount --bind /mnt/buildkit-storage /var/lib/buildkit 2>/dev/null || true
           
           # Configure Docker with optimized storage settings
+          sudo mkdir -p /etc/docker
           cat << EOF | sudo tee /etc/docker/daemon.json
           {
             "data-root": "/var/lib/docker",
             "storage-driver": "overlay2",
             "storage-opts": [
-              "overlay2.override_kernel_check=true",
-              "overlay2.size=10G"
+              "overlay2.override_kernel_check=true"
             ],
             "max-concurrent-downloads": 10,
             "max-concurrent-uploads": 5,
@@ -92,20 +89,29 @@ jobs:
           }
           EOF
           
-          # Start Docker
-          sudo systemctl start docker
-          sudo systemctl status docker
+          # Start Docker with error handling
+          echo "Starting Docker service..."
+          if sudo systemctl start docker; then
+            echo "Docker started successfully"
+            sudo systemctl status docker --no-pager
+          else
+            echo "Docker failed to start. Checking logs..."
+            sudo journalctl -xeu docker.service --no-pager | tail -50
+            echo "Attempting to start with default configuration..."
+            sudo rm -f /etc/docker/daemon.json
+            sudo systemctl start docker
+          fi
           
           echo "Split storage configured:"
-          echo "Docker root: $(docker info | grep 'Docker Root Dir')"
+          echo "Docker root: $(docker info | grep 'Docker Root Dir' || echo 'Docker not responding')"
           echo "BuildKit root: /var/lib/buildkit"
           echo "Storage distribution:"
           echo "  Root (/): Image metadata, logs, configs"
           echo "  /mnt: Large files (layers, containers, volumes)"
           echo "Available space after configuration:"
           df -h
-          echo "Symbolic links:"
-          ls -la /var/lib/docker/ | grep "^l"
+          echo "Mount points:"
+          mount | grep -E "(docker|buildkit)" || echo "No Docker mounts found"
 
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
