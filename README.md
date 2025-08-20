@@ -11,24 +11,16 @@ git config --global user.email "vipuls181999@gmail.com"
 git config --global user.name "Vipul Sharma"
 ```
 
-## Benchmarking:
-Run with CUDA_LAUNCH_BLOCKING=1 to make GPU-CPU sync after each kernel, to get more interpretable profiling results for each kernel.
+## Benchmarking Roadmap:
+[ ] calculate theoretical performance limit and roofline model for Llama-3.1 8B to have a target.
 
-(Ignore) Other results from sekstini on EleutherAI discord (Llama-7b):
+## Benchmarking Notes:
+Run with CUDA_LAUNCH_BLOCKING=1 to make GPU-CPU sync after each kernel, to get more interpretable profiling results for each kernel.    
 
-fp16 + compile: 69.04 tokens/sec, 930.65 GB/s       
-fp16 + compile + TP=2 (NCCL_P2P_DISABLE=1): 113.26 tokens/sec, 792.91 GB/s      
-fp16 + compile + compile prefill + int4 (G=32) draft model: 112.53 tokens/s, 1592.94 GB/s (lol)     
+Carson Poole's tweet about what one needs to optimize:    
+https://x.com/CarsonPoole/status/1843751758331613573
 
-int8 + compile: 126.07 tokens/s, 866.56 GB/s        
-int8 + compile + TP=2 (NCCL_P2P_DISABLE=1): 183.31 tokens/sec, 666.53 GB/s      
-
-int4 (G=32) + compile: 189.76 tokens/s, 833.44 GB/s     
-int4 (G=32) + compile + TP=2 (NCCL_P2P_DISABLE=1): 218.99 tokens/s, 518.64 GB/s     
-int4 (G=32) + compile + compile prefill + int4 (G=32) draft model: 215.25 tokens/s, 929.95 GB/s (bandwidth prob incorrect?)     
-
-pytorch-triton==2.1.0+bcad9dabe1        
-torch==2.2.0.dev20231205+cu121      
+Other results from sekstini on EleutherAI discord (Llama-7b, 2024):
 
 fp16 + compile: 69.04 tokens/sec, 930.65 GB/s       
 fp16 + compile + TP=2 (NCCL_P2P_DISABLE=1): 113.26 tokens/sec, 792.91 GB/s      

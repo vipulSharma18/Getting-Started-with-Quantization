@@ -1,3 +1,7 @@
+# vast
+onstart.sh
+ports.log
+
 # profiler trace
 trace.json
 log
