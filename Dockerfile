@@ -45,6 +45,6 @@ RUN (type -p wget >/dev/null || (apt update && apt install wget -y)) \
 
 RUN mkdir -p ${TRANSFORMERS_CACHE}
 
-ENTRYPOINT [ "./entrypoint.sh" ]
+# ENTRYPOINT [ "./entrypoint.sh" ]
 
-CMD ["bash"]
+CMD ["/bin/bash", "-C", "./entrypoint.sh && exec /bin/bash"]
