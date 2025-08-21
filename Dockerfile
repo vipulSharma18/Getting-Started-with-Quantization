@@ -45,4 +45,4 @@ RUN (type -p wget >/dev/null || (apt update && apt install wget -y)) \
 
 RUN mkdir -p ${TRANSFORMERS_CACHE}
 
-CMD ["/bin/bash", "-c", "/app/download_model.sh && exec /bin/bash"]
+CMD ["/bin/bash", "-c", "sleep infinity"]

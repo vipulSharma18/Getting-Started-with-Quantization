@@ -10,3 +10,5 @@ fi
 
 source /app/.venv/bin/activate
 hf download --repo-type model unsloth/Meta-Llama-3.1-8B-Instruct
+
+echo "download complete"
