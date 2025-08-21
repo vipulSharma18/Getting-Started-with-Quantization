@@ -47,4 +47,4 @@ RUN mkdir -p ${TRANSFORMERS_CACHE}
 
 # ENTRYPOINT [ "./entrypoint.sh" ]
 
-CMD ["/bin/bash", "-C", "./entrypoint.sh && exec /bin/bash"]
+CMD ["bash"]
