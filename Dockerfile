@@ -45,4 +45,6 @@ RUN (type -p wget >/dev/null || (apt update && apt install wget -y)) \
 
 RUN mkdir -p ${TRANSFORMERS_CACHE}
 
-CMD ["/bin/bash", "-c", "sleep infinity"]
+ENTRYPOINT [ "/app/entrypoint.sh" ]
+
+CMD ["/bin/bash", "-c", "echo 'Container Started' && sleep infinity"]
