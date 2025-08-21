@@ -16,7 +16,10 @@ dependencies = [
     "jupyterlab",
     "notebook",
     "ipykernel",
-    "huggingface_hub[cli]",
+    "huggingface_hub[hf_transfer,cli]",
+    "tensorboard",
+    "tensorboard-data-server",
+    "torch-tb-profiler"
 ]
 
 [dependency-groups]

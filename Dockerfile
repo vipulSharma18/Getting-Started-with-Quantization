@@ -4,6 +4,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV UV_LINK_MODE=copy
 ENV HF_HOME=/root/.cache/huggingface
 ENV TRANSFORMERS_CACHE=${HF_HOME}
+ENV HF_HUB_ENABLE_HF_TRANSFER=1
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
@@ -15,8 +16,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-pip \
     ca-certificates \
     openssh-client \
-    openssh-server \
-    tmux \
     && rm -rf /var/lib/apt/lists/*
 
 ADD https://astral.sh/uv/install.sh /uv-installer.sh
@@ -45,8 +44,6 @@ RUN (type -p wget >/dev/null || (apt update && apt install wget -y)) \
 && apt install gh -y
 
 RUN mkdir -p ${TRANSFORMERS_CACHE}
-RUN . /app/.venv/bin/activate && \
-    huggingface-cli download --repo-type model unsloth/Meta-Llama-3.1-8B-Instruct
 
 ENTRYPOINT [ "./entrypoint.sh" ]
 
