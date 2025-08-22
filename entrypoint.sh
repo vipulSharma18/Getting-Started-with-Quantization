@@ -19,6 +19,7 @@ echo "[entrypoint] Starting ssh service after generating keys..."
 /usr/sbin/sshd || echo "[entrypoint] ERROR: failed to start ssh service"
 
 echo "[entrypoint] Listing contents of ~/.ssh/:"
+mkdir -p ~/.ssh/
 ls -l ~/.ssh/ || echo "[entrypoint] ~/.ssh/ does not exist, i.e., no user auth keys found"
 
 echo "[entrypoint] entrypoint sshd checks complete"
