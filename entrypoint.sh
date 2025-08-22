@@ -42,10 +42,15 @@ echo "[entrypoint] setting up gemlite env"
 uv sync --locked --group gemlite
 echo "[entrypoint] gemlite environment setup complete"
 
-echo "[entrypoint] starting HF download."
-hf download --repo-type model unsloth/Meta-Llama-3.1-8B-Instruct
-echo "[entrypoint] hf download complete."
+echo "[entrypoint] starting HF download in background"
+nohup hf download --repo-type model unsloth/Meta-Llama-3.1-8B-Instruct &
+echo "[entrypoint] hf download running in background."
 
 echo "[entrypoint] entrypoint script complete"
 
-exec "$@"
+# Only exec if arguments are provided
+if [ $# -gt 0 ]; then
+    exec "$@"
+else
+    echo "[entrypoint] No arguments provided, script completed successfully"
+fi

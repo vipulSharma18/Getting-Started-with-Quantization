@@ -19,6 +19,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     openssh-server \
     procps \
     net-tools \
+    coreutils \
     && rm -rf /var/lib/apt/lists/*
 
 ADD https://astral.sh/uv/install.sh /uv-installer.sh
