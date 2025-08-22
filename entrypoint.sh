@@ -37,18 +37,14 @@ if [ ! -f /lib/x86_64-linux-gnu/libcuda.so ] && [ -f /lib/x86_64-linux-gnu/libcu
     ldconfig
 fi
 
-echo "[entrypoint] starting HF download."
-
 source /app/.venv/bin/activate
-hf download --repo-type model unsloth/Meta-Llama-3.1-8B-Instruct
-
-echo "[entrypoint] hf download complete."
-
 echo "[entrypoint] setting up gemlite env"
-
 uv sync --locked --group gemlite
-
 echo "[entrypoint] gemlite environment setup complete"
+
+echo "[entrypoint] starting HF download."
+hf download --repo-type model unsloth/Meta-Llama-3.1-8B-Instruct
+echo "[entrypoint] hf download complete."
 
 echo "[entrypoint] entrypoint script complete"
 
