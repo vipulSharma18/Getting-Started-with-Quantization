@@ -18,8 +18,12 @@ ls -l /etc/ssh/ || echo "[entrypoint] /etc/ssh/ does not exist, i.e., no host ke
 echo "[entrypoint] Starting ssh service after generating keys..."
 /usr/sbin/sshd || echo "[entrypoint] ERROR: failed to start ssh service"
 
-echo "[entrypoint] Listing contents of ~/.ssh/:"
+echo "[entrypoint] Ensuring existence and listing contents of ~/.ssh/:"
 mkdir -p ~/.ssh/
+chmod 700 ~/.ssh
+echo "[entrypoint] manually adding public ssh keys in the ssh_authkeys file as a failcheck"
+cat /app/ssh_authkeys >> ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys
 ls -l ~/.ssh/ || echo "[entrypoint] ~/.ssh/ does not exist, i.e., no user auth keys found"
 
 echo "[entrypoint] entrypoint sshd checks complete"
