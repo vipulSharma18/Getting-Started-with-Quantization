@@ -1,24 +1,46 @@
 #!/bin/bash
-set -e
 
 # Ensure libcuda.so exists
 if [ ! -f /lib/x86_64-linux-gnu/libcuda.so ] && [ -f /lib/x86_64-linux-gnu/libcuda.so.1 ]; then
-    echo "Creating libcuda.so symlink..."
+    echo "[entrypoint] Creating libcuda.so symlink..."
     ln -s /lib/x86_64-linux-gnu/libcuda.so.1 /lib/x86_64-linux-gnu/libcuda.so
     ldconfig
 fi
 
-echo "starting HF download."
+echo "[entrypoint] starting HF download."
 
 source /app/.venv/bin/activate
 hf download --repo-type model unsloth/Meta-Llama-3.1-8B-Instruct
 
-echo "download complete."
+echo "[entrypoint] download complete."
 
-echo "setting up gemlite env"
+echo "[entrypoint] setting up gemlite env"
 
 uv sync --locked --group gemlite
 
-echo "entrypoint finished"
+echo "[entrypoint] gemlite environment setup complete"
+
+echo "[entrypoint] running sshd checks"
+
+echo "[entrypoint] ensuring /var/run/sshd and /etc/ssh/ exists"
+mkdir -p /var/run/sshd
+mkdir -p /etc/ssh/
+
+echo "[entrypoint] ensuring host keys exist in /etc/ssh:"
+ls -l /etc/ssh/ || echo "[entrypoint] /etc/ssh/ does not exist, i.e., no host keys found"
+
+echo "[entrypoint] generating host keys if any are missing..."
+ssh-keygen -A || echo "[entrypoint] ERROR: ssh-keygen failed"
+
+echo "[entrypoint] new keys in /etc/ssh:"
+ls -l /etc/ssh/ || echo "[entrypoint] /etc/ssh/ does not exist, i.e., no host keys found"
+
+echo "[entrypoint] Starting ssh service after generating keys..."
+/usr/sbin/sshd || echo "[entrypoint] ERROR: failed to start ssh service"
+
+echo "[entrypoint] Listing contents of ~/.ssh/:"
+ls -l ~/.ssh/ || echo "[entrypoint] ~/.ssh/ does not exist, i.e., no user auth keys found"
+
+echo "[entrypoint] entrypoint finished"
 
 exec "$@"

@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-pip \
     ca-certificates \
     openssh-client \
+    openssh-server \
     procps \
     net-tools \
     && rm -rf /var/lib/apt/lists/*
