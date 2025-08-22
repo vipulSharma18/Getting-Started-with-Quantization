@@ -40,8 +40,10 @@ WORKDIR /app
 ADD uv.lock /app/uv.lock
 ADD pyproject.toml /app/pyproject.toml
 ADD .python-version /app/.python-version
-ADD . /app
 
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --no-install-project
+ADD . /app
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked
 
