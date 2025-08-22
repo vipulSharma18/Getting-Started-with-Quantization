@@ -1,25 +1,5 @@
 #!/bin/bash
 
-# Ensure libcuda.so exists
-if [ ! -f /lib/x86_64-linux-gnu/libcuda.so ] && [ -f /lib/x86_64-linux-gnu/libcuda.so.1 ]; then
-    echo "[entrypoint] Creating libcuda.so symlink..."
-    ln -s /lib/x86_64-linux-gnu/libcuda.so.1 /lib/x86_64-linux-gnu/libcuda.so
-    ldconfig
-fi
-
-echo "[entrypoint] starting HF download."
-
-source /app/.venv/bin/activate
-hf download --repo-type model unsloth/Meta-Llama-3.1-8B-Instruct
-
-echo "[entrypoint] download complete."
-
-echo "[entrypoint] setting up gemlite env"
-
-uv sync --locked --group gemlite
-
-echo "[entrypoint] gemlite environment setup complete"
-
 echo "[entrypoint] running sshd checks"
 
 echo "[entrypoint] ensuring /var/run/sshd and /etc/ssh/ exists"
@@ -41,6 +21,30 @@ echo "[entrypoint] Starting ssh service after generating keys..."
 echo "[entrypoint] Listing contents of ~/.ssh/:"
 ls -l ~/.ssh/ || echo "[entrypoint] ~/.ssh/ does not exist, i.e., no user auth keys found"
 
-echo "[entrypoint] entrypoint finished"
+echo "[entrypoint] entrypoint sshd checks complete"
+
+echo "[entrypoint] starting app setup"
+
+# Ensure libcuda.so exists
+if [ ! -f /lib/x86_64-linux-gnu/libcuda.so ] && [ -f /lib/x86_64-linux-gnu/libcuda.so.1 ]; then
+    echo "[entrypoint] Creating libcuda.so symlink..."
+    ln -s /lib/x86_64-linux-gnu/libcuda.so.1 /lib/x86_64-linux-gnu/libcuda.so
+    ldconfig
+fi
+
+echo "[entrypoint] starting HF download."
+
+source /app/.venv/bin/activate
+hf download --repo-type model unsloth/Meta-Llama-3.1-8B-Instruct
+
+echo "[entrypoint] hf download complete."
+
+echo "[entrypoint] setting up gemlite env"
+
+uv sync --locked --group gemlite
+
+echo "[entrypoint] gemlite environment setup complete"
+
+echo "[entrypoint] entrypoint script complete"
 
 exec "$@"
