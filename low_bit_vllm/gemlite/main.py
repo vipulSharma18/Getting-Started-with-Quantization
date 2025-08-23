@@ -5,12 +5,58 @@
 #pip install git+https://github.com/mobiusml/gemlite/;
 #TRITON_PRINT_AUTOTUNING=1 ipython ...
 ################################################################################################################
-import os
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
+
 import gemlite
-from gemlite.helper import *
+from gemlite.core import TORCH_TO_DTYPE
+from gemlite.helper import (
+    cleanup_linear,
+    patch_model,
+    warmup
+)
+
+from gemlite.helper import (
+    A16W8,
+    A16Wn,
+    A16W8_INT,
+    A16Wn_HQQ_INT,
+    A16W8_HQQ_INT,
+    A16W4_HQQ_INT,
+    A16W2_HQQ_INT,
+    A16W1_HQQ_INT,
+    A16Wn_MXFP,
+    A16W8_MXFP,
+    A16W4_MXFP
+)
+
+from gemlite.helper import (
+    A8W8_dynamic,
+    A8W8_int8_dynamic,
+    A8W8_INT8_dynamic,
+    A8W8_fp8_dynamic,
+    A8W8_FP8_dynamic,
+    A8Wn_HQQ_INT_dynamic,
+    A8W4_HQQ_INT_dynamic,
+    A8W2_HQQ_INT_dynamic,
+    A8W8_MXFP_dynamic,
+    A8Wn_MXFP_dynamic,
+    A8W8_MXFP_dynamic,
+    A8W4_MXFP_dynamic
+)
+
+from gemlite.helper import (
+    A4W4_MXFP_dynamic,
+    A4W4_NVFP_dynamic
+)
+
+from gemlite.helper import (
+    A16W158_INT,
+    A8W158_INT_dynamic
+)
+
 from gemlite import DType, GemLiteLinear
+
 from hqq.utils.generation_hf import HFGenerator
 
 gemlite.set_autotune("fast") #Use max for the best perf
