@@ -1,4 +1,11 @@
 #!/bin/bash
+set -e
+
+export HF_HOME=/root/.cache/huggingface
+export TRANSFORMERS_CACHE=/root/.cache/huggingface
+export HF_HUB_ENABLE_HF_TRANSFER=1
+export UV_LINK_MODE=copy
+export PATH="/root/.local/bin/:$PATH"
 
 echo "[entrypoint] running sshd checks"
 
@@ -50,6 +57,7 @@ echo "[entrypoint] entrypoint script complete"
 
 # Only exec if arguments are provided
 if [ $# -gt 0 ]; then
+    echo "[entrypoint] Running exec with arguments: $@"
     exec "$@"
 else
     echo "[entrypoint] No arguments provided, script completed successfully"

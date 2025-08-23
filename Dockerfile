@@ -7,6 +7,9 @@ ENV DEBIAN_FRONTEND=noninteractive \
     HF_HUB_ENABLE_HF_TRANSFER=1 \
     PATH="/root/.local/bin/:$PATH"
 
+EXPOSE 22/tcp 80/tcp 443/tcp 8080/tcp 
+EXPOSE 22/udp 80/udp 443/udp 8080/udp
+
 ADD https://astral.sh/uv/install.sh /uv-installer.sh
 
 # add keyring for gh/github cli for git creds management
@@ -52,4 +55,4 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 ENTRYPOINT [ "/app/entrypoint.sh" ]
 
-CMD ["/bin/bash", "-c", "echo 'Container Started' && sleep infinity"]
+CMD ["/bin/bash", "-c", "echo '[dockerfile] Container Started' && sleep infinity"]
