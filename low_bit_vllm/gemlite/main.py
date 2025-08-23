@@ -139,19 +139,34 @@ torch.cuda.synchronize()
 
 # use CUDA_BLOCKING_MODE=1 to do sync after each kernel dispatch and to know precisely what part of code is slow.
 
-with torch.profiler.profile(
-    activities = [
-        torch.profiler.ProfilerActivity.CPU,
-        torch.profiler.ProfilerActivity.CUDA,
-    ],
-    schedule = torch.profiler.schedule(skip_first=10, wait = 1, warmup = 1, active = 3, repeat =2 ),
-    on_trace_ready = torch.profiler.tensorboard_trace_handler('./log/gemlite'),
-    record_shapes = True,
-    profile_memory = True,
-    with_stack = True,  # this will add overhead, set it to False for benchmarking.
-    with_flops = True,
-) as prof:
-    for i in range(20):  # 2*(1+1+3) wait, warmup, active + 10 skip_first cycles
+skip_first = 0
+wait = 0
+warmup = 0
+active = 1
+repeat = 1
+
+profiling_schedule = torch.profiler.schedule(
+    skip_first = skip_first,
+    wait = wait,
+    warmup = warmup,
+    active = active,
+    repeat = repeat
+)
+
+for i in range(skip_first + repeat*(wait + warmup + active)):
+    print(f"Profiling Iteration {i}.")
+    with torch.profiler.profile(
+        activities = [
+            torch.profiler.ProfilerActivity.CPU,
+            torch.profiler.ProfilerActivity.CUDA,
+        ],
+        schedule = profiling_schedule,
+        on_trace_ready = torch.profiler.tensorboard_trace_handler('./log/gemlite'),
+        record_shapes = True,
+        profile_memory = True,
+        with_stack = True,  # this will add overhead, set it to False for benchmarking.
+        with_flops = True,
+    ) as prof:
         with torch.inference_mode():
             gen = HFGenerator(
                 model,
