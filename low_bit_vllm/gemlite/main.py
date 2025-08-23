@@ -18,15 +18,22 @@ gemlite.set_autotune("fast") #Use max for the best perf
 device        = 'cuda:0'
 compute_dtype = torch.float16
 model_id      = "unsloth/Meta-Llama-3.1-8B-Instruct"
+cache_dir     = "/root/.cache/huggingface/hub"
 
-tokenizer = AutoTokenizer.from_pretrained(model_id, local_files_only=True)
+print(f"Loading pretrained model and tokenizer: {model_id}.")
+
+tokenizer = AutoTokenizer.from_pretrained(model_id, cache_dir=cache_dir)
 model     = AutoModelForCausalLM.from_pretrained(
     model_id,
     torch_dtype=compute_dtype,
     attn_implementation="sdpa",
-    local_files_only=True,
+    cache_dir=cache_dir,
     device_map="cpu"
 )
+
+params = sum(p.numel() for p in model.parameters())
+
+print(f"Model loaded {model_id}. Number of parameters in model: {params}")
 
 quantize_activations = False
 W_nbits = 1
@@ -125,6 +132,7 @@ def patch_linear_to_gemlite(layer, name):
 autoname_modules(model)
 patch_linearlayers(model, patch_linear_to_gemlite)
 model = model.to(device)
+print("Model moved to GPU, starting profiling.")
 torch.cuda.synchronize()
 
 ################################################################################################################
