@@ -1,11 +1,26 @@
+import os
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
-from hqq.utils.generation_hf import HFGenerator
+from tokenize_utils import tokenize_prompt
 
-device        = 'cuda:0'
+# hf model args
+device = 'cuda:0'
 compute_dtype = torch.float16
-model_id      = "unsloth/Meta-Llama-3.1-8B-Instruct"
-cache_dir     = "/root/.cache/huggingface/hub"
+model_id = "unsloth/Meta-Llama-3.1-8B-Instruct"
+cache_dir = "/root/.cache/huggingface/hub"
+# profiling args
+profiling_dir = os.getcwd()
+profiling_dir = os.path.join(profiling_dir[:os.find("low_bit_vllm")], "log/baseline")
+skip_first = 0
+wait = 0
+warmup = 0
+active = 1
+repeat = 1
+# prompt args
+prompt = "Write an essay about large language models."
+max_new_tokens = 1024
+chat_template = ""
+top_k = 3
 
 print(f"Loading pretrained model and tokenizer: {model_id}.")
 tokenizer = AutoTokenizer.from_pretrained(model_id, cache_dir=cache_dir)
@@ -28,12 +43,6 @@ model = model.to(device)
 print("Model moved to GPU, starting profiling.")
 torch.cuda.synchronize()
 
-skip_first = 0
-wait = 0
-warmup = 0
-active = 1
-repeat = 1
-
 profiling_schedule = torch.profiler.schedule(
     skip_first = skip_first,
     wait = wait,
@@ -50,23 +59,21 @@ for i in range(skip_first + repeat*(wait + warmup + active)):
             torch.profiler.ProfilerActivity.CUDA,
         ],
         schedule = profiling_schedule,
-        on_trace_ready = torch.profiler.tensorboard_trace_handler('./log/gemlite'),
+        on_trace_ready = torch.profiler.tensorboard_trace_handler(profiling_dir),
         record_shapes = True,
         profile_memory = True,
         with_stack = True,  # this will add overhead, set it to False for benchmarking.
         with_flops = True,
     ) as prof:
         with torch.inference_mode():
-            gen = HFGenerator(
-                model,
-                tokenizer,
-                max_new_tokens=1024,
+            tokenized_prompt = tokenize_prompt(prompt, chat_template)
+            out = model.generate(
+                tokenized_prompt,
                 do_sample=False,
-                compile="partial",
-                compile_options={"mode": "max-autotune-no-cudagraphs", "fullgraph": True},
-            ).enable_cuda_graph().warmup()
-
-            out = gen.generate("Write an essay about large language models.", print_tokens=False)
+                max_new_tokens=max_new_tokens,
+                pad_token_id=tokenizer.pad_token_id,
+                top_p=top_k,
+            )
         prof.step()
 print("profiling complete")
 
