@@ -18,7 +18,7 @@ def prep_for_inference(model, tokenizer, config):
     return model, tokenizer
 
 def load_model_tokenizer(config):
-    tokenizer = AutoTokenizer.from_pretrained(config.model_id, cache_dir=config.cache_dir)
+    tokenizer = AutoTokenizer.from_pretrained(config.model_id, cache_dir=config.cache_dir)  # if a rust based tokenizer is not avialable, this falls back to Python implementation which is slower.
     model = AutoModelForCausalLM.from_pretrained(
         config.model_id,
         torch_dtype=to_torch_dtype(config.compute_dtype),

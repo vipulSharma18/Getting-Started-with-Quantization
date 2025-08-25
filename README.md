@@ -16,12 +16,13 @@ git config --global user.name "Vipul Sharma"
 - [ ] HTA trace.
 
 ## Benchmarking Notes:
-Run with CUDA_LAUNCH_BLOCKING=1 to make GPU-CPU sync after each kernel, to get more interpretable profiling results for each kernel.    
+* The tokenizer should be a Rust-based implementation, not python. HF-Transformers' AutoTokenizer automatically prefers a Rust based implementation and falls back to Python if Rust implementation not availble. But for a new model, we'll need to create our own Rust-based implementation.
 
-Carson Poole's tweet about what one needs to optimize:    
-https://x.com/CarsonPoole/status/1843751758331613573
+* Run with CUDA_LAUNCH_BLOCKING=1 to make GPU-CPU sync after each kernel, to get more interpretable profiling results for each kernel.    
 
-Other results from sekstini on EleutherAI discord (Llama-7b, 2024):
+* Carson Poole's tweet about what one needs to optimize: https://x.com/CarsonPoole/status/1843751758331613573
+
+* Other results from sekstini on EleutherAI discord (Llama-7b, 2024):
 
 fp16 + compile: 69.04 tokens/sec, 930.65 GB/s       
 fp16 + compile + TP=2 (NCCL_P2P_DISABLE=1): 113.26 tokens/sec, 792.91 GB/s      
