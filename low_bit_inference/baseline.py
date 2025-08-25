@@ -1,4 +1,5 @@
 import math
+import os
 import torch
 from omegaconf import OmegaConf
 # utils
@@ -51,10 +52,9 @@ for i in range(config.skip_first + config.repeat*(config.wait + config.warmup + 
             tokenized_prompt = tokenize_prompt(config.prompt, config.chat_template)
             out = model.generate(
                 tokenized_prompt,
-                do_sample=False,
+                do_sample=config.do_sample,
                 max_new_tokens=config.max_new_tokens,
                 pad_token_id=tokenizer.pad_token_id,
-                top_p=config.top_k,
             )
         prof.step()
 print("profiling complete")
@@ -63,4 +63,4 @@ print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=100))
 print("-"*20)
 print(prof.key_averages(group_by_stack_n=8).table(sort_by="cpu_time_total", row_limit=100))
 
-prof.export_chrome_trace("trace.json")
+prof.export_chrome_trace(os.path.join(config.profiling_dir, "trace.json"))
