@@ -4,7 +4,6 @@ import torch
 from omegaconf import OmegaConf
 # utils
 from .utils.hf_utils import load_model_tokenizer
-from .utils.tokenize_utils import tokenize_prompt
 from .utils.config_utils import get_config
 # optims
 from .optims.kv_cache_optim import setup_cache
@@ -49,13 +48,15 @@ for i in range(config.skip_first + config.repeat*(config.wait + config.warmup + 
         with_flops = True,
     ) as prof:
         with torch.inference_mode():
-            tokenized_prompt = tokenize_prompt(config.prompt, config.chat_template)
-            out = model.generate(
-                tokenized_prompt,
+            prompt = config.prompt if isinstance(config.prompt, list) else list(config.prompt)
+            tokenized_prompt = tokenizer(prompt, return_tensors="pt").to(config.device)
+            out_generated_token_ids = model.generate(
+                **tokenized_prompt,
                 do_sample=config.do_sample,
                 max_new_tokens=config.max_new_tokens,
                 pad_token_id=tokenizer.pad_token_id,
             )
+            out_generated_tokens = tokenizer.batch_decode(out_generated_token_ids)[0]
         prof.step()
 print("profiling complete")
 

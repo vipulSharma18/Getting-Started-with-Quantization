@@ -22,7 +22,7 @@ def load_model_tokenizer(config):
     model = AutoModelForCausalLM.from_pretrained(
         config.model_id,
         torch_dtype=to_torch_dtype(config.compute_dtype),
-        attn_implementation="sdpa",
+        attn_implementation=config.attn_implementation,
         cache_dir=config.cache_dir,
         device_map="auto"
     )

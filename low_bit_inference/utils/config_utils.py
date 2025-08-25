@@ -43,6 +43,7 @@ class ProfileConfig:
     temperature: Optional[float] = 0.6
     use_cache: bool = True
     cache_implementation: str = "static"
+    attn_implementation: str = "sdpa"
 
     # tokenizer args
     padding_side: str = "right"
