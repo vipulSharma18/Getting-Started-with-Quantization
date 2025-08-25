@@ -34,7 +34,7 @@ class ProfileConfig:
     active: int = 1
     repeat: int = 1
 
-    # prompt args
+    # inference args
     prompt: str = "Write an essay about large language models."
     max_new_tokens: int = 1024
     chat_template: str = ""
@@ -42,6 +42,10 @@ class ProfileConfig:
     top_k: Optional[int] = 5
     temperature: Optional[float] = 0.6
     use_cache: bool = True
+    cache_implementation: str = "static"
+
+    # tokenizer args
+    padding_side: str = "right"
 
 def to_torch_dtype(x):
     unsupported = ["fp8", "int4", "mxfp4", "nvfp4"]
