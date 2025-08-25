@@ -46,7 +46,7 @@ class ProfileConfig:
     attn_implementation: str = "sdpa"
 
     # tokenizer args
-    padding_side: str = "right"
+    padding_side: str = "left"
 
 def to_torch_dtype(x):
     unsupported = ["fp8", "int4", "mxfp4", "nvfp4"]

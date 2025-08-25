@@ -22,3 +22,4 @@ top_k: 5
 temperature: 0.6
 use_cache: True
 cache_implementation: "static"
+padding_side: "left"
