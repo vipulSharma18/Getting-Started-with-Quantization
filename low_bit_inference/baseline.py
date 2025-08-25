@@ -56,7 +56,7 @@ for i in range(config.skip_first + config.repeat*(config.wait + config.warmup + 
                 max_new_tokens=config.max_new_tokens,
                 pad_token_id=tokenizer.pad_token_id,
             )
-            out_generated_tokens = tokenizer.batch_decode(out_generated_token_ids)[0]
+            out_generated_tokens = tokenizer.batch_decode(out_generated_token_ids)[0]  # dummy batch dimension
         prof.step()
 print("profiling complete")
 

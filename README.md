@@ -18,7 +18,7 @@ git config --global user.name "Vipul Sharma"
 ## Benchmarking Notes:
 * The tokenizer should be a Rust-based implementation, not python. HF-Transformers' AutoTokenizer automatically prefers a Rust based implementation and falls back to Python if Rust implementation not availble. But for a new model, we'll need to create our own Rust-based implementation.
 
-* Run with CUDA_LAUNCH_BLOCKING=1 to make GPU-CPU sync after each kernel, to get more interpretable profiling results for each kernel.    
+* Run with CUDA_LAUNCH_BLOCKING=1 to make GPU-CPU sync after each kernel, to get more interpretable profiling results for each kernel.
 
 * Carson Poole's tweet about what one needs to optimize: https://x.com/CarsonPoole/status/1843751758331613573
 
