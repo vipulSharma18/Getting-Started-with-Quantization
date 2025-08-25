@@ -1,0 +1,22 @@
+# hf model args
+device: "cuda:0"
+compute_dtype: torch.float16  #TODO, resolve to torch dtype
+model_id: "unsloth/Meta-Llama-3.1-8B-Instruct"
+cache_dir: "/root/.cache/huggingface/hub"
+
+# profiling args
+profiling_dir: "log/baseline"
+skip_first: 0
+wait: 0
+warmup: 0
+active: 1
+repeat: 1
+
+# prompt args
+prompt: "Write an essay about large language models."
+max_new_tokens: 1024
+chat_template: ""
+do_sample: False
+top_k: 5
+temperature: 0.6
+use_cache: True

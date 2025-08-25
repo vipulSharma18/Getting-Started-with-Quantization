@@ -19,7 +19,8 @@ dependencies = [
     "huggingface_hub[hf_transfer,cli]",
     "tensorboard",
     "tensorboard-data-server",
-    "torch-tb-profiler"
+    "torch-tb-profiler",
+    "omegaconf",
 ]
 
 [dependency-groups]

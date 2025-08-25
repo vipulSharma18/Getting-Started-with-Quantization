@@ -1,4 +1,3 @@
-import os
 import math
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -6,61 +5,45 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from tokenize_utils import tokenize_prompt
 from hf_utils import autoname_modules, prep_for_inference
 from kv_cache_optim import setup_cache
+from config_utils import get_config
+from omegaconf import OmegaConf
 
-# hf model args
-device = 'cuda:0'
-compute_dtype = torch.float16
-model_id = "unsloth/Meta-Llama-3.1-8B-Instruct"
-cache_dir = "/root/.cache/huggingface/hub"
-# profiling args
-profiling_dir = os.getcwd()
-profiling_dir = os.path.join(profiling_dir[:os.find("low_bit_vllm")], "log/baseline")
-skip_first = 0
-wait = 0
-warmup = 0
-active = 1
-repeat = 1
-# prompt args
-prompt = "Write an essay about large language models."
-max_new_tokens = 1024
-chat_template = ""
-do_sample = False
-top_k = 5 if do_sample else None
-temperature = 0.6 if do_sample else None
-use_cache = True
-cache_size = 2**math.ceil(math.log(max_new_tokens, 2))
 
-print(f"Loading pretrained model and tokenizer: {model_id}.")
-tokenizer = AutoTokenizer.from_pretrained(model_id, cache_dir=cache_dir)
+config = get_config("config/profile_baseline.py")
+print("config used:", OmegaConf.to_yaml(config), sep="\n")
+
+print(f"Loading pretrained model and tokenizer: {config.model_id}.")
+tokenizer = AutoTokenizer.from_pretrained(config.model_id, cache_dir=config.cache_dir)
 model     = AutoModelForCausalLM.from_pretrained(
-    model_id,
-    torch_dtype=compute_dtype,
+    config.model_id,
+    torch_dtype=config.compute_dtype,
     attn_implementation="sdpa",
-    cache_dir=cache_dir,
+    cache_dir=config.cache_dir,
     device_map="cpu"
 )
 params = sum(p.numel() for p in model.parameters())
-print(f"Model loaded {model_id}. Number of parameters in model: {params}")
+print(f"Model loaded {config.model_id}. Number of parameters in model: {params}")
 model, tokenizer = prep_for_inference(model, tokenizer)
 
-if use_cache:
+if config.use_cache:
     print("Setting cache")
+    cache_size = 2**math.ceil(math.log(config.max_new_tokens, 2))
     setup_cache(cache_size)
 
 autoname_modules(model)
-model = model.to(device)
+model = model.to(config.device)
 print("Model moved to GPU, starting profiling.")
 
 profiling_schedule = torch.profiler.schedule(
-    skip_first = skip_first,
-    wait = wait,
-    warmup = warmup,
-    active = active,
-    repeat = repeat
+    skip_first = config.skip_first,
+    wait = config.wait,
+    warmup = config.warmup,
+    active = config.active,
+    repeat = config.repeat
 )
 
 torch.cuda.synchronize()
-for i in range(skip_first + repeat*(wait + warmup + active)):
+for i in range(config.skip_first + config.repeat*(config.wait + config.warmup + config.active)):
     print(f"Profiling Iteration {i}.")
     with torch.profiler.profile(
         activities = [
@@ -68,20 +51,20 @@ for i in range(skip_first + repeat*(wait + warmup + active)):
             torch.profiler.ProfilerActivity.CUDA,
         ],
         schedule = profiling_schedule,
-        on_trace_ready = torch.profiler.tensorboard_trace_handler(profiling_dir),
+        on_trace_ready = torch.profiler.tensorboard_trace_handler(config.profiling_dir),
         record_shapes = True,
         profile_memory = True,
         with_stack = True,  # this will add overhead, set it to False for benchmarking.
         with_flops = True,
     ) as prof:
         with torch.inference_mode():
-            tokenized_prompt = tokenize_prompt(prompt, chat_template)
+            tokenized_prompt = tokenize_prompt(config.prompt, config.chat_template)
             out = model.generate(
                 tokenized_prompt,
                 do_sample=False,
-                max_new_tokens=max_new_tokens,
+                max_new_tokens=config.max_new_tokens,
                 pad_token_id=tokenizer.pad_token_id,
-                top_p=top_k,
+                top_p=config.top_k,
             )
         prof.step()
 print("profiling complete")

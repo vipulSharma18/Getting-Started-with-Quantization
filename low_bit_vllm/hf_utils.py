@@ -12,4 +12,4 @@ def prep_for_inference(model, tokenizer):
     model.eval()
     model.generation_config.cache_implementation = "static"
     model.config.use_cache = True
-    return model, tokenizer 
+    return model, tokenizer
