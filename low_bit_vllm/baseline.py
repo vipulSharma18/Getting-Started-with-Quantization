@@ -1,9 +1,8 @@
 import math
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
 # custom modules
+from hf_utils import load_model_tokenizer
 from tokenize_utils import tokenize_prompt
-from hf_utils import autoname_modules, prep_for_inference
 from kv_cache_optim import setup_cache
 from config_utils import get_config
 from omegaconf import OmegaConf
@@ -13,24 +12,14 @@ config = get_config("config/profile_baseline.py")
 print("config used:", OmegaConf.to_yaml(config), sep="\n")
 
 print(f"Loading pretrained model and tokenizer: {config.model_id}.")
-tokenizer = AutoTokenizer.from_pretrained(config.model_id, cache_dir=config.cache_dir)
-model     = AutoModelForCausalLM.from_pretrained(
-    config.model_id,
-    torch_dtype=config.compute_dtype,
-    attn_implementation="sdpa",
-    cache_dir=config.cache_dir,
-    device_map="cpu"
-)
-params = sum(p.numel() for p in model.parameters())
-print(f"Model loaded {config.model_id}. Number of parameters in model: {params}")
-model, tokenizer = prep_for_inference(model, tokenizer)
+model, tokenizer = load_model_tokenizer(config)
+print(f"Model loaded {config.model_id}.")
 
 if config.use_cache:
     print("Setting cache")
     cache_size = 2**math.ceil(math.log(config.max_new_tokens, 2))
     setup_cache(cache_size)
 
-autoname_modules(model)
 model = model.to(config.device)
 print("Model moved to GPU, starting profiling.")
 
