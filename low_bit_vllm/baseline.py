@@ -1,7 +1,11 @@
 import os
+import math
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
+# custom modules
 from tokenize_utils import tokenize_prompt
+from hf_utils import autoname_modules, prep_for_inference
+from kv_cache_optim import setup_cache
 
 # hf model args
 device = 'cuda:0'
@@ -20,7 +24,11 @@ repeat = 1
 prompt = "Write an essay about large language models."
 max_new_tokens = 1024
 chat_template = ""
-top_k = 3
+do_sample = False
+top_k = 5 if do_sample else None
+temperature = 0.6 if do_sample else None
+use_cache = True
+cache_size = 2**math.ceil(math.log(max_new_tokens, 2))
 
 print(f"Loading pretrained model and tokenizer: {model_id}.")
 tokenizer = AutoTokenizer.from_pretrained(model_id, cache_dir=cache_dir)
@@ -33,15 +41,15 @@ model     = AutoModelForCausalLM.from_pretrained(
 )
 params = sum(p.numel() for p in model.parameters())
 print(f"Model loaded {model_id}. Number of parameters in model: {params}")
+model, tokenizer = prep_for_inference(model, tokenizer)
 
-def autoname_modules(m):
-    for name, module in m.named_modules():
-        module.name = name  
+if use_cache:
+    print("Setting cache")
+    setup_cache(cache_size)
 
 autoname_modules(model)
 model = model.to(device)
 print("Model moved to GPU, starting profiling.")
-torch.cuda.synchronize()
 
 profiling_schedule = torch.profiler.schedule(
     skip_first = skip_first,
@@ -51,6 +59,7 @@ profiling_schedule = torch.profiler.schedule(
     repeat = repeat
 )
 
+torch.cuda.synchronize()
 for i in range(skip_first + repeat*(wait + warmup + active)):
     print(f"Profiling Iteration {i}.")
     with torch.profiler.profile(
