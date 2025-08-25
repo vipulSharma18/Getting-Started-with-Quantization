@@ -1,11 +1,12 @@
 import math
 import torch
-# custom modules
-from hf_utils import load_model_tokenizer
-from tokenize_utils import tokenize_prompt
-from kv_cache_optim import setup_cache
-from config_utils import get_config
 from omegaconf import OmegaConf
+# utils
+from .utils.hf_utils import load_model_tokenizer
+from .utils.tokenize_utils import tokenize_prompt
+from .utils.config_utils import get_config
+# optims
+from .optims.kv_cache_optim import setup_cache
 
 
 config = get_config("config/profile_baseline.py")
