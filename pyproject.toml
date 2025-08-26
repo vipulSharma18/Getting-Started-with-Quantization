@@ -10,7 +10,6 @@ authors = [
 
 dependencies = [
     "torch>=2.7.0",
-    "torchao",
     "torchvision",
     "HolisticTraceAnalysis",
     "ipython",
@@ -22,15 +21,16 @@ dependencies = [
     "tensorboard-data-server",
     "torch-tb-profiler",
     "omegaconf",
-    "transformers",
-    "gemlite",
-    "hqq",
 ]
 
 [dependency-groups]
 big_deps = [
-    "tensorrt-llm",
     "nvidia-modelopt[all]",
+    "torchao",
+    "transformers",
+    "gemlite",
+    "hqq",
+    # "tensorrt-llm", -> makes uv lock get stuck, figure out installation later
 ]
 
 [tool.uv.sources]
