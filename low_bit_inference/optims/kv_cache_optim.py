@@ -8,7 +8,7 @@ the KV cache and save memory.
 """
 
 from transformers import StaticCache
-import torch
+
 
 def setup_cache(cache_size, model_config, profile_config):
     past_key_values = StaticCache(
