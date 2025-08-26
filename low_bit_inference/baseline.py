@@ -65,6 +65,7 @@ for i in range(config.skip_first + config.repeat*(config.wait + config.warmup + 
             )
         prof.step()
     torch.cuda.synchronize()
+    torch.cuda.empty_cache()
     # tokens per second benchmarks don't seem to include tokenization and detokenization overhead
     # dummy batch dimension removed
     generated_tokens = tokenizer.batch_decode(generated_token_ids[0], skip_special_tokens=True)
