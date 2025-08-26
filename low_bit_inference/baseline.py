@@ -9,17 +9,25 @@ from .utils.config_utils import get_config
 from .optims.kv_cache_optim import setup_cache
 
 
-config = get_config("config/profile_baseline.py")
+# note: pass configs from cli for omegaconf to read, not as part of code.
+config = get_config("config/profile_template.py")
 print("config used:", OmegaConf.to_yaml(config), sep="\n")
 
 print(f"Loading pretrained model and tokenizer: {config.model_id}.")
 model, tokenizer = load_model_tokenizer(config)
 print(f"Model loaded {config.model_id}.")
 
+prompt = config.prompt if isinstance(config.prompt, list) else list(config.prompt)
+print(f"Using prompt: {prompt}")
+
 if config.use_cache:
-    print("Setting cache")
-    cache_size = 2**math.ceil(math.log(config.max_new_tokens, 2))
-    setup_cache(cache_size)
+    print("Setting up cache")
+    model.config.use_cache = config.use_cache
+    cache_size = 2**math.ceil(math.log(len(prompt) + config.max_new_tokens, 2))
+    past_key_values = setup_cache(cache_size, model.config, config)
+
+## compile the model here if you want
+# model.forward = torch.compile(model.forward)
 
 model = model.to(config.device)
 print("Model moved to GPU, starting profiling.")
@@ -32,9 +40,10 @@ profiling_schedule = torch.profiler.schedule(
     repeat = config.repeat
 )
 
-torch.cuda.synchronize()
 for i in range(config.skip_first + config.repeat*(config.wait + config.warmup + config.active)):
     print(f"Profiling Iteration {i}.")
+    tokenized_prompt = tokenizer(prompt, return_tensors="pt").to(config.device)  # will return a dict of token ids and attention mask
+    torch.cuda.synchronize()
     with torch.profiler.profile(
         activities = [
             torch.profiler.ProfilerActivity.CPU,
@@ -48,16 +57,19 @@ for i in range(config.skip_first + config.repeat*(config.wait + config.warmup + 
         with_flops = True,
     ) as prof:
         with torch.inference_mode():
-            prompt = config.prompt if isinstance(config.prompt, list) else list(config.prompt)
-            tokenized_prompt = tokenizer(prompt, return_tensors="pt").to(config.device)
-            out_generated_token_ids = model.generate(
+            generated_token_ids = model.generate(
                 **tokenized_prompt,
                 do_sample=config.do_sample,
                 max_new_tokens=config.max_new_tokens,
-                pad_token_id=tokenizer.pad_token_id,
+                past_key_values=past_key_values,
             )
-            out_generated_tokens = tokenizer.batch_decode(out_generated_token_ids)[0]  # dummy batch dimension
         prof.step()
+    torch.cuda.synchronize()
+    # tokens per second benchmarks don't seem to include tokenization and detokenization overhead
+    # dummy batch dimension removed
+    generated_tokens = tokenizer.batch_decode(generated_token_ids[0], skip_special_tokens=True)
+    print(f"Generated tokens: {generated_tokens}")
+    past_key_values.reset()
 print("profiling complete")
 
 print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=100))

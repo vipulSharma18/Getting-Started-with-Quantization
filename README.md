@@ -11,33 +11,26 @@ git config --global user.email "vipuls181999@gmail.com"
 git config --global user.name "Vipul Sharma"
 ```
 
+Run benchmark:
+```
+python low_bit_inference.baseline configs/profile_sanity_check
+python low_bit_inference.baseline configs/profile_baseline
+```
+
 ## Benchmarking Roadmap:
 - [ ] Calculate theoretical performance limit and roofline model for Llama-3.1 8B to have a target.
 - [ ] HTA trace.
 
 ## Benchmarking Notes:
-* The tokenizer should be a Rust-based implementation, not python. HF-Transformers' AutoTokenizer automatically prefers a Rust based implementation and falls back to Python if Rust implementation not availble. But for a new model, we'll need to create our own Rust-based implementation.
+* **Decoding**: HF by default uses greedy decoding but we can do speculative decoding, and structured/guided generation to speed-up generation.
 
-* Run with CUDA_LAUNCH_BLOCKING=1 to make GPU-CPU sync after each kernel, to get more interpretable profiling results for each kernel.
+* **KV Cache**: Need to make the KV Cache static/constant shape to allow for torch.compile to work. For our custom model, we'll need to do create custom static cache, for now using HF.
+
+* **Tokenizer**: The tokenizer should be a Rust-based implementation, not python. HF-Transformers' AutoTokenizer automatically prefers a Rust based implementation and falls back to Python if Rust implementation not availble. But for a new model, we'll need to create our own Rust-based implementation.
+
+* **Profiling interpretability**: Run with CUDA_LAUNCH_BLOCKING=1 to make GPU-CPU sync after each kernel, to get more interpretable profiling results for each kernel.
 
 * Carson Poole's tweet about what one needs to optimize: https://x.com/CarsonPoole/status/1843751758331613573
-
-* Other results from sekstini on EleutherAI discord (Llama-7b, 2024):
-
-fp16 + compile: 69.04 tokens/sec, 930.65 GB/s       
-fp16 + compile + TP=2 (NCCL_P2P_DISABLE=1): 113.26 tokens/sec, 792.91 GB/s      
-fp16 + compile + compile prefill + int4 (G=32) draft model: 112.53 tokens/s, 1592.94 GB/s (lol)     
-
-int8 + compile: 126.07 tokens/s, 866.56 GB/s        
-int8 + compile + TP=2 (NCCL_P2P_DISABLE=1): 183.31 tokens/sec, 666.53 GB/s      
-
-int4 (G=32) + compile: 189.76 tokens/s, 833.44 GB/s     
-int4 (G=32) + compile + TP=2 (NCCL_P2P_DISABLE=1): 218.99 tokens/s, 518.64 GB/s     
-int4 (G=32) + compile + compile prefill + int4 (G=32) draft model: 215.25 tokens/s, 929.95 GB/s (bandwidth prob incorrect?)     
-
-rtx 4090 (1000 GB/s mem/bw)     
-pytorch-triton==2.1.0+bcad9dabe1        
-torch==2.2.0.dev20231205+cu121      
 
 ## References:
 [1] A. Hoque, L. Wright, C.-C. Yang, M. Srivatsa, and R. Ganti, “Accelerating a Triton Fused Kernel for W4A16 Quantized Inference with SplitK work decomposition,” Feb. 22, 2024, arXiv: arXiv:2402.00025. doi: 10.48550/arXiv.2402.00025.    

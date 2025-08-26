@@ -22,12 +22,12 @@ class DType(Enum):
 class ProfileConfig:
     # hf model args
     device: str = "cuda:0"
-    compute_dtype: DType = DType.fp16
-    model_id: str = "unsloth/Meta-Llama-3.1-8B-Instruct"
+    dtype: DType = DType.fp16
+    model_id: str = ""
     cache_dir: str = "/root/.cache/huggingface/hub"
 
     # profiling args
-    profiling_dir: str = "log/baseline"
+    profiling_dir: str = "log/"
     skip_first: int = 0
     wait: int = 0
     warmup: int = 0
@@ -60,7 +60,7 @@ def to_torch_dtype(x):
         return DType[x].value
     return x
 
-def get_config(yml_file="configs/profile_baseline.yaml"):
+def get_config(yml_file="configs/profile_template.yaml"):
     if not os.path.exists(yml_file):
         print(f"The config file passed {yml_file} doesn't exist.")
         raise ValueError

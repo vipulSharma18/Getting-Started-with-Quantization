@@ -35,6 +35,8 @@ RUN (type -p wget >/dev/null || (apt-get update && apt-get install wget -y)) \
     procps \
     net-tools \
     coreutils \
+    openmpi-bin \
+    libopenmpi-dev \
 && rm -rf /var/lib/apt/lists/* \
 && sh /uv-installer.sh \
 && rm /uv-installer.sh \
