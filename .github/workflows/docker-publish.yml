@@ -55,9 +55,7 @@ jobs:
           call: check
       - name: cleanup space on github vm
         run: |
-            rm -rf /usr/local/lib/android \
-                   /usr/local/share/boost \
-                   /usr/share/dotnet \
+            rm -rf /usr/share/dotnet \
                    /opt/ghc \
                    "$AGENT_TOOLSDIRECTORY"
       

@@ -5,7 +5,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
     HF_HOME=/root/.cache/huggingface \
     TRANSFORMERS_CACHE=/root/.cache/huggingface \
     HF_HUB_ENABLE_HF_TRANSFER=1 \
-    PATH="/root/.local/bin/:$PATH"
+    PATH="/root/.local/bin/:$PATH" \
+    UV_CACHE_DIR=/mnt/uv-cache
 
 EXPOSE 22/tcp 80/tcp 443/tcp 8080/tcp 
 EXPOSE 22/udp 80/udp 443/udp 8080/udp
@@ -42,16 +43,16 @@ RUN (type -p wget >/dev/null || (apt-get update && apt-get install wget -y)) \
 
 WORKDIR /app
 
-RUN --mount=type=cache,target=/root/.cache/uv \
+RUN --mount=type=cache,target=/mnt/uv-cache \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     --mount=type=bind,source=.python-version,target=.python-version \
-    uv sync --locked --no-install-project
+    UV_CACHE_DIR=/mnt/uv-cache uv sync --locked --no-install-project
 
 COPY . /app
 
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked 
+RUN --mount=type=cache,target=/mnt/uv-cache \
+    UV_CACHE_DIR=/mnt/uv-cache uv sync --locked 
 
 ENTRYPOINT [ "/app/entrypoint.sh" ]
 
