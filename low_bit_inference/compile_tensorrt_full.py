@@ -10,7 +10,7 @@ from .optims.kv_cache_optim import setup_cache
 
 
 # note: pass configs from cli for omegaconf to read, not as part of code.
-config = get_config("config/profile_template.py")
+config = get_config()
 print("config used:", OmegaConf.to_yaml(config), sep="\n")
 
 print(f"Loading pretrained model and tokenizer: {config.model_id}.")

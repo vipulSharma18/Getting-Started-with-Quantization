@@ -1,5 +1,5 @@
 from transformers import AutoModelForCausalLM, AutoTokenizer
-from config_utils import to_torch_dtype
+from .config_utils import to_torch_dtype
 
 def autoname_modules(m):
     for name, module in m.named_modules():

@@ -1,4 +1,5 @@
 import os
+import sys
 from enum import Enum
 from typing import Optional
 import torch
@@ -60,12 +61,21 @@ def to_torch_dtype(x):
         return DType[x].value
     return x
 
-def get_config(yml_file="configs/profile_template.yaml"):
-    if not os.path.exists(yml_file):
-        print(f"The config file passed {yml_file} doesn't exist.")
-        raise ValueError
+def get_config():
+    if len(sys.argv) > 1 \
+        and not sys.argv[1].startswith('--') \
+        and (sys.argv[1].endswith('yaml') or sys.argv[1].endswith('yml')):
+        # First argument is a YAML file path
+        config_file = sys.argv[1]
+        if not os.path.exists(config_file):
+            print(f"The config file passed {config_file} doesn't exist.")
+            raise ValueError(f"current dir: {os.getcwd()}, requested file: {config_file}")
+        yml_conf = OmegaConf.load(config_file)
+        sys.argv = ([sys.argv[0]] + sys.argv[2:])
+    else:
+        # No YAML file provided, use CLI arguments only
+        yml_conf = OmegaConf.create({})
     schema = OmegaConf.structured(ProfileConfig)
-    yml_conf = OmegaConf.load(yml_file)
     cli_conf = OmegaConf.from_cli()
     conf = OmegaConf.merge(schema, yml_conf, cli_conf)
     if not conf.do_sample:
