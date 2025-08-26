@@ -53,8 +53,9 @@ profiling_schedule = torch.profiler.schedule(
 
 cumulative_time = 0.0
 generated_token_count = 0
+mul_factor = max(1, config.repeat)
 
-for i in range(config.skip_first + config.repeat*(config.wait + config.warmup + config.active)):
+for i in range(config.skip_first + mul_factor*(config.wait + config.warmup + config.active)):
     print(f"Profiling Iteration {i}.")
     tokenized_prompt = tokenizer(prompt, return_tensors="pt").to(config.device)  # will return a dict of token ids and attention mask
     torch.cuda.synchronize()
