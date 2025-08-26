@@ -1,5 +1,6 @@
 import math
 import os
+import gc
 import torch
 from datetime import datetime
 from omegaconf import OmegaConf
@@ -85,6 +86,8 @@ for i in range(config.skip_first + config.repeat*(config.wait + config.warmup + 
         generated_token_count += config.max_new_tokens
     print(f"Generated tokens (last 5): {generated_tokens[-5:]}, len: {len(generated_tokens)}, time: {step_time/1000}s")
     past_key_values.reset()
+    del tokenized_prompt, generated_tokens, generated_token_ids
+    gc.collect()
     torch.cuda.empty_cache()
 
 print(f"Profiling complete, tokens per second: {generated_token_count/(cumulative_time/1000)}")
