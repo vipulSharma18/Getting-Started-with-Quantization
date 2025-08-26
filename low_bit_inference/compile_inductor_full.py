@@ -17,7 +17,7 @@ print(f"Loading pretrained model and tokenizer: {config.model_id}.")
 model, tokenizer = load_model_tokenizer(config)
 print(f"Model loaded {config.model_id}.")
 
-prompt = config.prompt if isinstance(config.prompt, list) else list(config.prompt)
+prompt = config.prompt if isinstance(config.prompt, list) else [config.prompt]
 print(f"Using prompt: {prompt}")
 
 if config.use_cache:
