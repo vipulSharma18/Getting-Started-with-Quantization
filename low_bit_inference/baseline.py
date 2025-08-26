@@ -76,10 +76,11 @@ for i in range(config.skip_first + config.repeat*(config.wait + config.warmup + 
             end.record()
         prof.step()
     torch.cuda.synchronize()
-    cumulative_time += start.elapsed_time(end)
+    step_time = start.elapsed_time(end)
+    cumulative_time += step_time
     generated_tokens = tokenizer.batch_decode(generated_token_ids[0], skip_special_tokens=True)
     generated_token_count += config.max_new_tokens
-    print(f"Generated tokens (last 5): {generated_tokens[-5:]}, len: {len(generated_tokens)}")
+    print(f"Generated tokens (last 5): {generated_tokens[-5:]}, len: {len(generated_tokens)}, time: {step_time}")
     past_key_values.reset()
     torch.cuda.empty_cache()
 print(f"Profiling complete, tokens per second: {generated_token_count/cumulative_time}")

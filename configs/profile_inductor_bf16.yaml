@@ -6,7 +6,7 @@ cache_dir: "/root/.cache/huggingface/hub"
 attn_implementation: "sdpa"  # flex_attention, sdpa, flash_attention_2, eager
 
 # profiling args
-profiling_dir: "log/baseline"
+profiling_dir: "log/inductor_bf16"
 skip_first: 10
 wait: 2
 warmup: 3
