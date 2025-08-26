@@ -1,6 +1,7 @@
 import math
 import os
 import torch
+from datetime import datetime
 from omegaconf import OmegaConf
 # utils
 from .utils.hf_utils import load_model_tokenizer
@@ -40,6 +41,11 @@ profiling_schedule = torch.profiler.schedule(
     repeat = config.repeat
 )
 
+trace_handler = torch.profiler.tensorboard_trace_handler(
+                    config.profiling_dir, 
+                    worker_name=f"{config.model_id.split('/')[-1]}_{config.compute_dtype.name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                )
+
 cumulative_time = 0.0
 generated_token_count = 0
 
@@ -53,7 +59,7 @@ for i in range(config.skip_first + config.repeat*(config.wait + config.warmup + 
             torch.profiler.ProfilerActivity.CUDA,
         ],
         schedule = profiling_schedule,
-        on_trace_ready = torch.profiler.tensorboard_trace_handler(config.profiling_dir),
+        on_trace_ready = trace_handler,
         record_shapes = True,
         profile_memory = True,
         with_stack = True,  # this will add overhead, set it to False for benchmarking.
@@ -78,7 +84,7 @@ for i in range(config.skip_first + config.repeat*(config.wait + config.warmup + 
     cumulative_time += start.elapsed_time(end)
     generated_tokens = tokenizer.batch_decode(generated_token_ids[0], skip_special_tokens=True)
     generated_token_count += config.max_new_tokens
-    print(f"Generated tokens: {generated_tokens[:5]}, len: {len(generated_tokens)}")
+    print(f"Generated tokens (last 5): {generated_tokens[-5:]}, len: {len(generated_tokens)}")
     past_key_values.reset()
     torch.cuda.empty_cache()
 print(f"Profiling complete, tokens per second: {generated_token_count/cumulative_time}")

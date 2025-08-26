@@ -7,11 +7,11 @@ attn_implementation: "sdpa"  # flex_attention, sdpa, flash_attention_2, eager
 
 # profiling args
 profiling_dir: "log/baseline"
-skip_first: 0
-wait: 0
-warmup: 1
-active: 1
-repeat: 1
+skip_first: 10
+wait: 2
+warmup: 3
+active: 3
+repeat: 2
 
 # prompt args
 prompt: "Write an essay about large language models."
