@@ -10,8 +10,8 @@ profiling_dir: "log/inductor"
 skip_first: 10
 wait: 2
 warmup: 3
-active: 3
-repeat: 2
+active: 5
+repeat: 0
 
 # prompt args
 prompt: "Write an essay about large language models."

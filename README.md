@@ -11,17 +11,27 @@ git config --global user.email "vipuls181999@gmail.com"
 git config --global user.name "Vipul Sharma"
 ```
 
-Run benchmark:
+## Run benchmark:
+**Baseline result**:
 ```
 # test
-python -m low_bit_inference.baseline configs/profile_baseline.yaml skip_first=1 wait=1 warmup=1 active=1 repeat=2
+python -m low_bit_inference.baseline configs/profile_baseline.yaml skip_first=1 wait=1 warmup=1 active=1 repeat=0
 # full
 python -m low_bit_inference.baseline configs/profile_baseline.yaml
-
+```
+**Basic torch compile with inductor**:
+```
 # test
-python -m low_bit_inference.torchinductor configs/profile_inductor.yaml  skip_first=1 wait=1 warmup=1 active=1 repeat=2
+python -m low_bit_inference.torchinductor configs/profile_inductor.yaml  skip_first=1 wait=1 warmup=1 active=1 repeat=0
 # full
 python -m low_bit_inference.torchinductor configs/profile_inductor.yaml
+```
+**Torch compile with custom inductor configs**:
+```
+# test
+python -m low_bit_inference.torchinductor_tuned configs/profile_inductor.yaml  skip_first=1 wait=1 warmup=1 active=1 repeat=0
+# full
+python -m low_bit_inference.torchinductor_tuned configs/profile_inductor.yaml
 ```
 
 ## Benchmarking Roadmap:

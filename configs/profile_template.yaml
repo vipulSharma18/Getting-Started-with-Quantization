@@ -11,7 +11,7 @@ skip_first: 0
 wait: 0
 warmup: 1
 active: 1
-repeat: 1
+repeat: 0
 
 # prompt args
 prompt: "Write an essay about large language models."
