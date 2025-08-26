@@ -19,9 +19,9 @@ python -m low_bit_inference.baseline configs/profile_baseline.yaml skip_first=1 
 python -m low_bit_inference.baseline configs/profile_baseline.yaml
 
 # test
-python -m low_bit_inference.torchinductor configs/profile_inductor_bf16.yaml  skip_first=1 wait=1 warmup=1 active=1 repeat=2
+python -m low_bit_inference.torchinductor configs/profile_inductor.yaml  skip_first=1 wait=1 warmup=1 active=1 repeat=2
 # full
-python -m low_bit_inference.torchinductor configs/profile_inductor_bf16.yaml
+python -m low_bit_inference.torchinductor configs/profile_inductor.yaml
 ```
 
 ## Benchmarking Roadmap:
