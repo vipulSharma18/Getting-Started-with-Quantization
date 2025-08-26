@@ -25,8 +25,12 @@ dependencies = [
     "transformers",
     "gemlite",
     "hqq",
+]
+
+[dependency-groups]
+big_deps = [
     "tensorrt-llm",
-    "nvidia-modelopt[all]"
+    "nvidia-modelopt[all]",
 ]
 
 [tool.uv.sources]

@@ -45,12 +45,13 @@ if [ ! -f /lib/x86_64-linux-gnu/libcuda.so ] && [ -f /lib/x86_64-linux-gnu/libcu
 fi
 
 source /app/.venv/bin/activate
-echo "[entrypoint] setting up gemlite env"
-uv sync --locked --group gemlite
-echo "[entrypoint] gemlite environment setup complete"
+echo "[entrypoint] installing big dependencies which could've caused GitHub CI to fail."
+uv sync --locked --group big_deps
+echo "[entrypoint] environment setup complete"
 
 echo "[entrypoint] starting HF download in background"
 nohup hf download --repo-type model unsloth/Meta-Llama-3.1-8B-Instruct &
+nohup hf download --repo-type model unsloth/gemma-3-270m &
 echo "[entrypoint] hf download running in background."
 
 echo "[entrypoint] entrypoint script complete"
