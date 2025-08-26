@@ -88,5 +88,5 @@ def get_config():
         conf.top_p = None
     m_d_hh_mm_ss = datetime.now().strftime("%m_%d_%H_%M_%S")
     conf.profiling_dir = os.path.join(conf.profiling_dir, m_d_hh_mm_ss)
-    os.mkdir(conf.profiling_dir, exist_ok=True)
+    os.makedirs(conf.profiling_dir, exist_ok=True)
     return conf
