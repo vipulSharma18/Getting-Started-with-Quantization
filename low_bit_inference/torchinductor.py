@@ -92,7 +92,7 @@ for i in range(config.skip_first + config.repeat*(config.wait + config.warmup + 
     generated_tokens = tokenizer.batch_decode(generated_token_ids[0], skip_special_tokens=True)
     if i>=config.skip_first:
         cumulative_time += step_time
-        generated_token_count += config.max_new_tokens
+        generated_token_count += len(generated_tokens)
     print(f"Generated tokens (last 5): {generated_tokens[-5:]}, len: {len(generated_tokens)}, time: {step_time/1000}s")
     past_key_values.reset()
     del tokenized_prompt, generated_tokens, generated_token_ids
