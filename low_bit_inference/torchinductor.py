@@ -27,8 +27,17 @@ if config.use_cache:
     cache_size = 2**math.ceil(math.log(len(prompt) + config.max_new_tokens, 2))
     past_key_values = setup_cache(cache_size, model.config, config)
 
-## compile the model here if you want
-# model.forward = torch.compile(model.forward)
+# compile the model here if you want
+# inductor options, or mode (mutually exclusive)
+model.forward = torch.compile(model.forward, fullgraph=True, dynamic=False, mode="max-autotune")
+# basic cuda and cudnn configs
+torch.backends.cuda.matmul.allow_tf32 = True
+torch.backends.cuda.matmul.allow_bf16_reduced_precision_reduction = True
+torch.backends.cuda.matmul.allow_fp16_reduced_precision_reduction = True
+torch.backends.cuda.enable_flash_sdp(True)
+torch.backends.cudnn.allow_tf32 = True
+torch.backends.cudnn.deterministic = False
+torch.backends.cudnn.benchmark = True
 
 model = model.to(config.device)
 print("Model moved to GPU, starting profiling.")
@@ -40,7 +49,6 @@ profiling_schedule = torch.profiler.schedule(
     active = config.active,
     repeat = config.repeat
 )
-
 cumulative_time = 0.0
 generated_token_count = 0
 

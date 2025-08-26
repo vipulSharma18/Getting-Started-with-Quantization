@@ -14,6 +14,7 @@ git config --global user.name "Vipul Sharma"
 Run benchmark:
 ```
 python -m low_bit_inference.baseline configs/profile_baseline.yaml
+python -m low_bit_inference.torchinductor configs/profile_inductor_bf16.yaml
 ```
 
 ## Benchmarking Roadmap:
