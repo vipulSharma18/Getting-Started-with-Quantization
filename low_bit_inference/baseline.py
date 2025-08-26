@@ -77,13 +77,14 @@ for i in range(config.skip_first + config.repeat*(config.wait + config.warmup + 
         prof.step()
     torch.cuda.synchronize()
     step_time = start.elapsed_time(end)
-    cumulative_time += step_time
     generated_tokens = tokenizer.batch_decode(generated_token_ids[0], skip_special_tokens=True)
-    generated_token_count += config.max_new_tokens
-    print(f"Generated tokens (last 5): {generated_tokens[-5:]}, len: {len(generated_tokens)}, time: {step_time}")
+    if i>=config.skip_first:
+        cumulative_time += step_time
+        generated_token_count += config.max_new_tokens
+    print(f"Generated tokens (last 5): {generated_tokens[-5:]}, len: {len(generated_tokens)}, time: {step_time/1000}s")
     past_key_values.reset()
     torch.cuda.empty_cache()
-print(f"Profiling complete, tokens per second: {generated_token_count/cumulative_time}")
+print(f"Profiling complete, tokens per second: {generated_token_count/(cumulative_time/1000)}")
 print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=100))
 print("-"*20)
 print(prof.key_averages(group_by_stack_n=8).table(sort_by="cpu_time_total", row_limit=100))
