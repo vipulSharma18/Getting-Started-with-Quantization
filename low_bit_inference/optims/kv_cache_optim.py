@@ -8,6 +8,7 @@ the KV cache and save memory.
 """
 
 from transformers import StaticCache
+from ..utils.config_utils import to_torch_dtype
 
 
 def setup_cache(cache_size, model_config, profile_config):
@@ -16,6 +17,6 @@ def setup_cache(cache_size, model_config, profile_config):
         max_batch_size=1,
         max_cache_len=cache_size,
         device=profile_config.device,
-        dtype=profile_config.dtype
+        dtype=to_torch_dtype(profile_config.compute_dtype)
     )
     return past_key_values

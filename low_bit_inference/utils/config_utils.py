@@ -1,10 +1,10 @@
 import os
 import sys
 from enum import Enum
-from typing import Optional
+from typing import Optional, Any
 import torch
 from omegaconf import OmegaConf
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 class DType(Enum):
@@ -23,7 +23,7 @@ class DType(Enum):
 class ProfileConfig:
     # hf model args
     device: str = "cuda:0"
-    dtype: DType = DType.fp16
+    compute_dtype: DType = DType.fp16
     model_id: str = ""
     cache_dir: str = "/root/.cache/huggingface/hub"
 
@@ -41,6 +41,7 @@ class ProfileConfig:
     chat_template: str = ""
     do_sample: bool = False
     top_k: Optional[int] = 5
+    top_p: Optional[float] = 0.5
     temperature: Optional[float] = 0.6
     use_cache: bool = True
     cache_implementation: str = "static"
@@ -75,9 +76,11 @@ def get_config():
     else:
         # No YAML file provided, use CLI arguments only
         yml_conf = OmegaConf.create({})
+    
     schema = OmegaConf.structured(ProfileConfig)
     cli_conf = OmegaConf.from_cli()
     conf = OmegaConf.merge(schema, yml_conf, cli_conf)
+    
     if not conf.do_sample:
         conf.top_k = None
         conf.temperature = None

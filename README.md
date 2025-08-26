@@ -13,7 +13,6 @@ git config --global user.name "Vipul Sharma"
 
 Run benchmark:
 ```
-python -m low_bit_inference.baseline configs/profile_sanity_check.yaml
 python -m low_bit_inference.baseline configs/profile_baseline.yaml
 ```
 
