@@ -69,9 +69,6 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          load: false
-          provenance: false
-          sbom: false
       - name: Sign the published Docker image
         if: ${{ github.event_name != 'pull_request' }}
         env:
