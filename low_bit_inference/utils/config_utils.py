@@ -1,5 +1,6 @@
 import os
 import sys
+from datetime import datetime
 from enum import Enum
 from typing import Optional, Any
 import torch
@@ -84,4 +85,7 @@ def get_config():
     if not conf.do_sample:
         conf.top_k = None
         conf.temperature = None
+        conf.top_p = None
+    m_d_hh_mm_ss = datetime.now().strftime("%m_%d_%H_%M_%S")
+    conf.profiling_dir = os.path.join(conf.profiling_dir, m_d_hh_mm_ss)
     return conf
