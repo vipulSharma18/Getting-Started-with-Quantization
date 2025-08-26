@@ -10,7 +10,7 @@ profiling_dir: "log/baseline"
 skip_first: 10
 wait: 2
 warmup: 3
-active: 3
+active: 5
 repeat: 2
 
 # prompt args

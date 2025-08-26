@@ -48,6 +48,7 @@ for i in range(config.skip_first + config.repeat*(config.wait + config.warmup + 
     print(f"Profiling Iteration {i}.")
     tokenized_prompt = tokenizer(prompt, return_tensors="pt").to(config.device)  # will return a dict of token ids and attention mask
     torch.cuda.synchronize()
+
     with torch.profiler.profile(
         activities = [
             torch.profiler.ProfilerActivity.CPU,
@@ -75,6 +76,7 @@ for i in range(config.skip_first + config.repeat*(config.wait + config.warmup + 
             )
             end.record()
         prof.step()
+    
     torch.cuda.synchronize()
     step_time = start.elapsed_time(end)
     generated_tokens = tokenizer.batch_decode(generated_token_ids[0], skip_special_tokens=True)
@@ -84,7 +86,5 @@ for i in range(config.skip_first + config.repeat*(config.wait + config.warmup + 
     print(f"Generated tokens (last 5): {generated_tokens[-5:]}, len: {len(generated_tokens)}, time: {step_time/1000}s")
     past_key_values.reset()
     torch.cuda.empty_cache()
+
 print(f"Profiling complete, tokens per second: {generated_token_count/(cumulative_time/1000)}")
-print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=100))
-print("-"*20)
-print(prof.key_averages(group_by_stack_n=8).table(sort_by="cpu_time_total", row_limit=100))
