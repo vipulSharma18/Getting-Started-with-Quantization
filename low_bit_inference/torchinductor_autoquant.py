@@ -9,6 +9,7 @@ from omegaconf import OmegaConf
 from .utils.hf_utils import load_model_tokenizer
 from .utils.config_utils import get_config
 from .utils.profile_utils import profile_model
+from .utils.compile_utils import compile_model
 # optims
 from .optims.kv_cache_optim import setup_cache
 
@@ -44,10 +45,11 @@ os.environ["TORCHINDUCTOR_COORDINATE_DESCENT_TUNING"] = "1"
 os.environ["TORCHINDUCTOR_BENCHMARK_FUSION"] = "1"
 os.environ["TORCHINDUCTOR_BENCHMARK_KERNEL"] = "1"
 os.environ["TORCHINDUCTOR_FREEZING"] = "1" 
-model.forward = torchao.autoquant(torch.compile(model.forward, fullgraph=True, dynamic=False, mode="max-autotune"))
-
 
 model = model.to(config.device)
+model, tokenizer = compile_model(model, tokenizer)
+model = torchao.autoquant(model)
+
 print("Model moved to GPU, starting profiling.")
 
 profile_model(model, tokenizer, past_key_values, prompt, config)

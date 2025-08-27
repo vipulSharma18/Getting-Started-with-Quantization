@@ -8,6 +8,7 @@ from omegaconf import OmegaConf
 from .utils.hf_utils import load_model_tokenizer
 from .utils.config_utils import get_config
 from .utils.profile_utils import profile_model
+from .utils.compile_utils import compile_model
 # optims
 from .optims.kv_cache_optim import setup_cache
 
@@ -40,9 +41,9 @@ torch.backends.cuda.enable_flash_sdp(True)
 torch.backends.cudnn.allow_tf32 = True
 torch.backends.cudnn.deterministic = False
 torch.backends.cudnn.benchmark = True
-model.forward = torch.compile(model.forward, fullgraph=True, dynamic=False, mode="max-autotune")
 
 model = model.to(config.device)
+model, tokenizer = compile_model(model, tokenizer)
 print("Model moved to GPU, starting profiling.")
 
 profile_model(model, tokenizer, past_key_values, prompt, config)

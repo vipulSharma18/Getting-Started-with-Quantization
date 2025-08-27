@@ -14,17 +14,23 @@ git config --global user.name "Vipul Sharma"
 ## Run benchmark:
 > Note: Run without tps_only=True to get trace of CPU and GPU kernels.
 
-**Baseline result (I think HF does compile by default)**: 47.90370070952305 tokens per second
+**Baseline result (I think HF does compile by default)**: 
+
+47.90370070952305 tokens per second
 ```
 python -m low_bit_inference.baseline configs/profile_baseline.yaml tps_only=True
 ```
 
-**Full graph torch compile with inductor**: 48.54674292202595 tokens per second
+**Full graph torch compile with inductor**: 
+
+Only compiling model.forward function: 48.54674292202595 tokens per second
 ```
 python -m low_bit_inference.torchinductor configs/profile_inductor.yaml tps_only=True
 ```
 
-**Torch compile with custom inductor configs**: 48.59706179755857 tokens per second
+**Torch compile with custom inductor configs**: 
+
+Only compiling model.forward function: 48.59706179755857 tokens per second
 ```
 python -m low_bit_inference.torchinductor_tuned configs/profile_inductor.yaml tps_only=True
 ```

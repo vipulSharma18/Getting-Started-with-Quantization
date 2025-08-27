@@ -43,6 +43,7 @@ def profile_model(model, tokenizer, past_key_values, prompt, config):
     ) as prof:
         for i in range(config.skip_first + mul_factor*(config.wait + config.warmup + config.active)):    
             print(f"Profiling iteration {i}")
+            torch.compiler.cudagraph_mark_step_begin() 
             torch.cuda.synchronize()
             start = torch.cuda.Event(enable_timing=True)
             end = torch.cuda.Event(enable_timing=True)
