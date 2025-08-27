@@ -73,7 +73,7 @@ def profile_model(model, tokenizer, past_key_values, prompt, config):
             torch.cuda.empty_cache()
     print(f"Profiling complete, tokens per second: {generated_token_count/(cumulative_time/1000)}")
     try:
-        if prof.profiler is not None:
+        if not config.tps_only and prof.profiler is not None:
             prof.export_chrome_trace(config.profiling_dir + "/trace.json")
     except Exception as e:
         print("Trace was already saved. Exiting.")
