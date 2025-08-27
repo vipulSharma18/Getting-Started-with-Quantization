@@ -7,7 +7,7 @@ from omegaconf import OmegaConf
 # utils
 from .utils.hf_utils import load_model_tokenizer
 from .utils.config_utils import get_config
-from .utils.profile_utils import profile_model
+from .utils.profile_utils import profile_model, dump_device_tensors
 # optims
 from .optims.kv_cache_optim import setup_cache
 
@@ -35,5 +35,7 @@ if config.use_cache:
 torch.set_float32_matmul_precision('high')
 model = model.to(config.device)
 print(f"Model moved to {config.device}, starting profiling.")
+
+dump_device_tensors(1)
 
 profile_model(model, tokenizer, past_key_values, prompt, config)
