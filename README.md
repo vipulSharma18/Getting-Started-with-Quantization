@@ -14,32 +14,33 @@ git config --global user.name "Vipul Sharma"
 ## Run benchmark:
 **Baseline result (I think HF does compile by default)**: 47.733019989122674 tokens per second
 ```
-# test
-python -m low_bit_inference.baseline configs/profile_baseline.yaml skip_first=1 wait=1 warmup=1 active=1 repeat=0
-# full
 python -m low_bit_inference.baseline configs/profile_baseline.yaml
 ```
 **Full graph torch compile with inductor**: 48.88517933417346 tokens per second
 ```
-# test
-python -m low_bit_inference.torchinductor configs/profile_inductor.yaml  skip_first=1 wait=1 warmup=1 active=1 repeat=0
-# full
 python -m low_bit_inference.torchinductor configs/profile_inductor.yaml
 ```
 **Torch compile with custom inductor configs**: 
 ```
-# test
-python -m low_bit_inference.torchinductor_tuned configs/profile_inductor.yaml  skip_first=1 wait=1 warmup=1 active=1 repeat=0
-# full
 python -m low_bit_inference.torchinductor_tuned configs/profile_inductor.yaml
 ```
 **Torch compile with TorchAO AutoQuant**: 
 ```
-# test
-python -m low_bit_inference.torchinductor_autoquant configs/profile_inductor.yaml  skip_first=1 wait=1 warmup=1 active=1 repeat=0
-# full
 python -m low_bit_inference.torchinductor_autoquant configs/profile_inductor.yaml
 ```
+**Torch compile with TorchAO Int4**: 
+```
+python -m low_bit_inference.torchinductor_autoquant configs/profile_inductor.yaml
+```
+**Torch compile with TorchAO Int8**: 
+```
+python -m low_bit_inference.torchinductor_int8 configs/profile_inductor.yaml
+```
+**Torch compile with TorchAO FP8**: 
+```
+python -m low_bit_inference.torchinductor_fp8 configs/profile_inductor.yaml
+```
+
 
 ## Benchmarking Roadmap:
 - [ ] Calculate theoretical performance limit and roofline model for Llama-3.1 8B to have a target.
