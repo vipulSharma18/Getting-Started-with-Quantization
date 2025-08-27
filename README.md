@@ -12,7 +12,7 @@ git config --global user.name "Vipul Sharma"
 ```
 
 ## Run benchmark:
-**Baseline result**:
+**Baseline result**: 47.733019989122674 tokens per second
 ```
 # test
 python -m low_bit_inference.baseline configs/profile_baseline.yaml skip_first=1 wait=1 warmup=1 active=1 repeat=0
