@@ -29,7 +29,7 @@ def profile_model(model, tokenizer, past_key_values, prompt, config):
         on_trace_ready = torch.profiler.tensorboard_trace_handler(config.profiling_dir),
         record_shapes = True,
         profile_memory = True,
-        with_stack = True,  # this will add overhead, set it to False for benchmarking.
+        with_stack = False,  # this will add overhead, set it to False for benchmarking.
         with_flops = True,
     ) as prof:
         for i in range(config.skip_first + mul_factor*(config.wait + config.warmup + config.active)):    
