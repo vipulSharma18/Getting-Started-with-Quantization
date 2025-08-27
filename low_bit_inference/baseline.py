@@ -1,17 +1,18 @@
-import math
 import os
+from .utils.config_utils import get_config
+config = get_config()
+
+import math
 import gc
 import torch
 from datetime import datetime
 from omegaconf import OmegaConf
 # utils
 from .utils.hf_utils import load_model_tokenizer
-from .utils.config_utils import get_config
 # optims
 from .optims.kv_cache_optim import setup_cache
 
 
-config = get_config()
 print("config used -- ", OmegaConf.to_yaml(config), sep="\n")
 
 print(f"Loading pretrained model and tokenizer: {config.model_id}.")
@@ -30,7 +31,8 @@ if config.use_cache:
 
 ## compile the model here if you want
 # model.forward = torch.compile(model.forward)
-
+torch.set_float32_matmul_precision('high')
+print(f"PyTorch sees {torch.cuda.device_count()} devices")
 model = model.to(config.device)
 print(f"Model moved to {config.device}, starting profiling.")
 
@@ -57,7 +59,7 @@ for i in range(config.skip_first + mul_factor*(config.wait + config.warmup + con
             torch.profiler.ProfilerActivity.CUDA,
         ],
         schedule = profiling_schedule,
-        on_trace_ready = torch.profiler.tensorboard_trace_handler(config.profiling_dir, worker_name=f"{i}"),
+        on_trace_ready = torch.profiler.tensorboard_trace_handler(config.profiling_dir),
         record_shapes = True,
         profile_memory = True,
         with_stack = True,  # this will add overhead, set it to False for benchmarking.
