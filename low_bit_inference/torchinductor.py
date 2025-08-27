@@ -1,6 +1,4 @@
 import os
-from .utils.config_utils import get_config
-config = get_config()
 import math
 import gc
 import torch
@@ -8,11 +6,15 @@ from datetime import datetime
 from omegaconf import OmegaConf
 # utils
 from .utils.hf_utils import load_model_tokenizer
+from .utils.config_utils import get_config
 # optims
 from .optims.kv_cache_optim import setup_cache
 
 
+config = get_config()
 print("config used -- ", OmegaConf.to_yaml(config), sep="\n")
+torch.cuda.set_device(config.device)
+print(f"PyTorch sees {torch.cuda.device_count()} devices, current device: {torch.cuda.current_device()}")
 
 print(f"Loading pretrained model and tokenizer: {config.model_id}.")
 model, tokenizer = load_model_tokenizer(config)
@@ -39,7 +41,6 @@ torch.backends.cudnn.deterministic = False
 torch.backends.cudnn.benchmark = True
 model.forward = torch.compile(model.forward, fullgraph=True, dynamic=False, mode="max-autotune")
 
-print(f"PyTorch sees {torch.cuda.device_count()} devices")
 model = model.to(config.device)
 print("Model moved to GPU, starting profiling.")
 

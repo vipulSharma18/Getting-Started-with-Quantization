@@ -82,9 +82,6 @@ def get_config():
     cli_conf = OmegaConf.from_cli()
     conf = OmegaConf.merge(schema, yml_conf, cli_conf)
 
-    device_idx = conf.device.split(":")[1]
-    os.environ["CUDA_VISIBLE_DEVICES"] = device_idx
-
     if not conf.do_sample:
         conf.top_k = None
         conf.temperature = None

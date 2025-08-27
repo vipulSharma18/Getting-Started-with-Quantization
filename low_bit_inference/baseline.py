@@ -1,7 +1,4 @@
 import os
-from .utils.config_utils import get_config
-config = get_config()
-
 import math
 import gc
 import torch
@@ -9,11 +6,14 @@ from datetime import datetime
 from omegaconf import OmegaConf
 # utils
 from .utils.hf_utils import load_model_tokenizer
+from .utils.config_utils import get_config
 # optims
 from .optims.kv_cache_optim import setup_cache
 
-
+config = get_config()
 print("config used -- ", OmegaConf.to_yaml(config), sep="\n")
+torch.cuda.set_device(config.device)
+print(f"PyTorch sees {torch.cuda.device_count()} devices, current device: {torch.cuda.current_device()}")
 
 print(f"Loading pretrained model and tokenizer: {config.model_id}.")
 model, tokenizer = load_model_tokenizer(config)
@@ -32,7 +32,6 @@ if config.use_cache:
 ## compile the model here if you want
 # model.forward = torch.compile(model.forward)
 torch.set_float32_matmul_precision('high')
-print(f"PyTorch sees {torch.cuda.device_count()} devices")
 model = model.to(config.device)
 print(f"Model moved to {config.device}, starting profiling.")
 
@@ -80,6 +79,7 @@ for i in range(config.skip_first + mul_factor*(config.wait + config.warmup + con
             )
             end.record()
         prof.step()
+        print(f"Profiler step prof.step: {prof.step_num}, corresponding action from scheduler: {profiling_schedule(prof.step_num)}")
     
     torch.cuda.synchronize()
     step_time = start.elapsed_time(end)
