@@ -29,9 +29,6 @@ if config.use_cache:
     past_key_values = setup_cache(cache_size, model.config, config)
 
 # compile the model here if you want
-# inductor options, or mode (mutually exclusive)
-model.forward = torch.compile(model.forward, fullgraph=True, dynamic=False, mode="max-autotune")
-# basic cuda and cudnn configs
 torch.backends.cuda.matmul.allow_tf32 = True
 torch.backends.cuda.matmul.allow_bf16_reduced_precision_reduction = True
 torch.backends.cuda.matmul.allow_fp16_reduced_precision_reduction = True
@@ -43,6 +40,7 @@ os.environ["TORCHINDUCTOR_COORDINATE_DESCENT_TUNING"] = "1"
 os.environ["TORCHINDUCTOR_BENCHMARK_FUSION"] = "1"
 os.environ["TORCHINDUCTOR_BENCHMARK_KERNEL"] = "1"
 os.environ["TORCHINDUCTOR_FREEZING"] = "1" 
+model.forward = torch.compile(model.forward, fullgraph=True, dynamic=False, mode="max-autotune")
 
 model = model.to(config.device)
 print("Model moved to GPU, starting profiling.")

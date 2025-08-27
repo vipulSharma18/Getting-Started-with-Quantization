@@ -33,6 +33,13 @@ python -m low_bit_inference.torchinductor_tuned configs/profile_inductor.yaml  s
 # full
 python -m low_bit_inference.torchinductor_tuned configs/profile_inductor.yaml
 ```
+**Torch compile with TorchAO AutoQuant**: 
+```
+# test
+python -m low_bit_inference.torchinductor_autoquant configs/profile_inductor.yaml  skip_first=1 wait=1 warmup=1 active=1 repeat=0
+# full
+python -m low_bit_inference.torchinductor_autoquant configs/profile_inductor.yaml
+```
 
 ## Benchmarking Roadmap:
 - [ ] Calculate theoretical performance limit and roofline model for Llama-3.1 8B to have a target.
