@@ -32,7 +32,7 @@ if config.use_cache:
 # model.forward = torch.compile(model.forward)
 
 model = model.to(config.device)
-print("Model moved to GPU, starting profiling.")
+print(f"Model moved to {config.device}, starting profiling.")
 
 profiling_schedule = torch.profiler.schedule(
     skip_first = config.skip_first,
