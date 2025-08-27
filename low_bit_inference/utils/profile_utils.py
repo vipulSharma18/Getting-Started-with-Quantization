@@ -20,17 +20,24 @@ def profile_model(model, tokenizer, past_key_values, prompt, config):
 
     tokenized_prompt = tokenizer(prompt, return_tensors="pt").to(config.device)  # will return a dict of token ids and attention mask
 
-    with torch.profiler.profile(
+    if config.tps_only:
+        activities = []
+        profiling_flag = False
+    else:
         activities = [
             torch.profiler.ProfilerActivity.CPU,
             torch.profiler.ProfilerActivity.CUDA,
-        ],
+        ]
+        profiling_flag = True
+
+    with torch.profiler.profile(
+        activities = activities,
         schedule = profiling_schedule,
         on_trace_ready = torch.profiler.tensorboard_trace_handler(config.profiling_dir),
-        record_shapes = True,
-        profile_memory = True,
-        with_stack = False,  # this will add considerable overhead, set it to False for benchmarking.
-        with_flops = True,
+        record_shapes = profiling_flag,
+        profile_memory = profiling_flag,
+        with_stack = profiling_flag,  # this will add considerable overhead, set it to False for benchmarking.
+        with_flops = profiling_flag,
     ) as prof:
         for i in range(config.skip_first + mul_factor*(config.wait + config.warmup + config.active)):    
             print(f"Profiling iteration {i}")

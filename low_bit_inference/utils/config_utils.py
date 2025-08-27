@@ -35,6 +35,7 @@ class ProfileConfig:
     warmup: int = 0
     active: int = 1
     repeat: int = 1
+    tps_only: bool = False
 
     # inference args
     prompt: str = "Write an essay about large language models."
