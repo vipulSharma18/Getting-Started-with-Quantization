@@ -23,17 +23,19 @@ def profile_model(model, tokenizer, past_key_values, prompt, config):
     if config.tps_only:
         activities = []
         profiling_flag = False
+        trace_handler = lambda x: pass
     else:
         activities = [
             torch.profiler.ProfilerActivity.CPU,
             torch.profiler.ProfilerActivity.CUDA,
         ]
         profiling_flag = True
+        trace_handler = torch.profiler.tensorboard_trace_handler(config.profiling_dir)
 
     with torch.profiler.profile(
         activities = activities,
         schedule = profiling_schedule,
-        on_trace_ready = torch.profiler.tensorboard_trace_handler(config.profiling_dir),
+        on_trace_ready = trace_handler,
         record_shapes = profiling_flag,
         profile_memory = profiling_flag,
         with_stack = profiling_flag,  # this will add considerable overhead, set it to False for benchmarking.
