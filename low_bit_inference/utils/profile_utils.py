@@ -29,7 +29,7 @@ def profile_model(model, tokenizer, past_key_values, prompt, config):
         on_trace_ready = torch.profiler.tensorboard_trace_handler(config.profiling_dir),
         record_shapes = True,
         profile_memory = True,
-        with_stack = False,  # this will add overhead, set it to False for benchmarking.
+        with_stack = False,  # this will add considerable overhead, set it to False for benchmarking.
         with_flops = True,
     ) as prof:
         for i in range(config.skip_first + mul_factor*(config.wait + config.warmup + config.active)):    
@@ -49,9 +49,9 @@ def profile_model(model, tokenizer, past_key_values, prompt, config):
                     past_key_values=past_key_values,
                 )
                 end.record()
-            prof.step()
             torch.cuda.synchronize()
             step_time = start.elapsed_time(end)
+            prof.step()
             generated_tokens = tokenizer.batch_decode(generated_token_ids[0], skip_special_tokens=True)
             if i>=config.skip_first:
                 cumulative_time += step_time
@@ -63,3 +63,8 @@ def profile_model(model, tokenizer, past_key_values, prompt, config):
             gc.collect()
             torch.cuda.empty_cache()
     print(f"Profiling complete, tokens per second: {generated_token_count/(cumulative_time/1000)}")
+    try:
+        if prof.profiler is not None:
+            prof.export_chrome_trace(config.profiling_dir + "/trace.json")
+    except Exception as e:
+        print("Trace was already saved. Exiting.")

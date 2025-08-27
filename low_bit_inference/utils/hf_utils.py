@@ -23,7 +23,7 @@ def load_model_tokenizer(config):
         torch_dtype=to_torch_dtype(config.compute_dtype),
         attn_implementation=config.attn_implementation,
         cache_dir=config.cache_dir,
-        device_map="cpu"
+        device_map=config.device,
     )
     params = sum(p.numel() for p in model.parameters())
     print(f"Number of parameters in model: {params}")
