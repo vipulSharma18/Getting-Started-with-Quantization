@@ -51,9 +51,6 @@ model = model.to(config.device)
 model, tokenizer = compile_model(model, tokenizer)
 print("Model moved to GPU, starting profiling.")
 
-model = quantize_(
-    model,
-    Int4WeightOnlyConfig()
-)
+quantize_(model, Int4WeightOnlyConfig())
 
 profile_model(model, tokenizer, past_key_values, prompt, config)
