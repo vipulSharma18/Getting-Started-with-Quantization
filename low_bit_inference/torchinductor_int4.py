@@ -43,7 +43,7 @@ os.environ["TORCHINDUCTOR_BENCHMARK_KERNEL"] = "1"
 os.environ["TORCHINDUCTOR_FREEZING"] = "1" 
 model.forward = quantize_(
     torch.compile(model.forward, fullgraph=True, dynamic=False, mode="max-autotune"),
-    Int4WeightOnlyConfig(use_hqq=True)
+    Int4WeightOnlyConfig()
 )
 
 model = model.to(config.device)
