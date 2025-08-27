@@ -23,7 +23,7 @@ def profile_model(model, tokenizer, past_key_values, prompt, config):
     if config.tps_only:
         activities = []
         profiling_flag = False
-        trace_handler = lambda x: pass
+        trace_handler = lambda x: None
     else:
         activities = [
             torch.profiler.ProfilerActivity.CPU,
