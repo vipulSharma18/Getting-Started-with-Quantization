@@ -10,4 +10,4 @@ def compile_model(model, tokenizer):
     model.generate = torch.compile(model.generate, mode="reduce-overhead")
     tokenizer.batch_decode = torch.compile(tokenizer.batch_decode, mode="reduce-overhead")
 
-    return model, tokenzier
+    return model, tokenizer
