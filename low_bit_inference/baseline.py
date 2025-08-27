@@ -36,6 +36,4 @@ torch.set_float32_matmul_precision('high')
 model = model.to(config.device)
 print(f"Model moved to {config.device}, starting profiling.")
 
-dump_device_tensors(1)
-
 profile_model(model, tokenizer, past_key_values, prompt, config)
