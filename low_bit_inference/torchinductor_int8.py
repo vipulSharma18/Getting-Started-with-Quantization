@@ -2,6 +2,7 @@ import math
 import os
 import gc
 import torch
+from torchao.quantization import quantize_, Int8WeightOnlyConfig, Float8WeightOnlyConfig, Int4WeightOnlyConfig
 from datetime import datetime
 from omegaconf import OmegaConf
 # utils
@@ -29,9 +30,6 @@ if config.use_cache:
     past_key_values = setup_cache(cache_size, model.config, config)
 
 # compile the model here if you want
-# inductor options, or mode (mutually exclusive)
-model.forward = torch.compile(model.forward, fullgraph=True, dynamic=False, mode="max-autotune")
-# basic cuda and cudnn configs
 torch.backends.cuda.matmul.allow_tf32 = True
 torch.backends.cuda.matmul.allow_bf16_reduced_precision_reduction = True
 torch.backends.cuda.matmul.allow_fp16_reduced_precision_reduction = True
@@ -39,6 +37,14 @@ torch.backends.cuda.enable_flash_sdp(True)
 torch.backends.cudnn.allow_tf32 = True
 torch.backends.cudnn.deterministic = False
 torch.backends.cudnn.benchmark = True
+os.environ["TORCHINDUCTOR_COORDINATE_DESCENT_TUNING"] = "1"
+os.environ["TORCHINDUCTOR_BENCHMARK_FUSION"] = "1"
+os.environ["TORCHINDUCTOR_BENCHMARK_KERNEL"] = "1"
+os.environ["TORCHINDUCTOR_FREEZING"] = "1" 
+model.forward = quantize_(
+    torch.compile(model.forward, fullgraph=True, dynamic=False, mode="max-autotune"),
+    Int8WeightOnlyConfig(use_hqq=True)
+)
 
 model = model.to(config.device)
 print("Model moved to GPU, starting profiling.")
@@ -101,5 +107,3 @@ for i in range(config.skip_first + mul_factor*(config.wait + config.warmup + con
     torch.cuda.empty_cache()
 
 print(f"Profiling complete, tokens per second: {generated_token_count/(cumulative_time/1000)}")
-print(prof.key_averages().table(sort_by="self_cuda_time_total", row_limit=-1))
-prof.export_chrome_trace(os.path.join(config.profiling_dir, "trace.json"))
