@@ -39,6 +39,10 @@ torch.backends.cuda.enable_flash_sdp(True)
 torch.backends.cudnn.allow_tf32 = True
 torch.backends.cudnn.deterministic = False
 torch.backends.cudnn.benchmark = True
+os.environ["TORCHINDUCTOR_COORDINATE_DESCENT_TUNING"] = "1"
+os.environ["TORCHINDUCTOR_BENCHMARK_FUSION"] = "1"
+os.environ["TORCHINDUCTOR_BENCHMARK_KERNEL"] = "1"
+os.environ["TORCHINDUCTOR_FREEZING"] = "1" 
 
 model = model.to(config.device)
 print("Model moved to GPU, starting profiling.")
@@ -101,3 +105,5 @@ for i in range(config.skip_first + mul_factor*(config.wait + config.warmup + con
     torch.cuda.empty_cache()
 
 print(f"Profiling complete, tokens per second: {generated_token_count/(cumulative_time/1000)}")
+print(prof.key_averages().table(sort_by="self_cuda_time_total", row_limit=-1))
+prof.export_chrome_trace(os.path.join(config.profiling_dir, "trace.json"))

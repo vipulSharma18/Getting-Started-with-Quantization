@@ -92,3 +92,5 @@ for i in range(config.skip_first + mul_factor*(config.wait + config.warmup + con
     torch.cuda.empty_cache()
 
 print(f"Profiling complete, tokens per second: {generated_token_count/(cumulative_time/1000)}")
+print(prof.key_averages().table(sort_by="self_cuda_time_total", row_limit=-1))
+prof.export_chrome_trace(os.path.join(config.profiling_dir, "trace.json"))
