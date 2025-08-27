@@ -14,35 +14,40 @@ git config --global user.name "Vipul Sharma"
 ## Run benchmark:
 > Note: Run without tps_only=True to get trace of CPU and GPU kernels.
 
-**Baseline result (I think HF does compile by default)**: 47.733019989122674 tokens per second
+**Baseline result (I think HF does compile by default)**: 46.792394685837166 tokens per second
 ```
 python -m low_bit_inference.baseline configs/profile_baseline.yaml tps_only=True
 ```
-**Full graph torch compile with inductor**: 48.88517933417346 tokens per second
+
+**Full graph torch compile with inductor**: 47.82855410872407 tokens per second
 ```
 python -m low_bit_inference.torchinductor configs/profile_inductor.yaml tps_only=True
 ```
+
 **Torch compile with custom inductor configs**: 
 ```
 python -m low_bit_inference.torchinductor_tuned configs/profile_inductor.yaml tps_only=True
 ```
+
 **Torch compile with TorchAO AutoQuant**: 
 ```
 python -m low_bit_inference.torchinductor_autoquant configs/profile_inductor.yaml tps_only=True
 ```
+
 **Torch compile with TorchAO Int4**: 
 ```
 python -m low_bit_inference.torchinductor_autoquant configs/profile_inductor.yaml tps_only=True
 ```
+
 **Torch compile with TorchAO Int8**: 
 ```
 python -m low_bit_inference.torchinductor_int8 configs/profile_inductor.yaml tps_only=True
 ```
+
 **Torch compile with TorchAO FP8**: 
 ```
 python -m low_bit_inference.torchinductor_fp8 configs/profile_inductor.yaml tps_only=True
 ```
-
 
 ## Benchmarking Roadmap:
 - [ ] Calculate theoretical performance limit and roofline model for Llama-3.1 8B to have a target.

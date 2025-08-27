@@ -21,7 +21,7 @@ def profile_model(model, tokenizer, past_key_values, prompt, config):
     tokenized_prompt = tokenizer(prompt, return_tensors="pt").to(config.device)  # will return a dict of token ids and attention mask
 
     if config.tps_only:
-        activities = []
+        activities = [torch.profiler.ProfilerActivity.CPU]
         profiling_flag = False
         trace_handler = lambda x: None
     else:
