@@ -1,4 +1,3 @@
-from re import I
 import torch
 import gc
 
@@ -45,7 +44,7 @@ def profile_model(model, tokenizer, past_key_values, prompt, config):
         with_flops = profiling_flag,
     ) as prof:
         for i in range(total_steps):
-            print(f"Profiling iteration {i}")
+            print(f"Profiling iteration {i} out of total {total_steps}")
             torch.compiler.cudagraph_mark_step_begin() 
             torch.cuda.synchronize()
             start = torch.cuda.Event(enable_timing=True)

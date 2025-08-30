@@ -42,7 +42,7 @@ python -m low_bit_inference.torchinductor_autoquant configs/profile_inductor.yam
 
 **Torch compile with TorchAO Int4**: 
 ```
-python -m low_bit_inference.torchinductor_autoquant configs/profile_inductor.yaml tps_only=True
+python -m low_bit_inference.torchinductor_int4 configs/profile_inductor.yaml tps_only=True
 ```
 
 **Torch compile with TorchAO Int8**: 
@@ -56,8 +56,8 @@ python -m low_bit_inference.torchinductor_fp8 configs/profile_inductor.yaml tps_
 ```
 
 ## Benchmarking Roadmap:
-- [ ] Calculate theoretical performance limit and roofline model for Llama-3.1 8B to have a target.
-- [ ] HTA trace.
+- [ ] Calculate theoretical performance limit and roofline model for Llama-3.1 8B to have a target - HTA will give us the MFU that we can try to maximize.
+- [ ]
 
 ## Benchmarking Notes:
 * **Decoding**: HF by default uses greedy decoding but we can do speculative decoding, and structured/guided generation to speed-up generation.
