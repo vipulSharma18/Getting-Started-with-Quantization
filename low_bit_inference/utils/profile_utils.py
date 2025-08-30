@@ -1,3 +1,4 @@
+from re import I
 import torch
 import gc
 
@@ -14,9 +15,11 @@ def profile_model(model, tokenizer, past_key_values, prompt, config):
         repeat = config.repeat
     )
 
+    mul_factor = max(1, config.repeat)
+    total_steps = config.skip_first + mul_factor*(config.wait + config.warmup + config.active)
+
     cumulative_time = 0.0
     generated_token_count = 0
-    mul_factor = max(1, config.repeat)
 
     tokenized_prompt = tokenizer(prompt, return_tensors="pt").to(config.device)  # will return a dict of token ids and attention mask
 
@@ -41,7 +44,7 @@ def profile_model(model, tokenizer, past_key_values, prompt, config):
         with_stack = profiling_flag,  # this will add considerable overhead, set it to False for benchmarking.
         with_flops = profiling_flag,
     ) as prof:
-        for i in range(config.skip_first + mul_factor*(config.wait + config.warmup + config.active)):    
+        for i in range(total_steps):
             print(f"Profiling iteration {i}")
             torch.compiler.cudagraph_mark_step_begin() 
             torch.cuda.synchronize()
@@ -63,11 +66,14 @@ def profile_model(model, tokenizer, past_key_values, prompt, config):
             step_time = start.elapsed_time(end)
             prof.step()
             generated_tokens = tokenizer.batch_decode(generated_token_ids[0], skip_special_tokens=True)
-            if i>=config.skip_first:
-                cumulative_time += step_time
-                generated_token_count += len(generated_tokens)
+            curr_action = profiling_schedule(i)  # just an ENUM
             print(f"Generated tokens (last 5): {generated_tokens[-5:]}, len: {len(generated_tokens)}, time: {step_time/1000}s")
-            print(f"Profiling step_num: {prof.step_num}, action taken: {profiling_schedule(prof.step_num)}")
+            print(f"Profiling step_num: {i}, curr action taken: {curr_action}")
+            # config.skip_first + mul_factor*(config.wait + config.warmup + config.active)
+            if curr_action in [torch.profiler.ProfilerAction.RECORD, torch.profiler.ProfilerAction.RECORD_AND_SAVE]:
+                cumulative_time += step_time
+                generated_token_count += config.max_new_tokens  # this is decode stage tokens only, while generated_tokens contains prefill and decode stage tokens
+                print(f"Profile step {i} included for tps calculation.")
             past_key_values.reset()
             del generated_tokens, generated_token_ids
             gc.collect()
@@ -76,7 +82,7 @@ def profile_model(model, tokenizer, past_key_values, prompt, config):
     try:
         if not config.tps_only and prof.profiler is not None:
             prof.export_chrome_trace(config.profiling_dir + "/trace.json")
-    except Exception as e:
+    except Exception:
         print("Trace was already saved. Exiting.")
 
 def dump_device_tensors(device_id=0):

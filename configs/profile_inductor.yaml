@@ -9,8 +9,8 @@ attn_implementation: "sdpa"  # flex_attention, sdpa, flash_attention_2, eager
 profiling_dir: "log/inductor"
 skip_first: 1
 wait: 1
-warmup: 2
-active: 4
+warmup: 3
+active: 5
 repeat: 0
 tps_only: False
 
