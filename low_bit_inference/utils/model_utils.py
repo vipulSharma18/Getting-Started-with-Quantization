@@ -3,6 +3,8 @@ from typing import Callable, Optional, Union
 import torch
 from torch import nn
 
+from ..optims.liger_rms_norm import LigerRMSNorm
+
 from ...activations import ACT2FN
 from ...cache_utils import Cache, DynamicCache
 from ...generation import GenerationMixin
@@ -23,9 +25,8 @@ from ...utils.generic import check_model_inputs
 from .configuration_llama import LlamaConfig
 
 
-# TODO: see if the hf hub kernel is the optimal one,
-# otherwise replace with custom RMSNorm kernel
-@use_kernel_forward_from_hub("RMSNorm")
+# the hf hub kernel uses liger-kernel rms norm which we've directly imported in the code
+# @use_kernel_forward_from_hub("RMSNorm")
 class LlamaRMSNorm(nn.Module):
     def __init__(self, hidden_size, eps=1e-6):
         """
@@ -251,8 +252,8 @@ class LlamaDecoderLayer(GradientCheckpointingLayer):
         self.self_attn = LlamaAttention(config=config, layer_idx=layer_idx)
 
         self.mlp = LlamaMLP(config)
-        self.input_layernorm = LlamaRMSNorm(config.hidden_size, eps=config.rms_norm_eps)
-        self.post_attention_layernorm = LlamaRMSNorm(config.hidden_size, eps=config.rms_norm_eps)
+        self.input_layernorm = LigerRMSNorm(config.hidden_size, eps=config.rms_norm_eps) # LlamaRMSNorm(config.hidden_size, eps=config.rms_norm_eps)
+        self.post_attention_layernorm = LigerRMSNorm(config.hidden_size, eps=config.rms_norm_eps) # LlamaRMSNorm(config.hidden_size, eps=config.rms_norm_eps)
 
     def forward(
         self,
@@ -317,7 +318,7 @@ class LlamaModel(LlamaPreTrainedModel):
         self.layers = nn.ModuleList(
             [LlamaDecoderLayer(config, layer_idx) for layer_idx in range(config.num_hidden_layers)]
         )
-        self.norm = LlamaRMSNorm(config.hidden_size, eps=config.rms_norm_eps)
+        self.norm = LigerRMSNorm(config.hidden_size, eps=config.rms_norm_eps) # LlamaRMSNorm(config.hidden_size, eps=config.rms_norm_eps)
         self.rotary_emb = LlamaRotaryEmbedding(config=config)
         self.gradient_checkpointing = False
 
