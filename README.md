@@ -57,7 +57,8 @@ python -m low_bit_inference.torchinductor_fp8 configs/profile_inductor.yaml tps_
 
 ## Benchmarking Roadmap:
 - [ ] Calculate theoretical performance limit and roofline model for Llama-3.1 8B to have a target - HTA will give us the MFU that we can try to maximize.
-- [ ]
+- [ ] Megakernel for Llama-3.1-8B: https://github.com/HazyResearch/Megakernels/blob/main/demos/low-latency-llama/llama.cuh , https://hazyresearch.stanford.edu/blog/2025-05-27-no-bubbles
+- [ ] HQQ is the fastest dynamic/on-the-fly quantization out there. https://mobiusml.github.io/hqq_blog/
 
 ## Benchmarking Notes:
 * **Decoding**: HF by default uses greedy decoding but we can do speculative decoding, and structured/guided generation to speed-up generation.

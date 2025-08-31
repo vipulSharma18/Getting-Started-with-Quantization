@@ -2,9 +2,12 @@
 Note:
 -----
 
-1. Use static cache to ensure torch.compile can work on it.
+1. Use static cache to ensure torch.compile can work on it (shape doesn't change so it can optimize it).
 2. We can also quantize the KV Cache, or use techniques like latent attentition to downproject and upproject
 the KV cache and save memory.
+
+This file implements StaticCache and other variants like the quantized cache, we'll need to take code from here and optimize it.
+https://github.com/huggingface/transformers/blob/main/src/transformers/cache_utils.py
 """
 
 from transformers import StaticCache
@@ -20,3 +23,4 @@ def setup_cache(cache_size, model_config, profile_config):
         dtype=to_torch_dtype(profile_config.compute_dtype)
     )
     return past_key_values
+

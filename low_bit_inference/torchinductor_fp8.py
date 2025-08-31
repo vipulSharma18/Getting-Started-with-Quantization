@@ -11,7 +11,7 @@ from .utils.config_utils import get_config
 from .utils.profile_utils import profile_model
 from .utils.compile_utils import compile_model
 # optims
-from .optims.kv_cache_optim import setup_cache
+from .optims.attention_optim import setup_cache
 
 
 config = get_config()

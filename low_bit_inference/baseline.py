@@ -6,7 +6,7 @@ from .utils.hf_utils import load_model_tokenizer
 from .utils.config_utils import get_config
 from .utils.profile_utils import profile_model
 # optims
-from .optims.kv_cache_optim import setup_cache
+from .optims.attention_optim import setup_cache
 
 config = get_config()
 print("config used -- ", OmegaConf.to_yaml(config), sep="\n")

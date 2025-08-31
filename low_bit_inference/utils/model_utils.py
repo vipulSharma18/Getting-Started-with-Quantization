@@ -5,23 +5,23 @@ from torch import nn
 
 from ..optims.rms_norm_kernels.liger_rms_norm import LigerRMSNorm
 
-from ...activations import ACT2FN
-from ...cache_utils import Cache, DynamicCache
-from ...generation import GenerationMixin
-from ...masking_utils import create_causal_mask
+from ...activations import ACT2FN  # check activation_optim.py
+from ...cache_utils import Cache, DynamicCache # refer to attention_optim.py
+from ...generation import GenerationMixin  # generation_optim.py
+from ...masking_utils import create_causal_mask  # masking_optim.py
 from ...modeling_layers import (
     GradientCheckpointingLayer,
-)
+)  # https://github.com/huggingface/transformers/blob/main/src/transformers/modeling_layers.py#L35
 from ...modeling_outputs import (
     BaseModelOutputWithPast,
     CausalLMOutputWithPast,
-)
-from ...modeling_rope_utils import ROPE_INIT_FUNCTIONS, dynamic_rope_update
-from ...modeling_utils import ALL_ATTENTION_FUNCTIONS, PreTrainedModel
-from ...processing_utils import Unpack
-from ...utils import TransformersKwargs, can_return_tuple
-from ...utils.generic import check_model_inputs
-from .configuration_llama import LlamaConfig
+)  # https://github.com/huggingface/transformers/blob/main/src/transformers/modeling_outputs.py
+from ...modeling_rope_utils import ROPE_INIT_FUNCTIONS, dynamic_rope_update  # https://github.com/huggingface/transformers/blob/main/src/transformers/modeling_rope_utils.py
+from ...modeling_utils import ALL_ATTENTION_FUNCTIONS, PreTrainedModel  # https://github.com/huggingface/transformers/blob/main/src/transformers/modeling_utils.py
+from ...processing_utils import Unpack  # https://github.com/huggingface/transformers/blob/main/src/transformers/processing_utils.py
+from ...utils import TransformersKwargs, can_return_tuple  # # https://github.com/huggingface/transformers/blob/main/src/transformers/utils/generic.py
+from ...utils.generic import check_model_inputs  # https://github.com/huggingface/transformers/blob/main/src/transformers/utils/generic.py
+from .configuration_llama import LlamaConfig  # model_configuration_utils.py
 
 
 # the hf hub kernel uses liger-kernel rms norm which we've directly imported in the code
