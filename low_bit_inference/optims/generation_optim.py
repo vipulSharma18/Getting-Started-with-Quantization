@@ -23,8 +23,7 @@ import inspect
 import os
 import warnings
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Callable, Optional, Union
-
+from typing import Any, Callable, Optional, Union
 import torch
 import torch.distributed as dist
 from packaging import version
@@ -37,19 +36,13 @@ from .attention_optim import (
     QuantizedCache,
     StaticCache,
 )
+from ..utils.generic_utils import (
+    ModelOutput,
+)
+from .masking_optim import create_masks_for_generate
 
-from ..integrations.deepspeed import is_deepspeed_zero3_enabled
-from ..integrations.fsdp import is_fsdp_managed_module
-from ..masking_utils import create_masks_for_generate
 from ..pytorch_utils import isin_mps_friendly
 from ..tokenization_utils import ExtensionsTrie
-from ..utils import (
-    ModelOutput,
-    is_accelerate_available,
-    is_hqq_available,
-    is_optimum_quanto_available,
-    is_torchdynamo_exporting,
-)
 from .configuration_utils import (
     ALL_STATIC_CACHE_IMPLEMENTATIONS,
     DEPRECATED_STATIC_CACHE_IMPLEMENTATIONS,
@@ -57,7 +50,6 @@ from .configuration_utils import (
     GenerationConfig,
     GenerationMode,
 )
-from .continuous_batching import ContinuousMixin
 from .logits_process import (
     EncoderNoRepeatNGramLogitsProcessor,
     EncoderRepetitionPenaltyLogitsProcessor,
@@ -95,15 +87,6 @@ from .stopping_criteria import (
     StoppingCriteriaList,
     StopStringCriteria,
 )
-
-
-if TYPE_CHECKING:
-    from ..modeling_utils import PreTrainedModel
-    from ..tokenization_utils_base import PreTrainedTokenizerBase
-    from .streamers import BaseStreamer
-
-if is_accelerate_available():
-    from accelerate.hooks import AlignDevicesHook, add_hook_to_module
 
 # Variable names used to hold the cache at generation time
 ALL_CACHE_NAMES = [
@@ -159,36 +142,6 @@ GenerateNonBeamOutput = GenerateDecoderOnlyOutput
 GenerateOutput = GenerateNonBeamOutput
 
 class GenerationMixin(ContinuousMixin):
-    """
-    A class containing all functions for auto-regressive text generation, to be used as a mixin in model classes.
-    Inheriting from this class causes the model to have special generation-related behavior, such as loading a
-    `GenerationConfig` at initialization time or ensuring `generate`-related tests are run in `transformers` CI.
-
-    A model class should inherit from `GenerationMixin` to enable calling methods like `generate`, or when it
-    has defined a custom `generate` method that relies on `GenerationMixin`, directly or indirectly, which
-    approximately shares the same interface to public methods like `generate`. Three examples:
-        - `LlamaForCausalLM` should inherit from `GenerationMixin` to enable calling `generate` and other public
-            methods in the mixin;
-        - `BlipForQuestionAnswering` has a custom `generate` method that approximately shares the same interface as
-           `GenerationMixin.generate` (it has a few extra arguments, and the same output). That function also calls
-           `GenerationMixin.generate` indirectly, through an inner model. As such, `BlipForQuestionAnswering` should
-           inherit from `GenerationMixin` to benefit from all generation-related automation in our codebase;
-        - `BarkModel` has a custom `generate` method and one of its inner models calls `GenerationMixin.generate`.
-            However, its `generate` does not share the same interface as `GenerationMixin.generate`. In this case,
-            `BarkModel` should NOT inherit from `GenerationMixin`, as it breaks the `generate` interface.
-
-    The class exposes [`~generation.GenerationMixin.generate`], which can be used for:
-        - *greedy decoding* if `num_beams=1` and `do_sample=False`
-        - *multinomial sampling* if `num_beams=1` and `do_sample=True`
-        - *beam-search decoding* if `num_beams>1` and `do_sample=False`
-        - *beam-search multinomial sampling* if `num_beams>1` and `do_sample=True`
-        - *diverse beam-search decoding* if `num_beams>1` and `num_beam_groups>1`
-        - *constrained beam-search decoding* if `constraints!=None` or `force_words_ids!=None`
-        - *assisted decoding* if `assistant_model` or `prompt_lookup_num_tokens` is passed to `.generate()`
-
-    To learn more about decoding strategies refer to the [text generation strategies guide](../generation_strategies).
-    """
-
     def _cache_dependant_input_preparation(
         self,
         input_ids: torch.LongTensor,
@@ -210,7 +163,7 @@ class GenerationMixin(ContinuousMixin):
         The current implementation does not rely on ``self`` and could be
         a class method. It is left as a standard method to be easily rewritten.
         """
-        if is_torchdynamo_exporting():
+        if torch.compiler.is_exporting():
             return self._cache_dependant_input_preparation_exporting(input_ids, inputs_embeds, cache_position)
         if inputs_embeds is not None and input_ids.shape[1] == 0:  # Exception 4
             inputs_embeds = inputs_embeds[:, -cache_position.shape[0] :]
@@ -559,47 +512,6 @@ class GenerationMixin(ContinuousMixin):
             attention_mask_from_padding * can_infer_attention_mask + default_attention_mask * ~can_infer_attention_mask
         )
         return attention_mask
-
-    def _prepare_encoder_decoder_kwargs_for_generation(
-        self,
-        inputs_tensor: torch.Tensor,
-        model_kwargs,
-        model_input_name: Optional[str],
-        generation_config: GenerationConfig,
-    ) -> dict[str, Any]:
-        # 1. get encoder
-        encoder = self.get_encoder()
-        # Compatibility with Accelerate big model inference: we need the encoder to outputs stuff on the same device
-        # as the inputs.
-        if hasattr(self, "hf_device_map"):
-            if hasattr(encoder, "_hf_hook"):
-                encoder._hf_hook.io_same_device = True
-            else:
-                add_hook_to_module(encoder, AlignDevicesHook(io_same_device=True))
-
-        # 2. Prepare encoder args and encoder kwargs from model kwargs and generation config.
-        irrelevant_prefix = ["decoder_", "cross_attn", "use_cache"]
-        encoder_kwargs = {
-            argument: value
-            for argument, value in model_kwargs.items()
-            if not any(argument.startswith(p) for p in irrelevant_prefix)
-        }
-        encoder_signature = set(inspect.signature(encoder.forward).parameters)
-        encoder_accepts_wildcard = "kwargs" in encoder_signature or "model_kwargs" in encoder_signature
-        if not encoder_accepts_wildcard:
-            encoder_kwargs = {
-                argument: value for argument, value in encoder_kwargs.items() if argument in encoder_signature
-            }
-        encoder_kwargs["output_attentions"] = generation_config.output_attentions
-        encoder_kwargs["output_hidden_states"] = generation_config.output_hidden_states
-
-        # 3. make sure that encoder returns `ModelOutput`
-        model_input_name = model_input_name if model_input_name is not None else self.main_input_name
-        encoder_kwargs["return_dict"] = True
-        encoder_kwargs[model_input_name] = inputs_tensor
-        model_kwargs["encoder_outputs"]: ModelOutput = encoder(**encoder_kwargs)  # type: ignore
-
-        return model_kwargs
 
     def _prepare_decoder_input_ids_for_generation(
         self,
@@ -977,7 +889,7 @@ class GenerationMixin(ContinuousMixin):
         self,
         generation_config: GenerationConfig,
         stopping_criteria: Optional[StoppingCriteriaList],
-        tokenizer: Optional["PreTrainedTokenizerBase"] = None,
+        tokenizer = None,
         **kwargs,
     ) -> StoppingCriteriaList:
         criteria = StoppingCriteriaList()
@@ -1425,7 +1337,7 @@ class GenerationMixin(ContinuousMixin):
         self,
         generation_config: GenerationConfig,
         model_kwargs: dict,
-        assistant_model: "PreTrainedModel",
+        assistant_model,
         batch_size: int,
         max_cache_length: int,
     ) -> bool:
@@ -1524,16 +1436,6 @@ class GenerationMixin(ContinuousMixin):
                 # Pop the backend from the config (defaults to quanto if not defined)
                 backend = cache_config.pop("backend", "quanto")
 
-                if backend == "quanto" and not is_optimum_quanto_available():
-                    raise ImportError(
-                        "You need to install optimum-quanto in order to use KV cache quantization with optimum-quanto backend. "
-                        "Please install it via  with `pip install optimum-quanto`"
-                    )
-                elif backend == "HQQ" and not is_hqq_available():
-                    raise ImportError(
-                        "You need to install `HQQ` in order to use KV cache quantization with HQQ backend. "
-                        "Please install it via  with `pip install hqq`"
-                    )
                 model_kwargs[cache_name] = QuantizedCache(backend=backend, **cache_config)
             elif generation_config.cache_implementation == "offloaded":
                 model_kwargs[cache_name] = DynamicCache(**dynamic_cache_kwargs, offloading=True)
@@ -1709,7 +1611,7 @@ class GenerationMixin(ContinuousMixin):
 
         # 2. Set generation parameters if not already defined
         if synced_gpus is None:
-            synced_gpus = (is_deepspeed_zero3_enabled() or is_fsdp_managed_module(self)) and dist.get_world_size() > 1
+            synced_gpus = dist.get_world_size() > 1
 
         logits_processor = logits_processor if logits_processor is not None else LogitsProcessorList()
         stopping_criteria = stopping_criteria if stopping_criteria is not None else StoppingCriteriaList()
@@ -1756,12 +1658,6 @@ class GenerationMixin(ContinuousMixin):
             # TODO (joao): generalize this check with other types of inputs
             if model_input_name == "input_ids" and len(model_kwargs["attention_mask"].shape) > 2:
                 raise ValueError("`attention_mask` passed to `generate` must be 2D.")
-
-        if self.config.is_encoder_decoder and "encoder_outputs" not in model_kwargs:
-            # if model is encoder decoder encoder_outputs are created and added to `model_kwargs`
-            model_kwargs = self._prepare_encoder_decoder_kwargs_for_generation(
-                inputs_tensor, model_kwargs, model_input_name, generation_config
-            )
 
         # 5. Prepare `input_ids` which will be used for auto-regressive generation
         if self.config.is_encoder_decoder:
@@ -1906,7 +1802,7 @@ class GenerationMixin(ContinuousMixin):
         return True
 
     def heal_tokens(
-        self, input_ids: torch.LongTensor, tokenizer: Optional["PreTrainedTokenizerBase"] = None
+        self, input_ids: torch.LongTensor, tokenizer = None
     ) -> torch.LongTensor:
         r"""
         Generates sequences of token ids for models with a language modeling head.
@@ -1993,45 +1889,13 @@ class GenerationMixin(ContinuousMixin):
     def _sample(
         self,
         input_ids: torch.LongTensor,
-        logits_processor: LogitsProcessorList,
-        stopping_criteria: StoppingCriteriaList,
-        generation_config: GenerationConfig,
+        logits_processor,
+        stopping_criteria,
+        generation_config,
         synced_gpus: bool,
-        streamer: Optional["BaseStreamer"],
+        streamer,
         **model_kwargs,
-    ) -> Union[GenerateNonBeamOutput, torch.LongTensor]:
-        r"""
-        Generates sequences of token ids for models with a language modeling head using **multinomial sampling** and
-        can be used for text-decoder, text-to-text, speech-to-text, and vision-to-text models.
-
-        Parameters:
-            input_ids (`torch.LongTensor` of shape `(batch_size, sequence_length)`):
-                The sequence used as a prompt for the generation.
-            logits_processor (`LogitsProcessorList`):
-                An instance of [`LogitsProcessorList`]. List of instances of class derived from [`LogitsProcessor`]
-                used to modify the prediction scores of the language modeling head applied at each generation step.
-            stopping_criteria (`StoppingCriteriaList`):
-                An instance of [`StoppingCriteriaList`]. List of instances of class derived from [`StoppingCriteria`]
-                used to tell if the generation loop should stop.
-            generation_config ([`~generation.GenerationConfig`]):
-                The generation configuration to be used as parametrization of the decoding method.
-            synced_gpus (`bool`):
-                Whether to continue running the while loop until max_length (needed to avoid deadlocking with
-                `FullyShardedDataParallel` and DeepSpeed ZeRO Stage 3).
-            streamer (`BaseStreamer`, *optional*):
-                Streamer object that will be used to stream the generated sequences. Generated tokens are passed
-                through `streamer.put(token_ids)` and the streamer is responsible for any further processing.
-            model_kwargs:
-                Additional model specific kwargs will be forwarded to the `forward` function of the model. If model is
-                an encoder-decoder model the kwargs should include `encoder_outputs`.
-
-        Return:
-            [`~generation.GenerateDecoderOnlyOutput`], [`~generation.GenerateEncoderDecoderOutput`] or `torch.LongTensor`:
-            A `torch.LongTensor` containing the generated tokens (default behaviour) or a
-            [`~generation.GenerateDecoderOnlyOutput`] if `model.config.is_encoder_decoder=False` and
-            `return_dict_in_generate=True` or a [`~generation.GenerateEncoderDecoderOutput`] if
-            `model.config.is_encoder_decoder=True`.
-        """
+    ):
         # init values
         pad_token_id = generation_config._pad_token_tensor
         output_attentions = generation_config.output_attentions
@@ -2048,13 +1912,6 @@ class GenerationMixin(ContinuousMixin):
         decoder_attentions = () if (return_dict_in_generate and output_attentions) else None
         cross_attentions = () if (return_dict_in_generate and output_attentions) else None
         decoder_hidden_states = () if (return_dict_in_generate and output_hidden_states) else None
-
-        # if model is an encoder-decoder, retrieve encoder attention weights and hidden states
-        if return_dict_in_generate and self.config.is_encoder_decoder:
-            encoder_attentions = model_kwargs["encoder_outputs"].get("attentions") if output_attentions else None
-            encoder_hidden_states = (
-                model_kwargs["encoder_outputs"].get("hidden_states") if output_hidden_states else None
-            )
 
         # keep track of which sequences are already finished
         batch_size, cur_len = input_ids.shape[:2]
@@ -2162,27 +2019,14 @@ class GenerationMixin(ContinuousMixin):
             streamer.end()
 
         if return_dict_in_generate:
-            if self.config.is_encoder_decoder:
-                return GenerateEncoderDecoderOutput(
-                    sequences=input_ids,
-                    scores=scores,
-                    logits=raw_logits,
-                    encoder_attentions=encoder_attentions,
-                    encoder_hidden_states=encoder_hidden_states,
-                    decoder_attentions=decoder_attentions,
-                    cross_attentions=cross_attentions,
-                    decoder_hidden_states=decoder_hidden_states,
-                    past_key_values=model_kwargs.get("past_key_values"),
-                )
-            else:
-                return GenerateDecoderOnlyOutput(
-                    sequences=input_ids,
-                    scores=scores,
-                    logits=raw_logits,
-                    attentions=decoder_attentions,
-                    hidden_states=decoder_hidden_states,
-                    past_key_values=model_kwargs.get("past_key_values"),
-                )
+            return GenerateDecoderOnlyOutput(
+                sequences=input_ids,
+                scores=scores,
+                logits=raw_logits,
+                attentions=decoder_attentions,
+                hidden_states=decoder_hidden_states,
+                past_key_values=model_kwargs.get("past_key_values"),
+            )
         else:
             return input_ids
 
@@ -2229,51 +2073,3 @@ class GenerationMixin(ContinuousMixin):
         _ = model_kwargs.pop("position_ids", None)
 
         return model_kwargs
-
-def stack_model_outputs(model_outputs: list[ModelOutput], config) -> ModelOutput:
-    """
-    Stack a list of ModelOutput objects (or its subclasses) along the batch_size dimension. The function infers the
-    specific ModelOutput subclass from the list provided.
-    """
-    if not model_outputs:
-        raise ValueError("Input list is empty.")
-
-    # Infer the class from the first object in the list
-    model_output_cls = type(model_outputs[0])
-
-    # Ensure all objects are of the same type
-    if not all(isinstance(obj, model_output_cls) for obj in model_outputs):
-        raise ValueError("All elements in the list should be of the same type.")
-
-    # Helper function to concat tensors or tuples of tensors
-    def _concat(data):
-        """
-        Reverse of `_split` function above.
-        """
-        if any(data is None for data in data):
-            return None
-        if isinstance(data[0], torch.Tensor):
-            return torch.cat(data, dim=0)
-        elif isinstance(data[0], tuple):
-            # If the elements of the tuple are also tuples (e.g., past_key_values in our earlier example)
-            if isinstance(data[0][0], tuple):
-                return tuple(
-                    tuple(torch.cat([attr[i][j] for attr in data], dim=0) for j in range(len(data[0][0])))
-                    for i in range(len(data[0]))
-                )
-            else:
-                return tuple(torch.cat([attr[i] for attr in data], dim=0) for i in range(len(data[0])))
-        elif isinstance(data[0], (int, float)):
-            # If the elements are integers or floats, return a tensor
-            return torch.tensor(data)
-        else:
-            raise TypeError(f"Unexpected attribute type: {type(data[0])}")
-
-    # Use a dictionary comprehension to gather attributes from all objects and concatenate them
-    concatenated_data = {
-        k: _concat([getattr(model_output, k) for model_output in model_outputs])
-        for k in model_output_cls.__dataclass_fields__
-    }
-
-    # Return a new object of the inferred class with the concatenated attributes
-    return model_output_cls(**concatenated_data)
