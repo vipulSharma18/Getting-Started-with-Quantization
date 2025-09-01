@@ -1,4 +1,3 @@
-# TODO
 """
 Note:
 -----
@@ -11,6 +10,11 @@ This file implements StaticCache and other variants like the quantized cache, we
 https://github.com/huggingface/transformers/blob/main/src/transformers/cache_utils.py
 """
 
+from abc import ABC, abstractmethod
+from collections.abc import Iterable
+from typing import Any, Optional
+import torch
+from hqq.core.quantize import Quantizer as HQQQuantizer
 from transformers import StaticCache
 from ..utils.config_utils import to_torch_dtype
 
@@ -24,31 +28,6 @@ def setup_cache(cache_size, model_config, profile_config):
         dtype=to_torch_dtype(profile_config.compute_dtype)
     )
     return past_key_values
-
-
-from abc import ABC, abstractmethod
-from collections.abc import Iterable
-from typing import Any, Optional
-
-import torch
-
-from .configuration_utils import PretrainedConfig
-from .utils import (
-    is_hqq_available,
-    is_quanto_greater,
-    is_torch_greater_or_equal,
-    is_torchdynamo_compiling,
-    logging,
-)
-
-
-if is_hqq_available():
-    from hqq.core.quantize import Quantizer as HQQQuantizer
-
-_is_torch_greater_or_equal_than_2_7 = is_torch_greater_or_equal("2.7", accept_dev=True)
-
-
-logger = logging.get_logger(__name__)
 
 
 class CacheLayerMixin(ABC):
@@ -320,7 +299,7 @@ class StaticLayer(CacheLayerMixin):
         # breaks when updating the cache. However, it is not supported when tracing the graph, so we skip it in this case.
         # As prefill should never be compiled, this is not an issue and it will still be run (except when users compile
         # prefill explicitly, but this should be avoided!)
-        if not is_torchdynamo_compiling():
+        if not torch.compiler.is_compiling():
             torch._dynamo.mark_static_address(self.keys)
             torch._dynamo.mark_static_address(self.values)
 
@@ -657,12 +636,7 @@ class QuantoQuantizedLayer(QuantizedLayer):
         )
 
         # We need to import quanto here to avoid circular imports due to optimum/quanto/models/transformers_models.py
-        if is_quanto_greater("0.2.5", accept_dev=True):
-            from optimum.quanto import MaxOptimizer, qint2, qint4
-        else:
-            raise ImportError(
-                "You need optimum-quanto package version to be greater or equal than 0.2.5 to use `QuantoQuantizedCache`. "
-            )
+        from optimum.quanto import MaxOptimizer, qint2, qint4
 
         if self.nbits not in [2, 4]:
             raise ValueError(f"`nbits` for `quanto` backend has to be one of [`2`, `4`] but got {self.nbits}")
@@ -705,9 +679,6 @@ class HQQQuantizedLayer(QuantizedLayer):
             q_group_size=q_group_size,
             residual_length=residual_length,
         )
-
-        if not is_hqq_available():
-            raise ImportError("You need to install `hqq` to use `HQQQuantizedLayer`")
 
         if self.nbits not in [1, 2, 3, 4, 8]:
             raise ValueError(
@@ -785,7 +756,7 @@ class Cache:
         self.offloading = offloading
         if self.offloading:
             self.only_non_sliding = offload_only_non_sliding
-            self.prefetch_stream = torch.Stream() if _is_torch_greater_or_equal_than_2_7 else torch.cuda.Stream()
+            self.prefetch_stream = torch.Stream()
 
     def __repr__(self):
         return f"{self.__class__.__name__}(layers={self.layers})"
@@ -807,7 +778,7 @@ class Cache:
             layer_idx = layer_idx if layer_idx < len(self.layers) else 0
 
         # Prefetch
-        with self.prefetch_stream if _is_torch_greater_or_equal_than_2_7 else torch.cuda.stream(self.prefetch_stream):
+        with self.prefetch_stream:
             self.layers[layer_idx].prefetch()
 
     def offload(self, layer_idx: int, only_non_sliding: bool = True):
@@ -1030,7 +1001,7 @@ class DynamicCache(Cache):
     def __init__(
         self,
         ddp_cache_data: Optional[Iterable[tuple[torch.Tensor, torch.Tensor]]] = None,
-        config: Optional[PretrainedConfig] = None,
+        config = None,
         offloading: bool = False,
         offload_only_non_sliding: bool = False,
     ):
@@ -1093,7 +1064,7 @@ class DynamicCache(Cache):
         """
         cache = cls()
         if past_key_values is None:
-            logger.warning_once("past_key_values should not be None in from_legacy_cache()")
+            print("past_key_values should not be None in from_legacy_cache()")
         if past_key_values is not None:
             for layer_idx in range(len(past_key_values)):
                 key_states, value_states = past_key_values[layer_idx]
@@ -1143,7 +1114,7 @@ class StaticCache(Cache):
     # Pass-in kwargs as well to avoid crashing for BC (it used more arguments before)
     def __init__(
         self,
-        config: PretrainedConfig,
+        config,
         max_cache_len: int,
         offloading: bool = False,
         offload_only_non_sliding: bool = True,
@@ -1210,7 +1181,7 @@ class QuantizedCache(Cache):
     def __init__(
         self,
         backend: str,
-        config: PretrainedConfig,
+        config,
         nbits: int = 4,
         axis_key: int = 0,
         axis_value: int = 0,
@@ -1351,7 +1322,7 @@ class EncoderDecoderCache(Cache):
         """Converts a cache in the legacy cache format into an equivalent `EncoderDecoderCache`."""
         cache = cls(DynamicCache(), DynamicCache())
         if past_key_values is None:
-            logger.warning_once("past_key_values should not be None in from_legacy_cache()")
+            print("past_key_values should not be None in from_legacy_cache()")
         else:
             for layer_idx, key_value_states in enumerate(past_key_values):
                 key_states, value_states = key_value_states[:2]
@@ -1443,7 +1414,7 @@ class EncoderDecoderCache(Cache):
 
 class OffloadedCache(DynamicCache):
     def __init__(self) -> None:
-        logger.warning_once(
+        print(
             "`OffloadedCache` is deprecated and will be removed in version v4.59 "
             "Use `DynamicCache(offloading=True)` instead"
         )
@@ -1451,8 +1422,8 @@ class OffloadedCache(DynamicCache):
 
 
 class OffloadedStaticCache(StaticCache):
-    def __init__(self, config: PretrainedConfig, max_cache_len: int, *args, **kwargs):
-        logger.warning_once(
+    def __init__(self, config, max_cache_len: int, *args, **kwargs):
+        print(
             "`OffloadedStaticCache` is deprecated and will be removed in version v4.59 "
             "Use `StaticCache(..., offloading=True)` instead"
         )
@@ -1460,8 +1431,8 @@ class OffloadedStaticCache(StaticCache):
 
 
 class SlidingWindowCache(StaticCache):
-    def __init__(self, config: PretrainedConfig, max_cache_len: int, *args, **kwargs):
-        logger.warning_once(
+    def __init__(self, config, max_cache_len: int, *args, **kwargs):
+        print(
             "`SlidingWindowCache` is deprecated and will be removed in version v4.59 "
             "Use `StaticCache(...)` instead which will correctly infer the type of each layer."
         )
@@ -1469,8 +1440,8 @@ class SlidingWindowCache(StaticCache):
 
 
 class HybridCache(StaticCache):
-    def __init__(self, config: PretrainedConfig, max_cache_len: int, *args, **kwargs):
-        logger.warning_once(
+    def __init__(self, config, max_cache_len: int, *args, **kwargs):
+        print(
             "`HybridCache` is deprecated and will be removed in version v4.59 "
             "Use `StaticCache(...)` instead which will correctly infer the type of each layer."
         )
@@ -1478,8 +1449,8 @@ class HybridCache(StaticCache):
 
 
 class HybridChunkedCache(StaticCache):
-    def __init__(self, config: PretrainedConfig, max_cache_len: int, *args, **kwargs):
-        logger.warning_once(
+    def __init__(self, config, max_cache_len: int, *args, **kwargs):
+        print(
             "`HybridChunkedCache` is deprecated and will be removed in version v4.59 "
             "Use `StaticCache(...)` instead which will correctly infer the type of each layer."
         )
@@ -1487,8 +1458,8 @@ class HybridChunkedCache(StaticCache):
 
 
 class OffloadedHybridCache(StaticCache):
-    def __init__(self, config: PretrainedConfig, max_cache_len: int, *args, **kwargs):
-        logger.warning_once(
+    def __init__(self, config, max_cache_len: int, *args, **kwargs):
+        print(
             "`OffloadedHybridCache` is deprecated and will be removed in version v4.59 "
             "Use `StaticCache(..., offload=True)` instead which will correctly infer the type of each layer."
         )
@@ -1498,14 +1469,14 @@ class OffloadedHybridCache(StaticCache):
 class QuantoQuantizedCache(QuantizedCache):
     def __init__(
         self,
-        config: PretrainedConfig,
+        config,
         nbits: int = 4,
         axis_key: int = 0,
         axis_value: int = 0,
         q_group_size: int = 64,
         residual_length: int = 128,
     ):
-        logger.warning_once(
+        print(
             "`QuantoQuantizedCache` is deprecated and will be removed in version v4.59 "
             "Use `QuantizedCache(backend='quanto', ...)` instead."
         )
@@ -1515,14 +1486,14 @@ class QuantoQuantizedCache(QuantizedCache):
 class HQQQuantizedCache(QuantizedCache):
     def __init__(
         self,
-        config: PretrainedConfig,
+        config,
         nbits: int = 4,
         axis_key: int = 0,
         axis_value: int = 0,
         q_group_size: int = 64,
         residual_length: int = 128,
     ):
-        logger.warning_once(
+        print(
             "`HQQQuantizedCache` is deprecated and will be removed in version v4.59 "
             "Use `QuantizedCache(backend='hqq', ...)` instead."
         )

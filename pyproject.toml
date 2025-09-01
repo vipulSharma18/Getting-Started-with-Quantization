@@ -30,6 +30,7 @@ big_deps = [
     "transformers",
     "gemlite",
     "hqq",
+    "optimum-quanto",
     # "tensorrt-llm", -> makes uv lock get stuck, figure out installation later
 ]
 
