@@ -6,22 +6,16 @@ from torch import nn
 from .optims.rms_norm_kernels.liger_rms_norm import LigerRMSNorm
 from .optims.activation_optim import ACT2FN
 from .optims.masking_optim import create_causal_mask
+from .optims.gradient_checkpoint_optim import GradientCheckpointingLayer
+from .optims.generation_optim import GenerationMixin
+from .optims.attention_optim import Cache, DynamicCache
+from .optims.model_output_optim import BaseModelOutputWithPast, CausalLMOutputWithPast
+from .optims.rope_optim import ROPE_INIT_FUNCTIONS, dynamic_rope_update
 
-from ...cache_utils import Cache, DynamicCache # refer to attention_optim.py
-from ...generation import GenerationMixin  # generation_optim.py
-from ...modeling_layers import (
-    GradientCheckpointingLayer,
-)  # https://github.com/huggingface/transformers/blob/main/src/transformers/modeling_layers.py#L35
-from ...modeling_outputs import (
-    BaseModelOutputWithPast,
-    CausalLMOutputWithPast,
-)  # https://github.com/huggingface/transformers/blob/main/src/transformers/modeling_outputs.py
-from ...modeling_rope_utils import ROPE_INIT_FUNCTIONS, dynamic_rope_update  # https://github.com/huggingface/transformers/blob/main/src/transformers/modeling_rope_utils.py
-from ...modeling_utils import ALL_ATTENTION_FUNCTIONS, PreTrainedModel  # https://github.com/huggingface/transformers/blob/main/src/transformers/modeling_utils.py
-from ...processing_utils import Unpack  # https://github.com/huggingface/transformers/blob/main/src/transformers/processing_utils.py
-from ...utils import TransformersKwargs, can_return_tuple  # # https://github.com/huggingface/transformers/blob/main/src/transformers/utils/generic.py
-from ...utils.generic import check_model_inputs  # https://github.com/huggingface/transformers/blob/main/src/transformers/utils/generic.py
-from .configuration_llama import LlamaConfig  # model_configuration_utils.py
+from .utils.modeling_utils import ALL_ATTENTION_FUNCTIONS, PreTrainedModel
+from .utils.processing_utils import Unpack
+from .utils.generic_utils import check_model_inputs, TransformersKwargs, can_return_tuple 
+from .utils.model_configuration_utils import LlamaConfig
 
 
 # the hf hub kernel uses liger-kernel rms norm which we've directly imported in the code
