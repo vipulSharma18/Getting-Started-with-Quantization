@@ -3,12 +3,12 @@ from typing import Callable, Optional, Union
 import torch
 from torch import nn
 
-from ..optims.rms_norm_kernels.liger_rms_norm import LigerRMSNorm
-from ..optims.activation_optim import ACT2FN
+from .optims.rms_norm_kernels.liger_rms_norm import LigerRMSNorm
+from .optims.activation_optim import ACT2FN
+from .optims.masking_optim import create_causal_mask
 
 from ...cache_utils import Cache, DynamicCache # refer to attention_optim.py
 from ...generation import GenerationMixin  # generation_optim.py
-from ...masking_utils import create_causal_mask  # masking_optim.py
 from ...modeling_layers import (
     GradientCheckpointingLayer,
 )  # https://github.com/huggingface/transformers/blob/main/src/transformers/modeling_layers.py#L35

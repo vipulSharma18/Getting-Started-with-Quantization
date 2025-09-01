@@ -24,20 +24,7 @@ from torch import Tensor, nn
 
 
 def is_torchdynamo_compiling():
-    # Importing torch._dynamo causes issues with PyTorch profiler (https://github.com/pytorch/pytorch/issues/130622)
-    # hence rather relying on `torch.compiler.is_compiling()` when possible (torch>=2.3)
-    try:
-        import torch
-
-        return torch.compiler.is_compiling()
-    except Exception:
-        try:
-            import torch._dynamo as dynamo  # noqa: F401
-
-            return dynamo.is_compiling()
-        except Exception:
-            return False
-
+    return torch.compiler.is_compiling()
 
 class PytorchGELUTanh(nn.Module):
     """
