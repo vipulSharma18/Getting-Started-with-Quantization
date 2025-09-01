@@ -15,19 +15,7 @@ from collections.abc import Iterable
 from typing import Any, Optional
 import torch
 from hqq.core.quantize import Quantizer as HQQQuantizer
-from transformers import StaticCache
 from ..utils.config_utils import to_torch_dtype
-
-
-def setup_cache(cache_size, model_config, profile_config):
-    past_key_values = StaticCache(
-        config=model_config,
-        max_batch_size=1,
-        max_cache_len=cache_size,
-        device=profile_config.device,
-        dtype=to_torch_dtype(profile_config.compute_dtype)
-    )
-    return past_key_values
 
 
 class CacheLayerMixin(ABC):
@@ -1513,3 +1501,13 @@ class SinkCache(Cache):
             "`SinkCache` has been moved as a `custom_generate` repository on the Hub: "
             "https://huggingface.co/transformers-community/sink_cache. See the repository for usage examples."
         )
+
+def setup_cache(cache_size, model_config, profile_config):
+    past_key_values = StaticCache(
+        config=model_config,
+        max_batch_size=1,
+        max_cache_len=cache_size,
+        device=profile_config.device,
+        dtype=to_torch_dtype(profile_config.compute_dtype)
+    )
+    return past_key_values

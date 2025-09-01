@@ -31,14 +31,14 @@ from huggingface_hub import file_exists
 from packaging import version
 from torch import nn
 
-from ..cache_utils import (
+from .attention_optim import (
     Cache,
     DynamicCache,
     EncoderDecoderCache,
     QuantizedCache,
     StaticCache,
 )
-from ..configuration_utils import PretrainedConfig
+
 from ..dynamic_module_utils import (
     check_python_requirements,
     get_cached_module_file,
@@ -4460,7 +4460,7 @@ def _split_model_outputs(outputs, new_outputs, cur_len, added_len, is_decoder_at
     return outputs
 
 
-def stack_model_outputs(model_outputs: list[ModelOutput], config: PretrainedConfig) -> ModelOutput:
+def stack_model_outputs(model_outputs: list[ModelOutput], config) -> ModelOutput:
     """
     Stack a list of ModelOutput objects (or its subclasses) along the batch_size dimension. The function infers the
     specific ModelOutput subclass from the list provided.

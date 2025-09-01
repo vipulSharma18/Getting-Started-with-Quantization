@@ -1,3 +1,4 @@
+"""
 Note on efficient decoding:
 -----------------------------
 HF generate by default uses a greedy decoding strategy.
@@ -6,3 +7,6 @@ HF generate by default uses a greedy decoding strategy.
 
 2. Guided or structured text generation can also speed-up inference at the cost of
 constraining the user's interaction with the model.
+
+For now, let's do greedy decoding.
+"""
