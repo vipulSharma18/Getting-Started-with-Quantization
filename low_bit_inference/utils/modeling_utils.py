@@ -117,7 +117,7 @@ from .utils import (
     is_torchao_available,
     logging,
 )
-from .utils.generic import _CAN_RECORD_REGISTRY, GeneralInterface, OutputRecorder
+from .generic_utils import _CAN_RECORD_REGISTRY, GeneralInterface
 from .utils.hub import create_and_tag_model_card, get_checkpoint_shard_files
 from .utils.import_utils import (
     ENV_VARS_TRUE_VALUES,
@@ -2107,14 +2107,14 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
 
     @property
     @torch._dynamo.allow_in_graph
-    def can_record_outputs(self) -> dict[str, OutputRecorder]:
+    def can_record_outputs(self):
         """
          Maps output names (e.g., "attentions", "hidden_states")
          to either:
              - A module class (e.g., `LlamaDecoderLayer`), using default index conventions:
                  * index=0 for "hidden_states"
                  * index=1 for "attentions"
-             - Or an `OutputRecorder(...)` with `target_class`, optional `index`, and `layer_name`.
+             - Or an `Output Recorder(...)` with `target_class`, optional `index`, and `layer_name`.
 
          Examples:
              These two are equivalent:
@@ -2126,8 +2126,8 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
              }
 
              _can_record_outputs = {
-                 "attentions": OutputRecorder(LlamaAttention, index=1),
-                 "hidden_states": OutputRecorder(LlamaDecoderLayer, index=0)
+                 "attentions": Output Recorder(LlamaAttention, index=1),
+                 "hidden_states": Output Recorder(LlamaDecoderLayer, index=0)
              }
         ```
 
@@ -2140,8 +2140,8 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
          ```python
          class LlamaModel(PreTrainedModel):
              _can_record_outputs = {
-                 "attentions": OutputRecorder(LlamaAttention, index=1, layer-name="self_attn"),
-                 "cross_attentions": OutputRecorder(LlamaAttention, index=1, layer_name="cross_attn")
+                 "attentions": Output Recorder(LlamaAttention, index=1, layer-name="self_attn"),
+                 "cross_attentions": Output Recorder(LlamaAttention, index=1, layer_name="cross_attn")
              }
 
         ```

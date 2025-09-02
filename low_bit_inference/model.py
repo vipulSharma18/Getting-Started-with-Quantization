@@ -14,7 +14,7 @@ from .optims.rope_optim import ROPE_INIT_FUNCTIONS, dynamic_rope_update
 
 from .utils.modeling_utils import ALL_ATTENTION_FUNCTIONS, PreTrainedModel
 from .utils.processing_utils import Unpack
-from .utils.generic_utils import check_model_inputs, TransformersKwargs, can_return_tuple 
+from .utils.generic_utils import TransformersKwargs 
 from .utils.model_configuration_utils import LlamaConfig
 
 
@@ -318,7 +318,6 @@ class LlamaModel(LlamaPreTrainedModel):
         # Initialize weights and apply final processing
         self.post_init()
 
-    @check_model_inputs
     def forward(
         self,
         input_ids: Optional[torch.LongTensor] = None,
@@ -392,7 +391,6 @@ class LlamaForCausalLM(LlamaPreTrainedModel, GenerationMixin):
         # Initialize weights and apply final processing
         self.post_init()
 
-    @can_return_tuple
     def forward(
         self,
         input_ids: Optional[torch.LongTensor] = None,

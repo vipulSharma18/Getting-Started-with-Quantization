@@ -2,10 +2,10 @@ import os
 import sys
 from datetime import datetime
 from enum import Enum
-from typing import Optional, Any
+from typing import Optional
 import torch
 from omegaconf import OmegaConf
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 class DType(Enum):
