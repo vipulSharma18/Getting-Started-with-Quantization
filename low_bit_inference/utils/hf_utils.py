@@ -1,22 +1,14 @@
+import math
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from .config_utils import to_torch_dtype
+from ..optims.attention_optim import setup_cache
 
 
 def autoname_modules(m):
     for name, module in m.named_modules():
         module.name = name
 
-def prep_for_inference(model, tokenizer, config):
-    # ref: https://github.com/mobiusml/hqq/blob/master/hqq/utils/generation_hf.py#L238
-    tokenizer.add_bos_token = False
-    tokenizer.add_eos_token = False
-    if not tokenizer.pad_token:
-        tokenizer.add_special_tokens({"pad_token": "<<[PAD]>>"})
-    tokenizer.padding_side = config.padding_side
-    model.eval()
-    return model, tokenizer
-
-def load_model_tokenizer(config):
+def load_model_tokenizer_prompt_cache(config):
     tokenizer = AutoTokenizer.from_pretrained(config.model_id, cache_dir=config.cache_dir)  # if a rust based tokenizer is not avialable, this falls back to Python implementation which is slower.
     model = AutoModelForCausalLM.from_pretrained(
         config.model_id,
@@ -27,6 +19,31 @@ def load_model_tokenizer(config):
     )
     params = sum(p.numel() for p in model.parameters())
     print(f"Number of parameters in model: {params}")
-    model, tokenizer = prep_for_inference(model, tokenizer, config)
+    model.eval()
     autoname_modules(model)
-    return model, tokenizer
+
+    tokenizer.add_bos_token = False
+    tokenizer.add_eos_token = False
+    if not tokenizer.pad_token:
+        tokenizer.add_special_tokens({"pad_token": "<<[PAD]>>"})
+    tokenizer.padding_side = config.padding_side
+
+    prompt = config.prompt if isinstance(config.prompt, list) else [config.prompt]
+    print(f"Using prompt: {prompt}")
+
+    model.generation_config.max_new_tokens = config.max_new_tokens
+    model.generation_config.chat_template = config.chat_template
+    model.generation_config.do_sample = config.do_sample
+    model.generation_config.top_k = config.top_k
+    model.generation_config.top_p = config.top_p
+    model.generation_config.temperature = config.temperature
+
+    past_key_values = None
+    if config.use_cache:
+        print("Setting up cache")
+        model.config.use_cache = config.use_cache
+        model.generation_config.cache_implementation = None  # remove the gen config var otherwise value error for setting it here and passing an explicit key value store past_key_values
+        cache_size = 2**math.ceil(math.log(len(prompt) + config.max_new_tokens, 2))
+        past_key_values = setup_cache(cache_size, model.config, config)
+
+    return model, tokenizer, prompt, past_key_values

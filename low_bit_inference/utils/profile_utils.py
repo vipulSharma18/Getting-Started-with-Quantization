@@ -25,7 +25,9 @@ def profile_model(model, tokenizer, past_key_values, prompt, config):
     if config.tps_only:
         activities = [torch.profiler.ProfilerActivity.CPU]
         profiling_flag = False
-        trace_handler = lambda x: None
+        def x(*args, **kwargs):
+            return True
+        trace_handler = x
     else:
         activities = [
             torch.profiler.ProfilerActivity.CPU,
@@ -53,11 +55,6 @@ def profile_model(model, tokenizer, past_key_values, prompt, config):
                 start.record()
                 generated_token_ids = model.generate(
                     **tokenized_prompt,
-                    do_sample=config.do_sample,
-                    top_p=config.top_p,
-                    top_k=config.top_k,
-                    temperature=config.temperature,
-                    max_new_tokens=config.max_new_tokens,
                     past_key_values=past_key_values,
                 )
                 end.record()

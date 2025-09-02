@@ -2,7 +2,6 @@
 """
 https://github.com/huggingface/transformers/blob/main/src/transformers/generation/utils.py
 """
-
 # coding=utf-8
 # Copyright 2020 The Google AI Language Team Authors, Facebook AI Research authors and The HuggingFace Inc. team.
 # Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
@@ -28,7 +27,6 @@ import torch
 import torch.distributed as dist
 from packaging import version
 from torch import nn
-
 from .attention_optim import (
     Cache,
     DynamicCache,
@@ -36,20 +34,14 @@ from .attention_optim import (
     QuantizedCache,
     StaticCache,
 )
-from ..utils.generic_utils import (
-    ModelOutput,
-)
+from ..utils.generic_utils import ModelOutput
 from .masking_optim import create_masks_for_generate
+from transformers.generation.continuous_batching import ContinuousMixin # imported from HF cause suspect it's not really used
+from transformers.generation.configuration_utils import GenerationMode  # simple ENUM
+from transformers.generation.configuration_utils import GenerationConfig # class that uses copy.deepcopy, might want to simplify it for generate fullgraph capture
 
-from ..pytorch_utils import isin_mps_friendly
-from ..tokenization_utils import ExtensionsTrie
-from .configuration_utils import (
-    ALL_STATIC_CACHE_IMPLEMENTATIONS,
-    DEPRECATED_STATIC_CACHE_IMPLEMENTATIONS,
-    STATIC_CACHE_IMPLEMENTATIONS,
-    GenerationConfig,
-    GenerationMode,
-)
+ALL_STATIC_CACHE_IMPLEMENTATIONS = ("static", "offloaded_static")
+
 from .logits_process import (
     EncoderNoRepeatNGramLogitsProcessor,
     EncoderRepetitionPenaltyLogitsProcessor,
@@ -78,6 +70,7 @@ from .logits_process import (
     TypicalLogitsWarper,
     UnbatchedClassifierFreeGuidanceLogitsProcessor,
 )
+
 from .stopping_criteria import (
     ConfidenceCriteria,
     EosTokenCriteria,
@@ -500,10 +493,10 @@ class GenerationMixin(ContinuousMixin):
             return default_attention_mask
 
         is_pad_token_in_inputs = (pad_token_id is not None) and (
-            isin_mps_friendly(elements=inputs_tensor, test_elements=pad_token_id).any()
+            torch.isin(elements=inputs_tensor, test_elements=pad_token_id).any()
         )
         is_pad_token_not_equal_to_eos_token_id = (eos_token_id is None) or ~(
-            isin_mps_friendly(elements=eos_token_id, test_elements=pad_token_id).any()
+            torch.isin(elements=eos_token_id, test_elements=pad_token_id).any()
         )
         can_infer_attention_mask = is_pad_token_in_inputs * is_pad_token_not_equal_to_eos_token_id
         attention_mask_from_padding = inputs_tensor.ne(pad_token_id).long()
@@ -961,85 +954,6 @@ class GenerationMixin(ContinuousMixin):
                 final_list.append(custom)
         return final_list
 
-    def _validate_assistant(self, assistant_model, tokenizer, assistant_tokenizer):
-        if assistant_model is None:
-            return
-
-        if self.config.is_encoder_decoder and not assistant_model.config.is_encoder_decoder:
-            attributes_to_check = ["encoder_attention_heads", "encoder_ffn_dim", "encoder_layers"]
-            attributes_to_check = [attr for attr in dir(assistant_model.config) if attr in attributes_to_check]
-            are_equal = all(
-                getattr(self.config, attr) == getattr(assistant_model.config, attr) for attr in attributes_to_check
-            )
-            if not are_equal:
-                raise ValueError(
-                    "The main model and the assistant don't have compatible encoder-dependent input shapes. "
-                    "Ensure you load the assistant with the correct encoder-decoder class, e.g. `AutoModelForSpeechSeq2Seq` for Whisper."
-                )
-
-        doc_reference = (
-            "(see https://huggingface.co/docs/transformers/en/generation_strategies#universal-assisted-decoding)"
-        )
-        if self.config.get_text_config().vocab_size == assistant_model.config.get_text_config().vocab_size:
-            if assistant_tokenizer is not None:
-                raise ValueError(
-                    f"`assistant_tokenizer` is not required when the main and assistant models use the same tokenizer. Please omit `assistant_tokenizer` from `generate()` {doc_reference}."
-                )
-        else:
-            if tokenizer is None or assistant_tokenizer is None:
-                raise ValueError(
-                    f"The main and assistant models have different tokenizers. Please provide `tokenizer` and `assistant_tokenizer` to `generate()` {doc_reference}."
-                )
-
-    def _validate_model_kwargs(self, model_kwargs: dict[str, Any]):
-        """Validates model kwargs for generation. Generate argument typos will also be caught here."""
-        # Excludes arguments that are handled before calling any model function
-        if self.config.is_encoder_decoder:
-            for key in ["decoder_input_ids"]:
-                model_kwargs.pop(key, None)
-
-        unused_model_args = []
-        model_args = set(inspect.signature(self.prepare_inputs_for_generation).parameters)
-        # `kwargs`/`model_kwargs` is often used to handle optional forward pass inputs like `attention_mask`. If
-        # `prepare_inputs_for_generation` doesn't accept them, then a stricter check can be made ;)
-        if "kwargs" in model_args or "model_kwargs" in model_args:
-            model_args |= set(inspect.signature(self.forward).parameters)
-
-        # Encoder-Decoder models may also need Encoder arguments from `model_kwargs`
-        if self.config.is_encoder_decoder:
-            base_model = getattr(self, self.base_model_prefix, None)
-
-            # allow encoder kwargs
-            encoder = getattr(self, "encoder", None)
-            # `MusicgenForConditionalGeneration` has `text_encoder` and `audio_encoder`.
-            # Also, it has `base_model_prefix = "encoder_decoder"` but there is no `self.encoder_decoder`
-            # TODO: A better way to handle this.
-            if encoder is None and base_model is not None:
-                encoder = getattr(base_model, "encoder", None)
-
-            if encoder is not None:
-                encoder_model_args = set(inspect.signature(encoder.forward).parameters)
-                model_args |= encoder_model_args
-
-            # allow decoder kwargs
-            decoder = getattr(self, "decoder", None)
-            if decoder is None and base_model is not None:
-                decoder = getattr(base_model, "decoder", None)
-
-            if decoder is not None:
-                decoder_model_args = set(inspect.signature(decoder.forward).parameters)
-                model_args |= {f"decoder_{x}" for x in decoder_model_args}
-
-        for key, value in model_kwargs.items():
-            if value is not None and key not in model_args:
-                unused_model_args.append(key)
-
-        if unused_model_args:
-            raise ValueError(
-                f"The following `model_kwargs` are not used by the model: {unused_model_args} (note: typos in the"
-                " generate arguments will also show up in this list)"
-            )
-
     def _validate_generated_length(self, generation_config, input_ids_length, has_default_max_length):
         """Performs validation related to the resulting generated length"""
         # 1. Max length warnings related to poor parameterization
@@ -1139,105 +1053,6 @@ class GenerationMixin(ContinuousMixin):
             generation_config.min_length = max(generation_config.min_length - inputs_tensor.shape[1], 0)
 
         return generation_config
-
-    def _prepare_generation_config(
-        self, generation_config, use_model_defaults: Optional[bool] = None, **kwargs: dict
-    ):
-        """
-        Prepares the base generation config, then applies any generation configuration options from kwargs. This
-        function handles retrocompatibility with respect to configuration files.
-        """
-        # parameterization priority:
-        # kwargs > non-global default values in `generation_config` > `model.generation_config` > GenerationConfig()
-        # TODO (joao): per-model generation config classes.
-
-        using_model_generation_config = False
-        if generation_config is None:
-            # legacy: users may modify the model configuration to control generation. To trigger this legacy behavior,
-            # the following conditions must be met
-            # 1) the generation config must have been created from the model config (`_from_model_config` field);
-            # 2) the generation config must have seen no modification since its creation (the hash is the same);
-            # 3) there are non-default generation parameters in the model config.
-            # 4) the user must have set new generation parameters in the model config.
-            if (
-                self.generation_config._from_model_config  # 1)
-                and self.generation_config._original_object_hash == hash(self.generation_config)  # 2)
-                and len(self.config._get_non_default_generation_parameters()) > 0  # 3)
-            ):
-                new_generation_config = GenerationConfig.from_model_config(self.config)
-                if new_generation_config != self.generation_config:  # 4)
-                    warnings.warn(
-                        "You have modified the pretrained model configuration to control generation. This is a"
-                        " deprecated strategy to control generation and will be removed in v5."
-                        " Please use and modify the model generation configuration (see"
-                        " https://huggingface.co/docs/transformers/generation_strategies#default-text-generation-configuration )",
-                        UserWarning,
-                    )
-                    self.generation_config = new_generation_config
-
-            generation_config = self.generation_config
-            using_model_generation_config = True
-
-            # Related to #40039: prior to this PR, models with sliding window attention were forced to have
-            # `cache_implementation="hybrid"` (the static sliding window cache). For these models, we now want to use
-            # the dynamic sliding window cache by default, so we UNSET `cache_implementation` if it is a default value.
-            # (if we're inside this branch, then it is because we're using default values from the Hub)
-            if generation_config.cache_implementation == "hybrid":
-                generation_config.cache_implementation = None
-
-        # `torch.export.export` usually raises an exception if it is called
-        # with ``strict=True``. deepcopy can only be processed if ``strict=False``.
-        generation_config = copy.deepcopy(generation_config)
-
-        if not using_model_generation_config:
-            # If `generation_config` is provided:
-            # - `use_model_defaults`: let's fallback ALL default values to the model's generation config
-            # - otherwise: legacy behavior, let's just make sure we have the tokens defined
-            model_base_version = version.parse(version.parse(self.generation_config.transformers_version).base_version)
-            if use_model_defaults is True or (
-                use_model_defaults is None and model_base_version >= version.parse("4.50.0")
-            ):
-                modified_values = {}
-                global_default_generation_config = GenerationConfig()
-                model_generation_config = self.generation_config
-                # we iterate over the model's generation config: it may hold custom keys, which we'll want to copy
-                for key, model_gen_config_value in model_generation_config.__dict__.items():
-                    if key.startswith("_") or key == "transformers_version":  # metadata
-                        continue
-                    # Don't set `cache_implementation = 'hybrid'` from the model defaults, see #40135
-                    if key == "cache_implementation" and model_generation_config.cache_implementation == "hybrid":
-                        continue
-                    global_default_value = getattr(global_default_generation_config, key, None)
-                    custom_gen_config_value = getattr(generation_config, key, None)
-                    if (
-                        custom_gen_config_value == global_default_value
-                        and model_gen_config_value != global_default_value
-                    ):
-                        modified_values[key] = model_gen_config_value
-                        setattr(generation_config, key, model_gen_config_value)
-                # edge case: we may set `temperature=0.0` and `do_sample=False`, but the model defaults to
-                # `do_sample=True`
-                if generation_config.temperature == 0.0:
-                    generation_config.do_sample = False
-                if use_model_defaults is None and len(modified_values) > 0:
-                    print(
-                        f"`generation_config` default values have been modified to match model-specific defaults: "
-                        f"{modified_values}. If this is not desired, please set these values explicitly."
-                    )
-            else:
-                if generation_config.bos_token_id is None:
-                    generation_config.bos_token_id = self.generation_config.bos_token_id
-                if generation_config.eos_token_id is None:
-                    generation_config.eos_token_id = self.generation_config.eos_token_id
-                if generation_config.pad_token_id is None:
-                    generation_config.pad_token_id = self.generation_config.pad_token_id
-                if generation_config.decoder_start_token_id is None:
-                    generation_config.decoder_start_token_id = self.generation_config.decoder_start_token_id
-
-        # Finally, apply any passed kwargs
-        model_kwargs = generation_config.update(**kwargs)
-
-        return generation_config, model_kwargs
 
     def _get_initial_cache_position(self, seq_length, device, model_kwargs):
         """Calculates `cache_position` for the pre-fill stage based on `input_ids` and optionally past length"""
@@ -1411,11 +1226,6 @@ class GenerationMixin(ContinuousMixin):
             dynamic_cache_kwargs = {"config": self.config}
         if generation_config.cache_implementation is not None:
             if generation_config.cache_implementation in ALL_STATIC_CACHE_IMPLEMENTATIONS:
-                if generation_config.cache_implementation in DEPRECATED_STATIC_CACHE_IMPLEMENTATIONS:
-                    print(
-                        f"Using `cache_implementation='{generation_config.cache_implementation}' is deprecated. Please only "
-                        f"use one of {STATIC_CACHE_IMPLEMENTATIONS}, and the layer structure will be inferred automatically."
-                    )
                 model_kwargs[cache_name] = self._get_cache(
                     cache_implementation=generation_config.cache_implementation,
                     batch_size=max(generation_config.num_beams, generation_config.num_return_sequences) * batch_size,
@@ -1515,7 +1325,7 @@ class GenerationMixin(ContinuousMixin):
             )
         if (
             eos_token_tensor is not None
-            and isin_mps_friendly(elements=eos_token_tensor, test_elements=pad_token_tensor).any()
+            and torch.isin(elements=eos_token_tensor, test_elements=pad_token_tensor).any()
         ):
             if kwargs_has_attention_mask is not None and not kwargs_has_attention_mask:
                 print(
@@ -1601,13 +1411,8 @@ class GenerationMixin(ContinuousMixin):
 
         # 1. Handle `generation_config` and kwargs that might update it, and validate the `.generate()` call
         tokenizer = kwargs.pop("tokenizer", None)  # Pull this out first, we only use it for stopping criteria
-        assistant_tokenizer = kwargs.pop("assistant_tokenizer", None)  # only used for assisted generation
 
-        generation_config, model_kwargs = self._prepare_generation_config(
-            generation_config, use_model_defaults, **kwargs
-        )
-        self._validate_model_kwargs(model_kwargs.copy())
-        self._validate_assistant(assistant_model, tokenizer, assistant_tokenizer)
+        generation_config = self.generation_config
 
         # 2. Set generation parameters if not already defined
         if synced_gpus is None:
@@ -1617,12 +1422,10 @@ class GenerationMixin(ContinuousMixin):
         stopping_criteria = stopping_criteria if stopping_criteria is not None else StoppingCriteriaList()
 
         accepts_attention_mask = "attention_mask" in set(inspect.signature(self.forward).parameters.keys())
-        requires_attention_mask = "encoder_outputs" not in model_kwargs
-        kwargs_has_attention_mask = model_kwargs.get("attention_mask", None) is not None
 
-        # 3. Define model inputs
-        inputs_tensor, model_input_name, model_kwargs = self._prepare_model_inputs(
-            inputs, generation_config.bos_token_id, model_kwargs
+        # 3. Define model inputs  # TODO: WIP pickup from here, removed model_kwargs, so remove all usage of it in the internal function def as well. We simply use input_ids , pask_key_values, and 
+        inputs_tensor, model_input_name = self._prepare_model_inputs(
+            inputs, generation_config.bos_token_id
         )
         batch_size = inputs_tensor.shape[0]
 
@@ -1678,9 +1481,6 @@ class GenerationMixin(ContinuousMixin):
             is_encoder_decoder=self.config.is_encoder_decoder,
             **model_kwargs,
         )
-
-        if generation_config.token_healing:
-            input_ids = self.heal_tokens(input_ids, tokenizer)
 
         if streamer is not None:
             streamer.put(input_ids.cpu())
@@ -1800,91 +1600,6 @@ class GenerationMixin(ContinuousMixin):
         elif this_peer_finished:
             return False
         return True
-
-    def heal_tokens(
-        self, input_ids: torch.LongTensor, tokenizer = None
-    ) -> torch.LongTensor:
-        r"""
-        Generates sequences of token ids for models with a language modeling head.
-        Parameters:
-            input_ids (`torch.LongTensor`): The sequence used as a prompt for the generation.
-            tokenizer (`PreTrainedTokenizerBase`, *optional*): The tokenizer used to decode the input ids.
-        Return:
-            `torch.LongTensor` where each sequence has its tail token replaced with its appropriate extension.
-        """
-        if tokenizer is None:
-            raise ValueError(
-                " When generating with token healing, you must pass the model's tokenizer to the `tokenizer` "
-                "argument of `generate`."
-            )
-
-        bos_token_id, pad_token_id = tokenizer.bos_token_id, tokenizer.pad_token_id
-        vocab_trie = ExtensionsTrie(tokenizer.get_vocab())
-        generation_config = GenerationConfig(max_new_tokens=1, pad_token_id=pad_token_id)
-
-        # assumption: leading/trailing whitespace is not meaningful, so the prompts are
-        # stripped before re-tokenizing to desensitize generation to whitespace artefacts
-        prompts = [p.strip() for p in tokenizer.batch_decode(input_ids, skip_special_tokens=True)]
-        input_ids = tokenizer(
-            prompts,
-            return_tensors="pt",
-            padding=True,
-        ).input_ids.to(input_ids.device)
-
-        # replace bos with pad to not condition healing on it
-        input_ids = torch.where(input_ids == bos_token_id, pad_token_id, input_ids)
-
-        """
-        the latter code assumes the input_ids is not empty,
-        input_id has to be checked if contains elements
-		"""
-        if input_ids.numel() == 0:
-            return input_ids
-
-        tail_ids = input_ids[:, -1].tolist()
-
-        space_tok = tokenizer.convert_ids_to_tokens(tokenizer.convert_tokens_to_ids(" "))[0]
-        # tail tokens are used for a prefix search, thus, whitespaces are replaced with
-        # their tokenization (e.g. 'Ġ') to enable search for tokens prefixed with a whitespace
-        tail_toks = (tokenizer.decode(t).replace(" ", space_tok) for t in tail_ids)
-
-        for batch_idx, (tail_id, tail_tok) in enumerate(zip(tail_ids, tail_toks)):
-            batch_ids = input_ids[batch_idx]
-            if torch.all(batch_ids == pad_token_id).item():
-                continue  # skip empty sequences (all pad ids)
-
-            # apply bias for alternatives (extensions) to the tail token
-            """
-            seq_bias key has to be tuple with int so have to use
-            tokenizer function to convert str to int
-			"""
-            seq_bias = {
-                (tokenizer.convert_tokens_to_ids(alt_tok),): 10.0 for alt_tok in vocab_trie.extensions(prefix=tail_tok)
-            }
-
-            if len(seq_bias) == 1:
-                continue  # skip if there are no token alternatives to heal with
-
-            # slightly favor original token to limit aggressive healing e.g. 'http' -> 'https'
-            seq_bias[(tail_id,)] += 1.0
-            generation_config.update(sequence_bias=seq_bias)
-
-            trimmed_ids = batch_ids[:-1]
-
-            """
-            the latter code assumes trimmed_ids is not empty
-            so have to check the its element count
-			"""
-            if trimmed_ids.numel() == 0:
-                continue
-
-            # if the prompt is a single (non-pad) token, regenerate from bos
-            if len(batch_ids[batch_ids != pad_token_id]) == 1:
-                trimmed_ids[-1] = bos_token_id
-
-            input_ids[batch_idx] = self.generate(trimmed_ids.unsqueeze(0), generation_config=generation_config)
-
-        return input_ids
 
     def _sample(
         self,
