@@ -3,7 +3,7 @@ import torch
 from torchao.quantization import quantize_, Int8WeightOnlyConfig
 from omegaconf import OmegaConf
 # utils
-from .utils.hf_utils import load_model_tokenizer_prompt_cache
+from .hf_loader import load_model_tokenizer_prompt_cache
 from .utils.config_utils import get_config
 from .utils.profile_utils import profile_model
 from .utils.compile_utils import compile_model

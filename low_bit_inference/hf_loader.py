@@ -1,7 +1,7 @@
 import math
-from transformers import AutoModelForCausalLM, AutoTokenizer
-from .config_utils import to_torch_dtype
-from ..optims.attention_optim import setup_cache
+from .model import LlamaForCausalLM, AutoTokenizer
+from .utils.config_utils import to_torch_dtype
+from .optims.attention_optim import setup_cache
 
 
 def autoname_modules(m):
@@ -10,7 +10,7 @@ def autoname_modules(m):
 
 def load_model_tokenizer_prompt_cache(config):
     tokenizer = AutoTokenizer.from_pretrained(config.model_id, cache_dir=config.cache_dir)  # if a rust based tokenizer is not avialable, this falls back to Python implementation which is slower.
-    model = AutoModelForCausalLM.from_pretrained(
+    model = LlamaForCausalLM.from_pretrained(
         config.model_id,
         torch_dtype=to_torch_dtype(config.compute_dtype),
         attn_implementation=config.attn_implementation,

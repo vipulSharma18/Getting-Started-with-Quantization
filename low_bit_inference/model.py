@@ -1,5 +1,5 @@
 # reference: https://github.com/huggingface/transformers/blob/main/src/transformers/models/llama/modeling_llama.py
-from typing import Callable, Optional, Union
+from typing import Callable, Optional, Union, Unpack
 import torch
 from torch import nn
 
@@ -13,7 +13,6 @@ from .optims.model_output_optim import BaseModelOutputWithPast, CausalLMOutputWi
 from .optims.rope_optim import ROPE_INIT_FUNCTIONS, dynamic_rope_update
 
 from .utils.modeling_utils import ALL_ATTENTION_FUNCTIONS, PreTrainedModel
-from typing import Unpack
 from .utils.generic_utils import TransformersKwargs 
 from .utils.model_configuration_utils import LlamaConfig
 
