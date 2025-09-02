@@ -17,7 +17,6 @@ https://github.com/huggingface/transformers/blob/main/src/transformers/generatio
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import copy
 import inspect
 import os
 import warnings
@@ -25,7 +24,6 @@ from dataclasses import dataclass
 from typing import Any, Callable, Optional, Union
 import torch
 import torch.distributed as dist
-from packaging import version
 from torch import nn
 from .attention_optim import (
     Cache,
@@ -375,195 +373,22 @@ class GenerationMixin(ContinuousMixin):
         self,
         inputs: Optional[torch.Tensor] = None,
         bos_token_id: Optional[torch.Tensor] = None,
-        model_kwargs: Optional[dict[str, torch.Tensor]] = None,
+        model_kwargs = None,
     ) -> tuple[torch.Tensor, Optional[str], dict[str, torch.Tensor]]:
         """
         This function extracts the model-specific `inputs` for generation.
         """
         # 1. retrieve all kwargs that are non-None or non-model input related.
-        # some encoder-decoder models have different names for model and encoder
-        if (
-            self.config.is_encoder_decoder
-            and hasattr(self, "encoder")
-            and self.encoder.main_input_name != self.main_input_name
-        ):
-            input_name = self.encoder.main_input_name
-        else:
-            input_name = self.main_input_name
+        input_name = self.main_input_name
 
         model_kwargs = {k: v for k, v in model_kwargs.items() if v is not None or k != input_name}
 
-        # 2. check whether model_input_name is passed as kwarg
-        # if yes and `inputs` is None use kwarg inputs
+        # 2. model_input_name (input_ids) is passed as kwarg
+        # and `inputs` is None, so use kwarg inputs
         inputs_kwarg = model_kwargs.pop(input_name, None)
-        if inputs_kwarg is not None and inputs is not None:
-            raise ValueError(
-                f"`inputs`: {inputs}` were passed alongside {input_name} which is not allowed. "
-                f"Make sure to either pass {inputs} or {input_name}=..."
-            )
-        elif inputs_kwarg is not None:
-            inputs = inputs_kwarg
+        inputs = inputs_kwarg
 
-        # 3. In the presence of `inputs_embeds` for text models:
-        # - decoder-only models should complain if the user attempts to pass `inputs_embeds`, but the model
-        # doesn't have its forwarding implemented. `inputs_embeds` is kept in `model_kwargs` and can coexist with
-        # input_ids (`inputs_embeds` will be used in the 1st generation step, as opposed to `input_ids`)
-        # - encoder-decoder models should complain if the user attempts to pass `inputs_embeds` and `input_ids`, and
-        # pull the former to inputs. It will be used in place of `input_ids` to get the encoder hidden states.
-        if input_name == "input_ids" and "inputs_embeds" in model_kwargs:
-            if model_kwargs["inputs_embeds"] is None:
-                model_kwargs.pop("inputs_embeds")
-            elif not self.config.is_encoder_decoder:
-                has_inputs_embeds_forwarding = "inputs_embeds" in set(
-                    inspect.signature(self.prepare_inputs_for_generation).parameters.keys()
-                )
-                if not has_inputs_embeds_forwarding:
-                    raise ValueError(
-                        f"You passed `inputs_embeds` to `.generate()`, but the model class {self.__class__.__name__} "
-                        "doesn't have its forwarding implemented. See the GPT2 implementation for an example "
-                        "(https://github.com/huggingface/transformers/pull/21405), and feel free to open a PR with it!"
-                    )
-                # In this case, `input_ids` is moved to the `model_kwargs`, so a few automations (like the creation of
-                # the attention mask) can rely on the actual model input.
-                model_kwargs["input_ids"] = self._maybe_initialize_input_ids_for_generation(
-                    inputs, bos_token_id, model_kwargs=model_kwargs
-                )
-                inputs, input_name = model_kwargs["inputs_embeds"], "inputs_embeds"
-            else:
-                if inputs is not None:
-                    raise ValueError("You passed `inputs_embeds` and `input_ids` to `.generate()`. Please pick one.")
-                inputs, input_name = model_kwargs["inputs_embeds"], "inputs_embeds"
-
-        # 4. if `inputs` is still None, try to create `input_ids` from BOS token
-        inputs = self._maybe_initialize_input_ids_for_generation(inputs, bos_token_id, model_kwargs)
         return inputs, input_name, model_kwargs
-
-    def _maybe_initialize_input_ids_for_generation(
-        self,
-        inputs: Optional[torch.Tensor] = None,
-        bos_token_id: Optional[torch.Tensor] = None,
-        model_kwargs: Optional[dict[str, torch.Tensor]] = None,
-    ) -> torch.LongTensor:
-        """Initializes input ids for generation, if necessary."""
-        if inputs is not None:
-            return inputs
-
-        encoder_outputs = model_kwargs.get("encoder_outputs")
-        if self.config.is_encoder_decoder and encoder_outputs is not None:
-            # make dummy input_ids with value -100, as a sanity check ensuring that they won't be used for encoding
-            shape = encoder_outputs.last_hidden_state.size()[:-1]
-            return torch.ones(shape, dtype=torch.long, device=self.device) * -100
-
-        # If there is some tensor in `model_kwargs`, we can infer the batch size from it. This is helpful with
-        # soft-prompting or in multimodal implementations built on top of decoder-only language models.
-        batch_size = 1
-        for value in model_kwargs.values():
-            if isinstance(value, torch.Tensor):
-                batch_size = value.shape[0]
-                break
-
-        if "inputs_embeds" in model_kwargs:
-            return torch.ones((batch_size, 0), dtype=torch.long, device=self.device)
-
-        if bos_token_id is None:
-            raise ValueError("`bos_token_id` has to be defined when no `input_ids` are provided.")
-
-        return torch.ones((batch_size, 1), dtype=torch.long, device=self.device) * bos_token_id
-
-    def _prepare_attention_mask_for_generation(
-        self,
-        inputs_tensor: torch.Tensor,
-        generation_config: GenerationConfig,
-        model_kwargs: dict[str, Any],
-    ) -> torch.LongTensor:
-        pad_token_id = generation_config._pad_token_tensor
-        eos_token_id = generation_config._eos_token_tensor
-
-        # `input_ids` may be present in the model kwargs, instead of being the main input (e.g. multimodal model)
-        if "input_ids" in model_kwargs and model_kwargs["input_ids"].shape[1] > 0:
-            inputs_tensor = model_kwargs["input_ids"]
-
-        # No information for attention mask inference -> return default attention mask
-        default_attention_mask = torch.ones(inputs_tensor.shape[:2], dtype=torch.long, device=inputs_tensor.device)
-        if pad_token_id is None:
-            return default_attention_mask
-
-        is_input_ids = len(inputs_tensor.shape) == 2 and inputs_tensor.dtype in [torch.int, torch.long]
-        if not is_input_ids:
-            return default_attention_mask
-
-        is_pad_token_in_inputs = (pad_token_id is not None) and (
-            torch.isin(elements=inputs_tensor, test_elements=pad_token_id).any()
-        )
-        is_pad_token_not_equal_to_eos_token_id = (eos_token_id is None) or ~(
-            torch.isin(elements=eos_token_id, test_elements=pad_token_id).any()
-        )
-        can_infer_attention_mask = is_pad_token_in_inputs * is_pad_token_not_equal_to_eos_token_id
-        attention_mask_from_padding = inputs_tensor.ne(pad_token_id).long()
-
-        attention_mask = (
-            attention_mask_from_padding * can_infer_attention_mask + default_attention_mask * ~can_infer_attention_mask
-        )
-        return attention_mask
-
-    def _prepare_decoder_input_ids_for_generation(
-        self,
-        batch_size: int,
-        model_input_name: str,
-        model_kwargs: dict[str, torch.Tensor],
-        decoder_start_token_id: torch.Tensor,
-        device: Optional[torch.device] = None,
-    ) -> tuple[torch.LongTensor, dict[str, torch.Tensor]]:
-        """Prepares `decoder_input_ids` for generation with encoder-decoder models"""
-        # 1. Check whether the user has defined `decoder_input_ids` manually. To facilitate in terms of input naming,
-        # we also allow the user to pass it under `input_ids`, if the encoder does not use it as the main input.
-        if model_kwargs is not None and "decoder_input_ids" in model_kwargs:
-            decoder_input_ids = model_kwargs.pop("decoder_input_ids")
-        elif "input_ids" in model_kwargs and model_input_name != "input_ids":
-            decoder_input_ids = model_kwargs.pop("input_ids")
-        else:
-            decoder_input_ids = None
-
-        # 2. `decoder_start_token_id` must have shape (batch_size, 1)
-        if device is None:
-            device = self.device
-        if decoder_start_token_id.ndim == 1:
-            if decoder_start_token_id.shape[0] != batch_size:
-                raise ValueError(
-                    f"`decoder_start_token_id` expected to have length {batch_size} but got {decoder_start_token_id.shape[0]}"
-                )
-            decoder_start_token_id = decoder_start_token_id.view(-1, 1)
-        else:
-            decoder_start_token_id = (
-                torch.ones((batch_size, 1), dtype=torch.long, device=device) * decoder_start_token_id
-            )
-
-        # 3. Encoder-decoder models expect the `decoder_input_ids` to start with a special token. Let's ensure that.
-        # no user input -> use decoder_start_token_id as decoder_input_ids
-        if decoder_input_ids is None:
-            decoder_input_ids = decoder_start_token_id
-        # exception: Donut checkpoints have task-specific decoder starts and don't expect a BOS token. Note that the
-        # original checkpoints can't be detected through `self.__class__.__name__.lower()`, needing custom logic.
-        # See: https://github.com/huggingface/transformers/pull/31470
-        elif "donut" in self.__class__.__name__.lower() or (
-            self.config.model_type == "vision-encoder-decoder" and "donut" in self.config.encoder.model_type.lower()
-        ):
-            pass
-        elif self.config.model_type in ["whisper"]:
-            pass
-        # user input but doesn't start with decoder_start_token_id -> prepend decoder_start_token_id (and adjust
-        # decoder_attention_mask if provided)
-        elif (decoder_input_ids[:, 0] != decoder_start_token_id[:, 0]).all().item():
-            decoder_input_ids = torch.cat([decoder_start_token_id, decoder_input_ids], dim=-1)
-            if "decoder_attention_mask" in model_kwargs:
-                decoder_attention_mask = model_kwargs["decoder_attention_mask"]
-                decoder_attention_mask = torch.cat(
-                    (torch.ones_like(decoder_attention_mask)[:, :1], decoder_attention_mask),
-                    dim=-1,
-                )
-                model_kwargs["decoder_attention_mask"] = decoder_attention_mask
-
-        return decoder_input_ids, model_kwargs
 
     @staticmethod
     def _expand_inputs_for_generation(
@@ -1287,8 +1112,6 @@ class GenerationMixin(ContinuousMixin):
         def _tensor_or_none(token, device=None):
             if token is None:
                 return token
-
-            device = device if device is not None else self.device
             if isinstance(token, torch.Tensor):
                 return token.to(device)
             return torch.tensor(token, device=device, dtype=torch.long)
@@ -1297,12 +1120,6 @@ class GenerationMixin(ContinuousMixin):
         eos_token_tensor = _tensor_or_none(generation_config.eos_token_id, device=device)
         pad_token_tensor = _tensor_or_none(generation_config.pad_token_id, device=device)
         decoder_start_token_tensor = _tensor_or_none(generation_config.decoder_start_token_id, device=device)
-
-        # for BC we also try to get `decoder_start_token_id` or `bos_token_id` (#30892)
-        if self.config.is_encoder_decoder:
-            decoder_start_token_tensor = (
-                decoder_start_token_tensor if decoder_start_token_tensor is not None else bos_token_tensor
-            )
 
         # We can have more than one eos token. Always treat it as a 1D tensor (when it exists).
         if eos_token_tensor is not None and eos_token_tensor.ndim == 0:
@@ -1319,10 +1136,6 @@ class GenerationMixin(ContinuousMixin):
             print(f"Setting `pad_token_id` to `eos_token_id`:{pad_token_tensor} for open-end generation.")
 
         # Sanity checks/warnings
-        if self.config.is_encoder_decoder and decoder_start_token_tensor is None:
-            raise ValueError(
-                "`decoder_start_token_id` or `bos_token_id` has to be defined for encoder-decoder generation."
-            )
         if (
             eos_token_tensor is not None
             and torch.isin(elements=eos_token_tensor, test_elements=pad_token_tensor).any()
@@ -1420,59 +1233,19 @@ class GenerationMixin(ContinuousMixin):
 
         logits_processor = logits_processor if logits_processor is not None else LogitsProcessorList()
         stopping_criteria = stopping_criteria if stopping_criteria is not None else StoppingCriteriaList()
+        kwargs_has_attention_mask = kwargs.get("attention_mask", None) is not None
 
-        accepts_attention_mask = "attention_mask" in set(inspect.signature(self.forward).parameters.keys())
-
-        # 3. Define model inputs  # TODO: WIP pickup from here, removed model_kwargs, so remove all usage of it in the internal function def as well. We simply use input_ids , pask_key_values, and 
-        inputs_tensor, model_input_name = self._prepare_model_inputs(
-            inputs, generation_config.bos_token_id
+        # 3. Define model inputs. We pass input_ids to generate instead of inputs = xyz, so need this.
+        inputs_tensor, model_input_name, model_kwargs = self._prepare_model_inputs(
+            inputs, generation_config.bos_token_id, kwargs
         )
         batch_size = inputs_tensor.shape[0]
 
         device = inputs_tensor.device
         self._prepare_special_tokens(generation_config, kwargs_has_attention_mask, device=device)
 
-        # decoder-only models must use left-padding for batched generation.
-        if not self.config.is_encoder_decoder:
-            # If `input_ids` was given, check if the last id in any sequence is `pad_token_id`
-            # Note: If using, `inputs_embeds` this check does not work, because we want to be more hands-off.
-            if (
-                generation_config._pad_token_tensor is not None
-                and batch_size > 1
-                and len(inputs_tensor.shape) == 2
-                and torch.sum(inputs_tensor[:, -1] == generation_config._pad_token_tensor) > 0
-            ):
-                print(
-                    "A decoder-only architecture is being used, but right-padding was detected! For correct "
-                    "generation results, please set `padding_side='left'` when initializing the tokenizer."
-                )
-
-        # 4. Define other model kwargs
-        # decoder-only models with inputs_embeds forwarding must use caching (otherwise we can't detect whether we are
-        # generating the first new token or not, and we only want to use the embeddings for the first new token)
-        if not self.config.is_encoder_decoder and model_input_name == "inputs_embeds":
-            generation_config.use_cache = True
-
-        if not kwargs_has_attention_mask and requires_attention_mask and accepts_attention_mask:
-            model_kwargs["attention_mask"] = self._prepare_attention_mask_for_generation(
-                inputs_tensor, generation_config, model_kwargs
-            )
-        elif kwargs_has_attention_mask:
-            # TODO (joao): generalize this check with other types of inputs
-            if model_input_name == "input_ids" and len(model_kwargs["attention_mask"].shape) > 2:
-                raise ValueError("`attention_mask` passed to `generate` must be 2D.")
-
         # 5. Prepare `input_ids` which will be used for auto-regressive generation
-        if self.config.is_encoder_decoder:
-            input_ids, model_kwargs = self._prepare_decoder_input_ids_for_generation(
-                batch_size=batch_size,
-                model_input_name=model_input_name,
-                model_kwargs=model_kwargs,
-                decoder_start_token_id=generation_config._decoder_start_token_tensor,
-                device=inputs_tensor.device,
-            )
-        else:
-            input_ids = inputs_tensor if model_input_name == "input_ids" else model_kwargs.pop("input_ids")
+        input_ids = inputs_tensor if model_input_name == "input_ids" else model_kwargs.pop("input_ids")
 
         # Expand inputs depending on the generation mode
         input_ids, model_kwargs = self._expand_inputs_for_generation(
@@ -1482,13 +1255,12 @@ class GenerationMixin(ContinuousMixin):
             **model_kwargs,
         )
 
-        if streamer is not None:
-            streamer.put(input_ids.cpu())
-
         # 6. Prepare `max_length` depending on other stopping criteria.
         input_ids_length = input_ids.shape[1]
+        # TODO, use max_new_tokens here to ensure we don't take too much length and cache space
         has_default_max_length = kwargs.get("max_length") is None and generation_config.max_length is not None
         has_default_min_length = kwargs.get("min_length") is None and generation_config.min_length is not None
+
         generation_config = self._prepare_generated_length(
             generation_config=generation_config,
             has_default_max_length=has_default_max_length,
@@ -1524,21 +1296,7 @@ class GenerationMixin(ContinuousMixin):
         # 8. determine generation mode
         generation_mode = generation_config.get_generation_mode(assistant_model)
 
-        if streamer is not None and (generation_config.num_beams > 1):
-            raise ValueError(
-                "`streamer` cannot be used with beam search (yet!). Make sure that `num_beams` is set to 1."
-            )
-
-        if self.device.type != input_ids.device.type:
-            warnings.warn(
-                "You are calling .generate() with the `input_ids` being on a device type different"
-                f" than your model's device. `input_ids` is on {input_ids.device.type}, whereas the model"
-                f" is on {self.device.type}. You may experience unexpected behaviors or slower generation."
-                " Please make sure that you have put `input_ids` to the"
-                f" correct device by calling for example input_ids = input_ids.to('{self.device.type}') before"
-                " running `.generate()`.",
-                UserWarning,
-            )
+        assert self.device.type == input_ids.device.type
 
         # 9. prepare logits processors and stopping criteria
         prepared_logits_processor = self._get_logits_processor(
@@ -1552,6 +1310,7 @@ class GenerationMixin(ContinuousMixin):
             negative_prompt_ids=negative_prompt_ids,
             negative_prompt_attention_mask=negative_prompt_attention_mask,
         )
+
         prepared_stopping_criteria = self._get_stopping_criteria(
             generation_config=generation_config, stopping_criteria=stopping_criteria, tokenizer=tokenizer, **kwargs
         )
@@ -1559,20 +1318,16 @@ class GenerationMixin(ContinuousMixin):
         # Set model_kwargs `use_cache` so we can use it later in forward runs
         model_kwargs["use_cache"] = generation_config.use_cache
 
-        # 10. go into different generation modes
-        if generation_mode in (GenerationMode.SAMPLE, GenerationMode.GREEDY_SEARCH):
-            # 11. run sample (it degenerates to greedy search when `generation_config.do_sample=False`)
-            result = self._sample(
-                input_ids,
-                logits_processor=prepared_logits_processor,
-                stopping_criteria=prepared_stopping_criteria,
-                generation_config=generation_config,
-                synced_gpus=synced_gpus,
-                streamer=streamer,
-                **model_kwargs,
-            )
-        else:
-            raise ValueError(f"Invalid {generation_mode}")
+        # 11. run sample (it degenerates to greedy search when `generation_config.do_sample=False`)
+        result = self._sample(
+            input_ids,
+            logits_processor=prepared_logits_processor,
+            stopping_criteria=prepared_stopping_criteria,
+            generation_config=generation_config,
+            synced_gpus=synced_gpus,
+            streamer=streamer,
+            **model_kwargs,
+        )
 
         # Convert to legacy cache format if requested
         if (
@@ -1719,8 +1474,6 @@ class GenerationMixin(ContinuousMixin):
 
             # update generated ids, model inputs, and length for next step
             input_ids = torch.cat([input_ids, next_tokens[:, None]], dim=-1)
-            if streamer is not None:
-                streamer.put(next_tokens.cpu())
 
             unfinished_sequences = unfinished_sequences & ~stopping_criteria(input_ids, scores)
             this_peer_finished = unfinished_sequences.max() == 0
@@ -1729,9 +1482,6 @@ class GenerationMixin(ContinuousMixin):
             # This is needed to properly delete outputs.logits which may be very large for first iteration
             # Otherwise a reference to outputs is kept which keeps the logits alive in the next iteration
             del outputs
-
-        if streamer is not None:
-            streamer.end()
 
         if return_dict_in_generate:
             return GenerateDecoderOnlyOutput(

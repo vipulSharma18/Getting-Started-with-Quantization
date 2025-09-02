@@ -20,8 +20,9 @@ def profile_model(model, tokenizer, past_key_values, prompt, config):
     cumulative_time = 0.0
     generated_token_count = 0
 
-    tokenized_prompt = tokenizer(prompt, return_tensors="pt").to(config.device)  # will return a dict of token ids and attention mask
-
+    # returns a dict of token_ids and attention_mask keys
+    tokenized_prompt = tokenizer(prompt, return_tensors="pt").to(config.device)
+    
     if config.tps_only:
         activities = [torch.profiler.ProfilerActivity.CPU]
         profiling_flag = False
@@ -96,8 +97,8 @@ def dump_device_tensors(device_id=0):
                     'requires_grad': obj.requires_grad,
                     'id': id(obj)
                 })
-        except:
-            pass
+        except Exception as e:
+            print(f"Error processing tensor object: {e}")
     
     # Sort by size
     tensors.sort(key=lambda x: x['size_mb'], reverse=True)
