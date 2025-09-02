@@ -390,41 +390,6 @@ class GenerationMixin(ContinuousMixin):
 
         return inputs, input_name, model_kwargs
 
-    @staticmethod
-    def _expand_inputs_for_generation(
-        expand_size: int = 1,
-        is_encoder_decoder: bool = False,
-        input_ids: Optional[torch.LongTensor] = None,
-        **model_kwargs,
-    ) -> tuple[torch.LongTensor, dict[str, Any]]:
-        """Expands tensors from [batch_size, ...] to [batch_size * expand_size, ...]"""
-        # Do not call torch.repeat_interleave if expand_size is 1 because it clones
-        # the input tensor and thus requires more memory although no change is applied
-        if expand_size == 1:
-            return input_ids, model_kwargs
-
-        def _expand_dict_for_generation(dict_to_expand):
-            for key in dict_to_expand:
-                if (
-                    key != "cache_position"
-                    and dict_to_expand[key] is not None
-                    and isinstance(dict_to_expand[key], torch.Tensor)
-                ):
-                    dict_to_expand[key] = dict_to_expand[key].repeat_interleave(expand_size, dim=0)
-            return dict_to_expand
-
-        if input_ids is not None:
-            input_ids = input_ids.repeat_interleave(expand_size, dim=0)
-
-        model_kwargs = _expand_dict_for_generation(model_kwargs)
-
-        if is_encoder_decoder:
-            if model_kwargs.get("encoder_outputs") is None:
-                raise ValueError("If `is_encoder_decoder` is True, make sure that `encoder_outputs` is defined.")
-            model_kwargs["encoder_outputs"] = _expand_dict_for_generation(model_kwargs["encoder_outputs"])
-
-        return input_ids, model_kwargs
-
     def _update_model_kwargs_for_generation(
         self,
         outputs: ModelOutput,
@@ -779,106 +744,6 @@ class GenerationMixin(ContinuousMixin):
                 final_list.append(custom)
         return final_list
 
-    def _validate_generated_length(self, generation_config, input_ids_length, has_default_max_length):
-        """Performs validation related to the resulting generated length"""
-        # 1. Max length warnings related to poor parameterization
-        if has_default_max_length and generation_config.max_new_tokens is None and generation_config.max_length == 20:
-            # 20 is the default max_length of the generation config
-            warnings.warn(
-                f"Using the model-agnostic default `max_length` (={generation_config.max_length}) to control the "
-                "generation length. We recommend setting `max_new_tokens` to control the maximum length of the "
-                "generation.",
-                UserWarning,
-            )
-        if input_ids_length >= generation_config.max_length:
-            input_ids_string = "decoder_input_ids" if self.config.is_encoder_decoder else "input_ids"
-            raise ValueError(
-                f"Input length of {input_ids_string} is {input_ids_length}, but `max_length` is set to"
-                f" {generation_config.max_length}. This can lead to unexpected behavior. You should consider"
-                " increasing `max_length` or, better yet, setting `max_new_tokens`."
-            )
-
-        # 2. Min length warnings due to unfeasible parameter combinations
-        min_length_error_suffix = (
-            " Generation will stop at the defined maximum length. You should decrease the minimum length and/or "
-            "increase the maximum length."
-        )
-        if has_default_max_length:
-            min_length_error_suffix += (
-                f" Note that `max_length` is set to {generation_config.max_length}, its default value."
-            )
-        if generation_config.min_length is not None and generation_config.min_length > generation_config.max_length:
-            warnings.warn(
-                f"Unfeasible length constraints: `min_length` ({generation_config.min_length}) is larger than"
-                f" the maximum possible length ({generation_config.max_length})." + min_length_error_suffix,
-                UserWarning,
-            )
-        if generation_config.min_new_tokens is not None:
-            min_length = generation_config.min_new_tokens + input_ids_length
-            if min_length > generation_config.max_length:
-                warnings.warn(
-                    f"Unfeasible length constraints: `min_new_tokens` ({generation_config.min_new_tokens}), when "
-                    f"added to the prompt length ({input_ids_length}), is larger than"
-                    f" the maximum possible length ({generation_config.max_length})." + min_length_error_suffix,
-                    UserWarning,
-                )
-
-    def _prepare_generated_length(
-        self,
-        generation_config,
-        has_default_max_length,
-        has_default_min_length,
-        model_input_name,
-        input_ids_length,
-        inputs_tensor,
-    ):
-        """Prepared max and min length in generation configs to avoid clashes between similar attributes"""
-
-        if generation_config.max_new_tokens is not None:
-            if not has_default_max_length and generation_config.max_length is not None:
-                print(
-                    f"Both `max_new_tokens` (={generation_config.max_new_tokens}) and `max_length`(="
-                    f"{generation_config.max_length}) seem to have been set. `max_new_tokens` will take precedence. "
-                    "Please refer to the documentation for more information. "
-                    "(https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)"
-                )
-            generation_config.max_length = generation_config.max_new_tokens + input_ids_length
-
-        # if both `inputs_embeds` and `input_ids` are passed, we do not correct the length
-        # otherwise we need total length [inputs-embeds-len + new-tokens-len] to not go beyond indicated `max_length``
-        elif (
-            model_input_name == "inputs_embeds"
-            and input_ids_length != inputs_tensor.shape[1]
-            and not self.config.is_encoder_decoder
-        ):
-            generation_config.max_length -= inputs_tensor.shape[1]
-        elif has_default_max_length:  # by default let's always generate 20 new tokens
-            if generation_config.max_length == GenerationConfig().max_length:
-                generation_config.max_length = generation_config.max_length + input_ids_length
-                max_position_embeddings = getattr(self.config, "max_position_embeddings", None)
-                if max_position_embeddings is not None:
-                    generation_config.max_length = min(generation_config.max_length, max_position_embeddings)
-
-        # same for min length
-        if generation_config.min_new_tokens is not None:
-            if not has_default_min_length:
-                print(
-                    f"Both `min_new_tokens` (={generation_config.min_new_tokens}) and `min_length`(="
-                    f"{generation_config.min_length}) seem to have been set. `min_new_tokens` will take precedence. "
-                    "Please refer to the documentation for more information. "
-                    "(https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)"
-                )
-            generation_config.min_length = generation_config.min_new_tokens + input_ids_length
-
-        elif (
-            model_input_name == "inputs_embeds"
-            and input_ids_length != inputs_tensor.shape[1]
-            and not self.config.is_encoder_decoder
-        ):
-            generation_config.min_length = max(generation_config.min_length - inputs_tensor.shape[1], 0)
-
-        return generation_config
-
     def _get_initial_cache_position(self, seq_length, device, model_kwargs):
         """Calculates `cache_position` for the pre-fill stage based on `input_ids` and optionally past length"""
         # `torch.compile`-friendly `torch.arange` from a shape -- the lines below are equivalent to `torch.arange`
@@ -915,13 +780,10 @@ class GenerationMixin(ContinuousMixin):
 
         Returns the resulting cache object.
         """
-        requires_cross_attention_cache = (
-            self.config.is_encoder_decoder or model_kwargs.get("encoder_outputs") is not None
-        )
         offload_cache = "offloaded" in cache_implementation
 
         if hasattr(self, "_cache"):
-            cache_to_check = self._cache.self_attention_cache if requires_cross_attention_cache else self._cache
+            cache_to_check = self._cache
 
         need_new_cache = (
             not hasattr(self, "_cache")
@@ -930,12 +792,6 @@ class GenerationMixin(ContinuousMixin):
             or cache_to_check.max_cache_len < max_cache_len
         )
 
-        if requires_cross_attention_cache and hasattr(self, "_cache"):
-            need_new_cache = (
-                need_new_cache
-                or self._cache.cross_attention_cache.max_cache_len != model_kwargs["encoder_outputs"][0].shape[1]
-            )
-
         if need_new_cache:
             self_attention_cache_kwargs = {
                 "config": self.config.get_text_config(decoder=True),
@@ -943,148 +799,9 @@ class GenerationMixin(ContinuousMixin):
                 "offloading": offload_cache,
             }
             self._cache = StaticCache(**self_attention_cache_kwargs)
-            if requires_cross_attention_cache:
-                cross_attention_cache_kwargs = {
-                    "config": self.config.get_text_config(encoder=True),
-                    "max_cache_len": model_kwargs["encoder_outputs"][0].shape[1],
-                    "offloading": offload_cache,
-                }
-                self._cache = EncoderDecoderCache(self._cache, StaticCache(**cross_attention_cache_kwargs))
         else:
             self._cache.reset()
         return self._cache
-
-    @classmethod
-    def _supports_default_dynamic_cache(cls) -> bool:
-        """
-        Return `True` if current model can use a `DynamicCache` instance when initializing the `past_key_values`.
-        This adds exception for some models like `Mamba` models which use their own caches
-        and do not need to initialize the Cache in advance in order to save memory (because no back and forth
-        `to_legacy_cache` and `from_legacy_cache` will be performed for mamba-based models).
-        """
-        # NOTE: remove xlnet/reformer when the models are deprecated, non-standard model architecture/cache name
-        return not cls._is_stateful and all(
-            special_model_name not in cls.__name__.lower()
-            for special_model_name in [
-                "reformer",
-                "minimax",
-                "xlnet",
-                "lfm2",
-            ]
-        )
-
-    def _prepare_cache_for_generation(
-        self,
-        generation_config: GenerationConfig,
-        model_kwargs: dict,
-        assistant_model,
-        batch_size: int,
-        max_cache_length: int,
-    ) -> bool:
-        """
-        Prepares the cache for generation (if applicable), given `generate`'s parameterization. If a cache is
-        instantiated, writes it to `model_kwargs`, under the name expected by the model.
-        """
-
-        is_hybrid_cache = any(class_name in self.__class__.__name__.lower() for class_name in ["mamba", "falconh1"])
-        cache_name = "past_key_values" if not is_hybrid_cache else "cache_params"
-
-        requires_cross_attention_cache = (
-            self.config.is_encoder_decoder or model_kwargs.get("encoder_outputs") is not None
-        )
-
-        # Quick escape route 1: if the user specifies a cache, we only need to:
-        # a) check for conflicting `generate` arguments
-        # b) convert to the new cache format (if the user passes a legacy cache and model supports it)
-        user_defined_cache = model_kwargs.get(cache_name)
-        if user_defined_cache is not None:
-            if generation_config.cache_implementation is not None:
-                raise ValueError(
-                    f"Passing both `cache_implementation` (used to initialize certain caches) and `{cache_name}` (a "
-                    "Cache object) is unsupported. Please use only one of the two."
-                )
-            if isinstance(user_defined_cache, tuple) and self._supports_default_dynamic_cache():
-                model_kwargs[cache_name] = (
-                    DynamicCache.from_legacy_cache(user_defined_cache)
-                    if not requires_cross_attention_cache
-                    else EncoderDecoderCache.from_legacy_cache(user_defined_cache)
-                )
-            return
-
-        # Quick escape route 2: if the user specifies no cache is to be used. (conflicting arguments are handled in
-        # `generation_config.validate()`)
-        if generation_config.use_cache is False:
-            return
-
-        # Quick escape route 3: model that only supports legacy caches or models that supply it in `prepare_inputs_for_generation` (mamba, zamba, ...)
-        if not self._supports_default_dynamic_cache():
-            if generation_config.cache_implementation is not None:
-                warnings.warn(
-                    "This model does not support `Cache` instances, it only supports the legacy cache format (tuple "
-                    f"of tuples). `cache_implementation` (set to {generation_config.cache_implementation}) will be "
-                    "ignored.",
-                    UserWarning,
-                )
-            return
-
-        # Otherwise we NEED to prepare a cache, based on `generation_config.cache_implementation`
-
-        # TODO(joao): support static caches in assisted generation. assisted generation needs to roll back caches,
-        # which is only supported in dynamic caches atm
-        if assistant_model is not None and generation_config.cache_implementation is not None:
-            print(
-                "An assistant model is provided, using a dynamic cache instead of a cache of type="
-                f"'{generation_config.cache_implementation}'."
-            )
-            generation_config.cache_implementation = None
-
-        # Assisted decoding and contrastive search require cache rollback, which is incompatible with sliding layers.
-        # To handle this, we skip passing the model config to DynamicCache (forcing a full-layer cache).
-        # The "dynamic_full" option is a shortcut for generate() users to avoid sliding layers on their own.
-        generation_mode = generation_config.get_generation_mode(assistant_model)
-        if (
-            generation_mode in (GenerationMode.ASSISTED_GENERATION, GenerationMode.CONTRASTIVE_SEARCH)
-            or generation_config.cache_implementation == "dynamic_full"
-        ):
-            dynamic_cache_kwargs = {}
-        else:
-            dynamic_cache_kwargs = {"config": self.config}
-        if generation_config.cache_implementation is not None:
-            if generation_config.cache_implementation in ALL_STATIC_CACHE_IMPLEMENTATIONS:
-                model_kwargs[cache_name] = self._get_cache(
-                    cache_implementation=generation_config.cache_implementation,
-                    batch_size=max(generation_config.num_beams, generation_config.num_return_sequences) * batch_size,
-                    max_cache_len=max_cache_length,
-                    model_kwargs=model_kwargs,
-                )
-            elif generation_config.cache_implementation == "quantized":
-                if self.config.is_encoder_decoder or not self._supports_default_dynamic_cache():
-                    raise ValueError(
-                        "This model does not support the quantized cache. If you want your model to support quantized "
-                        "cache, please open an issue and tag @zucchini-nlp."
-                    )
-
-                cache_config = generation_config.cache_config if generation_config.cache_config is not None else {}
-                # Add the config if it was not provided, as it's a required argument
-                if "config" not in cache_config:
-                    cache_config["config"] = self.config.get_text_config()
-                # Pop the backend from the config (defaults to quanto if not defined)
-                backend = cache_config.pop("backend", "quanto")
-
-                model_kwargs[cache_name] = QuantizedCache(backend=backend, **cache_config)
-            elif generation_config.cache_implementation == "offloaded":
-                model_kwargs[cache_name] = DynamicCache(**dynamic_cache_kwargs, offloading=True)
-            elif "dynamic" in generation_config.cache_implementation:
-                model_kwargs[cache_name] = DynamicCache(**dynamic_cache_kwargs)
-
-        # Use DynamicCache instance by default. This will avoid back and forth from legacy format that
-        # keeps copying the cache thus using much more memory
-        else:
-            model_kwargs[cache_name] = (
-                DynamicCache(**dynamic_cache_kwargs)
-                if not requires_cross_attention_cache
-                else EncoderDecoderCache(DynamicCache(**dynamic_cache_kwargs), DynamicCache(**dynamic_cache_kwargs))
-            )
 
     def _supports_logits_to_keep(self) -> bool:
         """
@@ -1244,60 +961,20 @@ class GenerationMixin(ContinuousMixin):
         device = inputs_tensor.device
         self._prepare_special_tokens(generation_config, kwargs_has_attention_mask, device=device)
 
-        # 5. Prepare `input_ids` which will be used for auto-regressive generation
-        input_ids = inputs_tensor if model_input_name == "input_ids" else model_kwargs.pop("input_ids")
-
-        # Expand inputs depending on the generation mode
-        input_ids, model_kwargs = self._expand_inputs_for_generation(
-            input_ids=input_ids,
-            expand_size=max(generation_config.num_beams, generation_config.num_return_sequences),
-            is_encoder_decoder=self.config.is_encoder_decoder,
-            **model_kwargs,
-        )
-
         # 6. Prepare `max_length` depending on other stopping criteria.
-        input_ids_length = input_ids.shape[1]
-        # TODO, use max_new_tokens here to ensure we don't take too much length and cache space
-        has_default_max_length = kwargs.get("max_length") is None and generation_config.max_length is not None
-        has_default_min_length = kwargs.get("min_length") is None and generation_config.min_length is not None
+        input_ids_length = inputs_tensor.shape[1]
+        generation_config.max_length = generation_config.max_new_tokens + input_ids_length
 
-        generation_config = self._prepare_generated_length(
-            generation_config=generation_config,
-            has_default_max_length=has_default_max_length,
-            has_default_min_length=has_default_min_length,
-            model_input_name=model_input_name,
-            inputs_tensor=inputs_tensor,
-            input_ids_length=input_ids_length,
-        )
-
+        # my notes: keep logits_to_keep as 1 to only keep the last logit indx and not all of them.
         # If the model supports `logits_to_keep` in forward(), set it to 1 to avoid computing the whole
         # logit matrix. This can save a lot of memory during the first forward pass. Note that assisted decoding
         # dynamically overrides this value as it can need more than the last token logits
         if self._supports_logits_to_keep() and "logits_to_keep" not in model_kwargs:
             model_kwargs["logits_to_keep"] = 1
 
-        self._validate_generated_length(generation_config, input_ids_length, has_default_max_length)
+        assert self.device.type == inputs_tensor.device.type
 
-        # 7. Prepare the cache.
-        # - `model_kwargs` may be updated in place with a cache as defined by the parameters in `generation_config`.
-        # - different models have a different cache name expected by the model (default = "past_key_values")
-        # - `max_length`, prepared above, is used to determine the maximum cache length
-        max_cache_length = generation_config.max_length - 1
-        if (
-            inputs_tensor.shape[1] != input_ids_length
-            and model_input_name == "inputs_embeds"
-            and not self.config.is_encoder_decoder
-        ):
-            max_cache_length += inputs_tensor.shape[1]
-        self._prepare_cache_for_generation(
-            generation_config, model_kwargs, assistant_model, batch_size, max_cache_length
-        )
-
-        # 8. determine generation mode
-        generation_mode = generation_config.get_generation_mode(assistant_model)
-
-        assert self.device.type == input_ids.device.type
-
+        # TODO: start from here - wip. remove logits processor to avoid overhead of safety checks etc.
         # 9. prepare logits processors and stopping criteria
         prepared_logits_processor = self._get_logits_processor(
             generation_config=generation_config,
@@ -1320,7 +997,7 @@ class GenerationMixin(ContinuousMixin):
 
         # 11. run sample (it degenerates to greedy search when `generation_config.do_sample=False`)
         result = self._sample(
-            input_ids,
+            inputs_tensor,
             logits_processor=prepared_logits_processor,
             stopping_criteria=prepared_stopping_criteria,
             generation_config=generation_config,
@@ -1329,13 +1006,6 @@ class GenerationMixin(ContinuousMixin):
             **model_kwargs,
         )
 
-        # Convert to legacy cache format if requested
-        if (
-            generation_config.return_legacy_cache is True
-            and hasattr(result, "past_key_values")
-            and getattr(result.past_key_values, "to_legacy_cache") is not None
-        ):
-            result.past_key_values = result.past_key_values.to_legacy_cache()
         return result
 
     def _has_unfinished_sequences(self, this_peer_finished: bool, synced_gpus: bool, device: torch.device) -> bool:
