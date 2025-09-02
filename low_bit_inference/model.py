@@ -13,7 +13,7 @@ from .optims.model_output_optim import BaseModelOutputWithPast, CausalLMOutputWi
 from .optims.rope_optim import ROPE_INIT_FUNCTIONS, dynamic_rope_update
 
 from .utils.modeling_utils import ALL_ATTENTION_FUNCTIONS, PreTrainedModel
-from .utils.processing_utils import Unpack
+from typing import Unpack
 from .utils.generic_utils import TransformersKwargs 
 from .utils.model_configuration_utils import LlamaConfig
 

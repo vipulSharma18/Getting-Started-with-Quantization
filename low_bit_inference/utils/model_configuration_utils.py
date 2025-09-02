@@ -2,7 +2,6 @@
 LlamaConfig
 https://github.com/huggingface/transformers/blob/main/src/transformers/models/llama/configuration_llama.py
 """
-
 # coding=utf-8
 # Copyright 2022 EleutherAI and the HuggingFace Inc. team. All rights reserved.
 #
@@ -22,10 +21,9 @@ https://github.com/huggingface/transformers/blob/main/src/transformers/models/ll
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""LLaMA model configuration"""
 
-from ...configuration_utils import PretrainedConfig
-from ...modeling_rope_utils import rope_config_validation
+from ..optims.rope_optim import rope_config_validation
+from transformers import PretrainedConfig
 
 
 class LlamaConfig(PretrainedConfig):
@@ -225,6 +223,3 @@ class LlamaConfig(PretrainedConfig):
             tie_word_embeddings=tie_word_embeddings,
             **kwargs,
         )
-
-
-__all__ = ["LlamaConfig"]
