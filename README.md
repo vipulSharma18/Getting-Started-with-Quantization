@@ -61,6 +61,8 @@ python -m low_bit_inference.torchinductor_fp8 configs/profile_inductor.yaml tps_
 - [ ] HQQ is the fastest dynamic/on-the-fly quantization out there. https://mobiusml.github.io/hqq_blog/
 
 ## Benchmarking Notes:
+* **Prefill Compilation**: Since we have a known prompt length, we're doing compilation for prefill stage as well. In practice, we'd do compile with different prompt lengths before serving to ensure compile cache is hit. Such issues don't occur in the decode stage as the input is always 1 token long (with a static KV cache, i.e., the KV don't change length and the query is 1 length).
+
 * **Decoding**: HF by default uses greedy decoding but we can do speculative decoding, and structured/guided generation to speed-up generation.
 
 * **KV Cache**: Need to make the KV Cache static/constant shape to allow for torch.compile to work. For our custom model, we'll need to do create custom static cache, for now using HF.

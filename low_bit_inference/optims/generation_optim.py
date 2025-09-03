@@ -347,15 +347,17 @@ class GenerationMixin(ContinuousMixin):
         os.environ["TOKENIZERS_PARALLELISM"] = "0"
         is_prefill = True
 
+        compiled_model_forward_decode = self.get_compiled_call()
+        compiled_model_forward_prefill = self.get_compiled_call()
         while not this_peer_finished:
             # prepare model inputs
             model_inputs = self.prepare_inputs_for_generation(input_ids, **model_kwargs)
 
-            if is_prefill:  # don't use compiled version
-                outputs = self(**model_inputs, return_dict=True)
+            if is_prefill: # the shape of prefill stage is unknown as the prompt can be of any length, so we can't use compile well.
+                outputs = compiled_model_forward_prefill(**model_inputs, return_dict=True)
                 is_prefill = False
-            else:  # use compiled version -> TODO : setup the two versions, compiled and uncompiled
-                outputs = self.__call__(**model_inputs, return_dict=True)
+            else: # decode only happens one token at a time, so we can use compile well.
+                outputs = compiled_model_forward_decode(**model_inputs, return_dict=True)
 
             # don't waste resources running the code we don't need; kwargs must be updated before skipping
             model_kwargs = self._update_model_kwargs_for_generation(
