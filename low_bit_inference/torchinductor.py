@@ -1,3 +1,4 @@
+import os
 import torch
 from omegaconf import OmegaConf
 # utils
@@ -25,6 +26,27 @@ torch.backends.cuda.enable_flash_sdp(True)
 torch.backends.cudnn.allow_tf32 = True
 torch.backends.cudnn.deterministic = False
 torch.backends.cudnn.benchmark = True
+os.environ["TORCHINDUCTOR_BENCHMARK_KERNEL"] = "1"
+os.environ["TORCHINDUCTOR_MAX_AUTOTUNE"] = "1"
+
+# Note for mode to option resolution:
+# In [9]: torch._inductor.list_mode_options()
+# Out[9]:
+# {
+#     'default': {},
+#     'reduce-overhead': {
+#         'triton.cudagraphs': True
+#         },
+#     'max-autotune-no-cudagraphs': {
+#         'max_autotune': True,
+#         'coordinate_descent_tuning': True
+#         },
+#     'max-autotune': {
+#         'max_autotune': True,
+#         'triton.cudagraphs': True,
+#         'coordinate_descent_tuning': True
+#         }
+# }
 
 model = model.to(config.device)
 model, tokenizer = compile_model(model, tokenizer)

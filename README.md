@@ -59,6 +59,7 @@ python -m low_bit_inference.torchinductor_fp8 configs/profile_inductor.yaml tps_
 - [ ] Calculate theoretical performance limit and roofline model for Llama-3.1 8B to have a target - HTA will give us the MFU that we can try to maximize.
 - [ ] Megakernel for Llama-3.1-8B: https://github.com/HazyResearch/Megakernels/blob/main/demos/low-latency-llama/llama.cuh , https://hazyresearch.stanford.edu/blog/2025-05-27-no-bubbles
 - [ ] HQQ is the fastest dynamic/on-the-fly quantization out there. https://mobiusml.github.io/hqq_blog/
+- [ ] llama.cpp deployment with our model: https://github.com/ggml-org/llama.cpp.
 
 ## Benchmarking Notes:
 * **Prefill Compilation**: Since we have a known prompt length, we're doing compilation for prefill stage as well. In practice, we'd do compile with different prompt lengths before serving to ensure compile cache is hit. Such issues don't occur in the decode stage as the input is always 1 token long (with a static KV cache, i.e., the KV don't change length and the query is 1 length).
@@ -78,3 +79,5 @@ python -m low_bit_inference.torchinductor_fp8 configs/profile_inductor.yaml tps_
 [2] “Accelerating LLM Inference with GemLite, TorchAO and SGLang – PyTorch.” Accessed: Aug. 19, 2025. [Online]. Available: https://pytorch.org/blog/accelerating-llm-inference/    
 [3] M. Dehghankar, M. Erfanian, and A. Asudeh, “An Efficient Matrix Multiplication Algorithm for Accelerating Inference in Binary and Ternary Neural Networks,” May 02, 2025, arXiv: arXiv:2411.06360. doi: 10.48550/arXiv.2411.06360.    
 [4] S. Bekman, stas00/ml-engineering. (Aug. 20, 2025). Python. Accessed: Aug. 20, 2025. [Online]. Available: https://github.com/stas00/ml-engineering    
+[5] https://github.com/meta-pytorch/gpt-fast
+[6] https://pytorch.org/blog/accelerating-generative-ai-2/
