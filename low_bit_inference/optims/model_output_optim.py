@@ -20,7 +20,7 @@ from dataclasses import dataclass
 from typing import Optional
 import torch
 
-from .attention_optim import Cache
+from .cache_optim import Cache
 from ..utils.generic_utils import ModelOutput
 
 

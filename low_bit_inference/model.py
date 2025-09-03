@@ -8,7 +8,7 @@ from .optims.activation_optim import ACT2FN
 from .optims.masking_optim import create_causal_mask
 from .optims.gradient_checkpoint_optim import GradientCheckpointingLayer
 from .optims.generation_optim import GenerationMixin
-from .optims.attention_optim import Cache, DynamicCache
+from .optims.cache_optim import Cache, DynamicCache
 from .optims.model_output_optim import BaseModelOutputWithPast, CausalLMOutputWithPast
 from .optims.rope_optim import ROPE_INIT_FUNCTIONS, dynamic_rope_update
 

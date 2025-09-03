@@ -20,7 +20,7 @@ import inspect
 import os
 from typing import Any, Optional, Union
 import torch
-from .attention_optim import Cache
+from .cache_optim import Cache
 from .masking_optim import create_masks_for_generate
 from transformers.generation.continuous_batching import ContinuousMixin # imported from HF cause suspect it's not really used
 from transformers.generation.stopping_criteria import (

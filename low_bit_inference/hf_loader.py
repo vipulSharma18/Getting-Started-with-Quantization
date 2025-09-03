@@ -2,7 +2,7 @@ import math
 from transformers import AutoTokenizer
 from .model import LlamaForCausalLM
 from .utils.config_utils import to_torch_dtype
-from .optims.attention_optim import setup_cache
+from .optims.cache_optim import setup_cache
 
 
 def autoname_modules(m):

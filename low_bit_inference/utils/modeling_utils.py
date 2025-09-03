@@ -1,4 +1,4 @@
-# ALL_ATTENTION_FUNCTIONS, PreTrainedModel
+# PreTrainedModel
 """
 https://github.com/huggingface/transformers/blob/main/src/transformers/modeling_utils.py
 """
@@ -32,14 +32,8 @@ import shutil
 import sys
 import tempfile
 import warnings
-from collections import defaultdict
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from contextlib import contextmanager
-from enum import Enum
 from functools import partial, wraps
-from threading import Thread
-from typing import Any, Callable, Optional, TypeVar, Union, get_type_hints
-from zipfile import is_zipfile
+from typing import Callable, Optional, Union, get_type_hints
 
 import torch
 from huggingface_hub import split_torch_state_dict_into_shards
@@ -48,318 +42,10 @@ from torch import Tensor, nn
 from torch.distributions import constraints
 from torch.utils.checkpoint import checkpoint
 
-from transformers import PretrainedConfig
+from transformers import PretrainedConfig, GenerationConfig
+from ..optims.attention_optim import sdpa_attention_forward
 
-
-
-class ModuleUtilsMixin:
-    """
-    A few utilities for `torch.nn.Modules`, to be used as a mixin.
-    """
-
-    @staticmethod
-    def _hook_rss_memory_pre_forward(module, *args, **kwargs):
-        try:
-            import psutil
-        except ImportError:
-            raise ImportError("You need to install psutil (pip install psutil) to use memory tracing.")
-
-        process = psutil.Process(os.getpid())
-        mem = process.memory_info()
-        module.mem_rss_pre_forward = mem.rss
-        return None
-
-    @staticmethod
-    def _hook_rss_memory_post_forward(module, *args, **kwargs):
-        try:
-            import psutil
-        except ImportError:
-            raise ImportError("You need to install psutil (pip install psutil) to use memory tracing.")
-
-        process = psutil.Process(os.getpid())
-        mem = process.memory_info()
-        module.mem_rss_post_forward = mem.rss
-        mem_rss_diff = module.mem_rss_post_forward - module.mem_rss_pre_forward
-        module.mem_rss_diff = mem_rss_diff + (module.mem_rss_diff if hasattr(module, "mem_rss_diff") else 0)
-        return None
-
-    def add_memory_hooks(self):
-        """
-        Add a memory hook before and after each sub-module forward pass to record increase in memory consumption.
-
-        Increase in memory consumption is stored in a `mem_rss_diff` attribute for each module and can be reset to zero
-        with `model.reset_memory_hooks_state()`.
-        """
-        for module in self.modules():
-            module.register_forward_pre_hook(self._hook_rss_memory_pre_forward)
-            module.register_forward_hook(self._hook_rss_memory_post_forward)
-        self.reset_memory_hooks_state()
-
-    def reset_memory_hooks_state(self):
-        """
-        Reset the `mem_rss_diff` attribute of each module (see [`~modeling_utils.ModuleUtilsMixin.add_memory_hooks`]).
-        """
-        for module in self.modules():
-            module.mem_rss_diff = 0
-            module.mem_rss_post_forward = 0
-            module.mem_rss_pre_forward = 0
-
-    @property
-    def device(self) -> torch.device:
-        """
-        `torch.device`: The device on which the module is (assuming that all the module parameters are on the same
-        device).
-        """
-        return get_parameter_device(self)
-
-    @property
-    def dtype(self) -> torch.dtype:
-        """
-        `torch.dtype`: The dtype of the module (assuming that all the module parameters have the same dtype).
-        """
-        return get_parameter_dtype(self)
-
-    def invert_attention_mask(self, encoder_attention_mask: Tensor) -> Tensor:
-        """
-        Invert an attention mask (e.g., switches 0. and 1.).
-
-        Args:
-            encoder_attention_mask (`torch.Tensor`): An attention mask.
-
-        Returns:
-            `torch.Tensor`: The inverted attention mask.
-        """
-        if encoder_attention_mask.dim() == 3:
-            encoder_extended_attention_mask = encoder_attention_mask[:, None, :, :]
-        if encoder_attention_mask.dim() == 2:
-            encoder_extended_attention_mask = encoder_attention_mask[:, None, None, :]
-        # T5 has a mask that can compare sequence ids, we can simulate this here with this transposition
-        # Cf. https://github.com/tensorflow/mesh/blob/8d2465e9bc93129b913b5ccc6a59aa97abd96ec6/mesh_tensorflow
-        # /transformer/transformer_layers.py#L270
-        # encoder_extended_attention_mask = (encoder_extended_attention_mask ==
-        # encoder_extended_attention_mask.transpose(-1, -2))
-        encoder_extended_attention_mask = encoder_extended_attention_mask.to(dtype=self.dtype)  # fp16 compatibility
-        encoder_extended_attention_mask = (1.0 - encoder_extended_attention_mask) * torch.finfo(self.dtype).min
-
-        return encoder_extended_attention_mask
-
-    @staticmethod
-    def create_extended_attention_mask_for_decoder(input_shape, attention_mask, device=None):
-        if device is not None:
-            warnings.warn(
-                "The `device` argument is deprecated and will be removed in v5 of Transformers.", FutureWarning
-            )
-        else:
-            device = attention_mask.device
-        batch_size, seq_length = input_shape
-        seq_ids = torch.arange(seq_length, device=device)
-        causal_mask = seq_ids[None, None, :].repeat(batch_size, seq_length, 1) <= seq_ids[None, :, None]
-        # in case past_key_values are used we need to add a prefix ones mask to the causal mask
-        causal_mask = causal_mask.to(attention_mask.dtype)
-
-        if causal_mask.shape[1] < attention_mask.shape[1]:
-            prefix_seq_len = attention_mask.shape[1] - causal_mask.shape[1]
-            causal_mask = torch.cat(
-                [
-                    torch.ones((batch_size, seq_length, prefix_seq_len), device=device, dtype=causal_mask.dtype),
-                    causal_mask,
-                ],
-                axis=-1,
-            )
-
-        extended_attention_mask = causal_mask[:, None, :, :] * attention_mask[:, None, None, :]
-        return extended_attention_mask
-
-    def get_extended_attention_mask(
-        self, attention_mask: Tensor, input_shape: tuple[int], device: torch.device = None, dtype: torch.float = None
-    ) -> Tensor:
-        """
-        Makes broadcastable attention and causal masks so that future and masked tokens are ignored.
-
-        Arguments:
-            attention_mask (`torch.Tensor`):
-                Mask with ones indicating tokens to attend to, zeros for tokens to ignore.
-            input_shape (`tuple[int]`):
-                The shape of the input to the model.
-
-        Returns:
-            `torch.Tensor` The extended attention mask, with a the same dtype as `attention_mask.dtype`.
-        """
-        if dtype is None:
-            dtype = self.dtype
-
-        if not (attention_mask.dim() == 2 and self.config.is_decoder):
-            # show warning only if it won't be shown in `create_extended_attention_mask_for_decoder`
-            if device is not None:
-                warnings.warn(
-                    "The `device` argument is deprecated and will be removed in v5 of Transformers.", FutureWarning
-                )
-        # We can provide a self-attention mask of dimensions [batch_size, from_seq_length, to_seq_length]
-        # ourselves in which case we just need to make it broadcastable to all heads.
-        if attention_mask.dim() == 3:
-            extended_attention_mask = attention_mask[:, None, :, :]
-        elif attention_mask.dim() == 2:
-            # Provided a padding mask of dimensions [batch_size, seq_length]
-            # - if the model is a decoder, apply a causal mask in addition to the padding mask
-            # - if the model is an encoder, make the mask broadcastable to [batch_size, num_heads, seq_length, seq_length]
-            if self.config.is_decoder:
-                extended_attention_mask = ModuleUtilsMixin.create_extended_attention_mask_for_decoder(
-                    input_shape, attention_mask, device
-                )
-            else:
-                extended_attention_mask = attention_mask[:, None, None, :]
-        else:
-            raise ValueError(
-                f"Wrong shape for input_ids (shape {input_shape}) or attention_mask (shape {attention_mask.shape})"
-            )
-
-        # Since attention_mask is 1.0 for positions we want to attend and 0.0 for
-        # masked positions, this operation will create a tensor which is 0.0 for
-        # positions we want to attend and the dtype's smallest value for masked positions.
-        # Since we are adding it to the raw scores before the softmax, this is
-        # effectively the same as removing these entirely.
-        extended_attention_mask = extended_attention_mask.to(dtype=dtype)  # fp16 compatibility
-        extended_attention_mask = (1.0 - extended_attention_mask) * torch.finfo(dtype).min
-        return extended_attention_mask
-
-    def get_head_mask(
-        self, head_mask: Optional[Tensor], num_hidden_layers: int, is_attention_chunked: bool = False
-    ) -> Tensor:
-        """
-        Prepare the head mask if needed.
-
-        Args:
-            head_mask (`torch.Tensor` with shape `[num_heads]` or `[num_hidden_layers x num_heads]`, *optional*):
-                The mask indicating if we should keep the heads or not (1.0 for keep, 0.0 for discard).
-            num_hidden_layers (`int`):
-                The number of hidden layers in the model.
-            is_attention_chunked (`bool`, *optional*, defaults to `False`):
-                Whether or not the attentions scores are computed by chunks or not.
-
-        Returns:
-            `torch.Tensor` with shape `[num_hidden_layers x batch x num_heads x seq_length x seq_length]` or list with
-            `[None]` for each layer.
-        """
-        if head_mask is not None:
-            head_mask = self._convert_head_mask_to_5d(head_mask, num_hidden_layers)
-            if is_attention_chunked is True:
-                head_mask = head_mask.unsqueeze(-1)
-        else:
-            head_mask = [None] * num_hidden_layers
-
-        return head_mask
-
-    def _convert_head_mask_to_5d(self, head_mask, num_hidden_layers):
-        """-> [num_hidden_layers x batch x num_heads x seq_length x seq_length]"""
-        if head_mask.dim() == 1:
-            head_mask = head_mask.unsqueeze(0).unsqueeze(0).unsqueeze(-1).unsqueeze(-1)
-            head_mask = head_mask.expand(num_hidden_layers, -1, -1, -1, -1)
-        elif head_mask.dim() == 2:
-            head_mask = head_mask.unsqueeze(1).unsqueeze(-1).unsqueeze(-1)  # We can specify head_mask for each layer
-        assert head_mask.dim() == 5, f"head_mask.dim != 5, instead {head_mask.dim()}"
-        head_mask = head_mask.to(dtype=self.dtype)  # switch to float if need + fp16 compatibility
-        return head_mask
-
-    def num_parameters(self, only_trainable: bool = False, exclude_embeddings: bool = False) -> int:
-        """
-        Get number of (optionally, trainable or non-embeddings) parameters in the module.
-
-        Args:
-            only_trainable (`bool`, *optional*, defaults to `False`):
-                Whether or not to return only the number of trainable parameters
-
-            exclude_embeddings (`bool`, *optional*, defaults to `False`):
-                Whether or not to return only the number of non-embeddings parameters
-
-        Returns:
-            `int`: The number of parameters.
-        """
-
-        if exclude_embeddings:
-            embedding_param_names = [
-                f"{name}.weight" for name, module_type in self.named_modules() if isinstance(module_type, nn.Embedding)
-            ]
-            total_parameters = [
-                parameter for name, parameter in self.named_parameters() if name not in embedding_param_names
-            ]
-        else:
-            total_parameters = list(self.parameters())
-
-        total_numel = []
-        is_loaded_in_4bit = getattr(self, "is_loaded_in_4bit", False)
-
-        if is_loaded_in_4bit:
-            if is_bitsandbytes_available():
-                import bitsandbytes as bnb
-            else:
-                raise ValueError(
-                    "bitsandbytes is not installed but it seems that the model has been loaded in 4bit precision, something went wrong"
-                    " make sure to install bitsandbytes with `pip install bitsandbytes`. You also need a GPU. "
-                )
-
-        for param in total_parameters:
-            if param.requires_grad or not only_trainable:
-                # For 4bit models, we need to multiply the number of parameters by 2 as half of the parameters are
-                # used for the 4bit quantization (uint8 tensors are stored)
-                if is_loaded_in_4bit and isinstance(param, bnb.nn.Params4bit):
-                    if hasattr(param, "element_size"):
-                        num_bytes = param.element_size()
-                    elif hasattr(param, "quant_storage"):
-                        num_bytes = param.quant_storage.itemsize
-                    else:
-                        num_bytes = 1
-                    total_numel.append(param.numel() * 2 * num_bytes)
-                else:
-                    total_numel.append(param.numel())
-
-        return sum(total_numel)
-
-    def estimate_tokens(self, input_dict: dict[str, Union[torch.Tensor, Any]]) -> int:
-        """
-        Helper function to estimate the total number of tokens from the model inputs.
-
-        Args:
-            inputs (`dict`): The model inputs.
-
-        Returns:
-            `int`: The total number of tokens.
-        """
-        if not hasattr(self, "warnings_issued"):
-            self.warnings_issued = {}
-        if self.main_input_name in input_dict:
-            return input_dict[self.main_input_name].numel()
-        elif "estimate_tokens" not in self.warnings_issued:
-            logger.warning(
-                "Could not estimate the number of tokens of the input, floating-point operations will not be computed"
-            )
-            self.warnings_issued["estimate_tokens"] = True
-        return 0
-
-    def floating_point_ops(
-        self, input_dict: dict[str, Union[torch.Tensor, Any]], exclude_embeddings: bool = True
-    ) -> int:
-        """
-        Get number of (optionally, non-embeddings) floating-point operations for the forward and backward passes of a
-        batch with this transformer model. Default approximation neglects the quadratic dependency on the number of
-        tokens (valid if `12 * d_model << sequence_length`) as laid out in [this
-        paper](https://huggingface.co/papers/2001.08361) section 2.1. Should be overridden for transformers with parameter
-        re-use e.g. Albert or Universal Transformers, or if doing long-range modeling with very high sequence lengths.
-
-        Args:
-            batch_size (`int`):
-                The batch size for the forward pass.
-
-            sequence_length (`int`):
-                The number of tokens in each line of the batch.
-
-            exclude_embeddings (`bool`, *optional*, defaults to `True`):
-                Whether or not to count embedding and softmax operations.
-
-        Returns:
-            `int`: The number of floating-point operations.
-        """
-
-        return 6 * self.estimate_tokens(input_dict) * self.num_parameters(exclude_embeddings=exclude_embeddings)
+ALL_ATTENTION_FUNCTIONS = {"sdpa": sdpa_attention_forward}
 
 
 class EmbeddingAccessMixin:
@@ -406,33 +92,6 @@ class EmbeddingAccessMixin:
                 "please override in the subclass."
             )
 
-    def set_input_embeddings(self, value: nn.Module):
-        """Fallback setter that handles **~70 %** of models in the code‑base.
-
-        Order of attempts:
-        1. `self.model.embed_tokens`
-        2. `self.embed_tokens`
-        3. delegate to the *base model* if one exists
-        4. otherwise raise `NotImplementedError` so subclasses still can (and
-            should) override for exotic layouts.
-        """
-
-        # 1) encoder/decoder and VLMs like `Gemma3nForConditionalGeneration`
-        name = getattr(self, "_input_embed_layer", "embed_tokens")
-        if hasattr(self, "model") and hasattr(self.model, name):
-            setattr(self.model, name, value)
-        # 2) as well as vanilla decoder‑only architectures
-        elif hasattr(self, name):
-            setattr(self, name, value)
-        # 3) recurse once into the registered *base* model (e.g. for encoder/decoder)
-        elif getattr(self, self.base_model_prefix, self) is not self:
-            base_model = getattr(self, self.base_model_prefix, self)
-            base_model.set_input_embeddings(value)
-        else:
-            raise NotImplementedError(
-                f"`set_input_embeddings` not auto‑handled for {self.__class__.__name__}; please override in the subclass."
-            )
-
     def get_output_embeddings(self):
         if not hasattr(self, "lm_head"):
             return None
@@ -444,15 +103,8 @@ class EmbeddingAccessMixin:
             return None
         return self.lm_head
 
-    def set_output_embeddings(self, new_embeddings):
-        """
-        Sets the model's output embedding, defaulting to setting new_embeddings to lm_head.
-        """
-        if getattr(self, "lm_head"):
-            self.lm_head = new_embeddings
 
-
-class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToHubMixin, PeftAdapterMixin):
+class PreTrainedModel(nn.Module, EmbeddingAccessMixin):
     r"""
     Base class for all models.
 
@@ -553,63 +205,6 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
     _supports_attention_backend = False
     _can_record_outputs = None
 
-    @property
-    @torch._dynamo.allow_in_graph
-    def can_record_outputs(self):
-        """
-         Maps output names (e.g., "attentions", "hidden_states")
-         to either:
-             - A module class (e.g., `LlamaDecoderLayer`), using default index conventions:
-                 * index=0 for "hidden_states"
-                 * index=1 for "attentions"
-             - Or an `Output Recorder(...)` with `target_class`, optional `index`, and `layer_name`.
-
-         Examples:
-             These two are equivalent:
-
-         ```python
-             _can_record_outputs = {
-                 "attentions": LlamaAttention,
-                 "hidden_states": LlamaDecoderLayer
-             }
-
-             _can_record_outputs = {
-                 "attentions": Output Recorder(LlamaAttention, index=1),
-                 "hidden_states": Output Recorder(LlamaDecoderLayer, index=0)
-             }
-        ```
-
-         This means you can record outputs from the same class, by specifying a layer name. Before
-         collecting outputs, we check that they come from this layer.
-
-         If you have cross attention that come from `LlamaAttention` and self attention that also
-         come from `LlamaAttention` but from `self_attn` you can do this:
-
-         ```python
-         class LlamaModel(PreTrainedModel):
-             _can_record_outputs = {
-                 "attentions": Output Recorder(LlamaAttention, index=1, layer-name="self_attn"),
-                 "cross_attentions": Output Recorder(LlamaAttention, index=1, layer_name="cross_attn")
-             }
-
-        ```
-        """
-        return self._can_record_outputs or {}
-
-    @property
-    def dummy_inputs(self) -> dict[str, torch.Tensor]:
-        """
-        `dict[str, torch.Tensor]`: Dummy inputs to do a forward pass in the network.
-        """
-        return {"input_ids": torch.tensor(DUMMY_INPUTS)}
-
-    @property
-    def framework(self) -> str:
-        """
-        :str: Identifies that this is a PyTorch model.
-        """
-        return "pt"
-
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         # For BC we keep the original `config_class` definition in case
@@ -650,16 +245,7 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
             self.config._attn_implementation, is_init_check=True
         )
 
-        # for initialization of the loss
-        loss_type = self.__class__.__name__
-        if loss_type not in LOSS_MAPPING:
-            loss_groups = f"({'|'.join(LOSS_MAPPING)})"
-            loss_type = re.findall(loss_groups, self.__class__.__name__)
-            if len(loss_type) > 0:
-                loss_type = loss_type[0]
-            else:
-                loss_type = None
-        self.loss_type = loss_type
+        self.loss_type = None
 
         self.name_or_path = config.name_or_path
         self.warnings_issued = {}
@@ -671,7 +257,6 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
         self._keep_in_fp32_modules_strict = copy.copy(self.__class__._keep_in_fp32_modules_strict)
 
         self._no_split_modules = self._no_split_modules or []
-        _CAN_RECORD_REGISTRY[str(self.__class__)] = self._can_record_outputs  # added for executorch support only
 
     def post_init(self):
         """
@@ -710,89 +295,6 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
                             f" {self.__class__.__name__}"
                         )
 
-        # If current model is a base model, attach `base_model_tp_plan` and `base_model_pp_plan` from config
-        self._pp_plan = self.config.base_model_pp_plan.copy() if self.config.base_model_pp_plan is not None else {}
-        self._tp_plan = self.config.base_model_tp_plan.copy() if self.config.base_model_tp_plan is not None else {}
-        self._ep_plan = self.config.base_model_ep_plan.copy() if self.config.base_model_ep_plan is not None else {}
-        for name, module in self.named_children():
-            if plan := getattr(module, "_ep_plan", None):
-                self._ep_plan.update({f"{name}.{k}": v for k, v in plan.copy().items()})
-            if plan := getattr(module, "_tp_plan", None):
-                self._tp_plan.update({f"{name}.{k}": v for k, v in plan.copy().items()})
-            if plan := getattr(module, "_pp_plan", None):
-                self._pp_plan.update({f"{name}.{k}": v for k, v in plan.copy().items()})
-
-    @property
-    def tp_plan(self) -> dict[str, str]:
-        """
-        The full tp plan for the model's modules
-        """
-        if hasattr(self.config, "distributed_config") and self.config.distributed_config.enable_expert_parallel:
-            return self._ep_plan
-        return self._tp_plan
-
-    @property
-    def pp_plan(self) -> dict[str, tuple[str, str]]:
-        return self._pp_plan
-
-    @tp_plan.setter
-    def tp_plan(self, plan: dict[str, str]):
-        if plan is not None:
-            # Validate that all parallel styles in the plan are supported
-            from .integrations.tensor_parallel import ALL_PARALLEL_STYLES
-
-            for layer_pattern, parallel_style in plan.items():
-                if parallel_style not in ALL_PARALLEL_STYLES:
-                    raise ValueError(
-                        f"Unsupported tensor parallel style '{parallel_style}' for layer '{layer_pattern}'. "
-                        f"Supported styles are {list(ALL_PARALLEL_STYLES.keys())}"
-                    )
-
-            # Validate that the layer patterns match existing model structure
-            # We check this by getting all parameter names and seeing if any match the patterns
-            if hasattr(self, "named_parameters"):
-                model_param_names = [name for name, _ in self.named_parameters()]
-                if model_param_names:  # Only validate if model has parameters
-                    import re
-
-                    for layer_pattern in plan.keys():
-                        # Convert pattern to regex (replace * with .*)
-                        regex_pattern = layer_pattern.replace("*", r"\d+")
-                        pattern_matched = False
-                        for param_name in model_param_names:
-                            if re.match(regex_pattern, param_name):
-                                pattern_matched = True
-                                break
-                        if not pattern_matched:
-                            # Try more flexible matching - check if pattern components exist
-                            pattern_parts = layer_pattern.split(".")
-                            flexible_matched = False
-                            for param_name in model_param_names:
-                                param_parts = param_name.split(".")
-                                if len(pattern_parts) <= len(param_parts):
-                                    match_count = 0
-                                    for i, pattern_part in enumerate(pattern_parts):
-                                        if pattern_part == "*":
-                                            match_count += 1
-                                        elif i < len(param_parts) and pattern_part == param_parts[i]:
-                                            match_count += 1
-                                    if match_count == len(pattern_parts):
-                                        flexible_matched = True
-                                        break
-                            if not flexible_matched:
-                                import warnings
-
-                                warnings.warn(
-                                    f"Layer pattern '{layer_pattern}' does not match any parameters in the model. "
-                                    f"This rule may not be applied during tensor parallelization."
-                                )
-
-        self._tp_plan = plan if plan is not None else {}
-
-    @pp_plan.setter
-    def pp_plan(self, plan: dict[str, tuple[str, str]]):
-        self._pp_plan = plan
-
     def dequantize(self):
         """
         Potentially dequantize the model in case it has been quantized by a quantization method that support
@@ -811,114 +313,6 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
             # Remove the attribute now that is has been consumed, so it's no saved in the config.
             delattr(self.config, "gradient_checkpointing")
 
-    def add_model_tags(self, tags: Union[list[str], str]) -> None:
-        r"""
-        Add custom tags into the model that gets pushed to the Hugging Face Hub. Will
-        not overwrite existing tags in the model.
-
-        Args:
-            tags (`Union[list[str], str]`):
-                The desired tags to inject in the model
-
-        Examples:
-
-        ```python
-        from transformers import AutoModel
-
-        model = AutoModel.from_pretrained("google-bert/bert-base-cased")
-
-        model.add_model_tags(["custom", "custom-bert"])
-
-        # Push the model to your namespace with the name "my-custom-bert".
-        model.push_to_hub("my-custom-bert")
-        ```
-        """
-        if isinstance(tags, str):
-            tags = [tags]
-
-        if self.model_tags is None:
-            self.model_tags = []
-
-        for tag in tags:
-            if tag not in self.model_tags:
-                self.model_tags.append(tag)
-
-    @classmethod
-    @restore_default_dtype
-    def _from_config(cls, config, **kwargs):
-        """
-        All context managers that the model should be initialized under go here.
-
-        Args:
-            dtype (`torch.dtype`, *optional*):
-                Override the default `dtype` and load the model under this dtype.
-        """
-        # when we init a model from within another model (e.g. VLMs) and dispatch on FA2
-        # a warning is raised that dtype should be fp16. Since we never pass dtype from within
-        # modeling code, we can try to infer it here same way as done in `from_pretrained`
-        # For BC on the old `torch_dtype`
-        dtype = kwargs.pop("dtype", config.dtype)
-        if (torch_dtype := kwargs.pop("torch_dtype", None)) is not None:
-            logger.warning_once("`torch_dtype` is deprecated! Use `dtype` instead!")
-            # if both kwargs are provided, use `dtype`
-            dtype = dtype if dtype != config.dtype else torch_dtype
-        if isinstance(dtype, str):
-            dtype = getattr(torch, dtype)
-
-        # override default dtype if needed
-        dtype_orig = None
-        if dtype is not None:
-            dtype_orig = cls._set_default_dtype(dtype)
-
-        # If passing `attn_implementation` as kwargs, respect it (it will be applied recursively on subconfigs)
-        if "attn_implementation" in kwargs:
-            config._attn_implementation = kwargs.pop("attn_implementation")
-
-        if is_deepspeed_zero3_enabled() and not _is_quantized and not _is_ds_init_called:
-            logger.info("Detected DeepSpeed ZeRO-3: activating zero.init() for this model")
-            # this immediately partitions the model across all gpus, to avoid the overhead in time
-            # and memory copying it on CPU or each GPU first
-            import deepspeed
-
-            init_contexts = [deepspeed.zero.Init(config_dict_or_path=deepspeed_config()), set_zero3_state()]
-            with ContextManagers(init_contexts):
-                model = cls(config, **kwargs)
-
-        else:
-            model = cls(config, **kwargs)
-
-        # restore default dtype if it was modified
-        if dtype_orig is not None:
-            torch.set_default_dtype(dtype_orig)
-
-        return model
-
-    @classmethod
-    def _set_default_dtype(cls, dtype: torch.dtype) -> torch.dtype:
-        """
-        Change the default dtype and return the previous one. This is needed when wanting to instantiate the model
-        under specific dtype.
-
-        Args:
-            dtype (`torch.dtype`):
-                a floating dtype to set to.
-
-        Returns:
-            `torch.dtype`: the original `dtype` that can be used to restore `torch.set_default_dtype(dtype)` if it was
-            modified. If it wasn't, returns `None`.
-
-        Note `set_default_dtype` currently only works with floating-point types and asserts if for example,
-        `torch.int64` is passed. So if a non-float `dtype` is passed this functions will throw an exception.
-        """
-        if not dtype.is_floating_point:
-            raise ValueError(
-                f"Can't instantiate {cls.__name__} model under dtype={dtype} since it is not a floating point dtype"
-            )
-
-        logger.info(f"Instantiating {cls.__name__} model under default dtype {dtype}.")
-        dtype_orig = torch.get_default_dtype()
-        torch.set_default_dtype(dtype)
-        return dtype_orig
 
     @property
     def base_model(self) -> nn.Module:
@@ -950,7 +344,7 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
         # Detects whether `prepare_inputs_for_generation` has been overwritten in the model. Prior to v4.45, this
         # was how we detected whether a model could generate.
         if hasattr(cls, "prepare_inputs_for_generation"):  # implicit: doesn't inherit `GenerationMixin`
-            logger.warning(
+            print(
                 f"{cls.__name__} has generative capabilities, as `prepare_inputs_for_generation` is explicitly "
                 "defined. However, it doesn't directly inherit from `GenerationMixin`. From 👉v4.50👈 onwards, "
                 "`PreTrainedModel` will NOT inherit from `GenerationMixin`, and this model will lose the ability "
@@ -964,177 +358,6 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
             )
         # Otherwise, can't generate
         return False
-
-    def _flash_attn_2_can_dispatch(self, is_init_check: bool = False) -> bool:
-        """
-        Check the availability of Flash Attention 2 for a given model.
-
-        Args:
-            is_init_check (`bool`, *optional*):
-                Whether this check is performed early, i.e. at __init__ time, or later when the model and its weights are
-                fully instantiated. This is needed as we also check the devices of the weights, and/or if the model uses
-                BetterTransformer, which are only available later after __init__. This allows to raise proper exceptions early
-                before instantiating the full models if we know that the model does not support the requested attention.
-        """
-        dtype = self.config.dtype
-
-        # check `supports_flash_attn_2` for BC with custom code. TODO: remove after a few releases
-        if not (self._supports_flash_attn or getattr(self, "_supports_flash_attn_2", False)):
-            raise ValueError(
-                f"{self.__class__.__name__} does not support Flash Attention 2.0 yet. Please request to add support where"
-                f" the model is hosted, on its model hub page: https://huggingface.co/{self.config._name_or_path}/discussions/new"
-                " or in the Transformers GitHub repo: https://github.com/huggingface/transformers/issues/new"
-            )
-
-        if not is_flash_attn_2_available():
-            preface = "FlashAttention2 has been toggled on, but it cannot be used due to the following error:"
-            install_message = "Please refer to the documentation of https://huggingface.co/docs/transformers/perf_infer_gpu_one#flashattention-2 to install Flash Attention 2."
-
-            # package `flash-attn` can not be installed on Ascend NPU, following validation logics can be ignored.
-            if is_torch_npu_available():
-                logger.info("Detect using FlashAttention2 on Ascend NPU.")
-                return True
-
-            if importlib.util.find_spec("flash_attn") is None:
-                raise ImportError(f"{preface} the package flash_attn seems to be not installed. {install_message}")
-            else:
-                # Check FA2 installed version compatibility
-                flash_attention_version = version.parse(importlib.metadata.version("flash_attn"))
-                if torch.version.cuda:
-                    if flash_attention_version < version.parse("2.1.0"):
-                        raise ImportError(
-                            f"{preface} you need flash_attn package version to be greater or equal than 2.1.0. Detected version {flash_attention_version}. {install_message}"
-                        )
-                    elif not torch.cuda.is_available():
-                        raise ValueError(
-                            f"{preface} Flash Attention 2 is not available on CPU. Please make sure torch can access a CUDA device."
-                        )
-                    else:
-                        raise ImportError(f"{preface} Flash Attention 2 is not available. {install_message}")
-                elif torch.version.hip:
-                    if flash_attention_version < version.parse("2.0.4"):
-                        raise ImportError(
-                            f"{preface} you need flash_attn package version to be greater or equal than 2.0.4. Detected version {flash_attention_version}. {install_message}"
-                        )
-                    else:
-                        raise ImportError(f"{preface} Flash Attention 2 is not available. {install_message}")
-
-        if dtype is None:
-            logger.warning_once(
-                "You are attempting to use Flash Attention 2 without specifying a torch dtype. This might lead to unexpected behaviour"
-            )
-        elif dtype is not None and dtype not in [torch.float16, torch.bfloat16]:
-            logger.warning_once(
-                "Flash Attention 2 only supports torch.float16 and torch.bfloat16 dtypes, but"
-                f" the current dype in {self.__class__.__name__} is {dtype}. You should run training or inference using Automatic Mixed-Precision via the `with torch.autocast(device_type='torch_device'):` decorator,"
-                ' or load the model with the `dtype` argument. Example: `model = AutoModel.from_pretrained("openai/whisper-tiny", attn_implementation="flash_attention_2", dtype=torch.float16)`'
-            )
-
-        # With the early check, the parameters are not yet initialized correctly
-        if not is_init_check:
-            if getattr(self, "use_bettertransformer", False):
-                raise ValueError(
-                    "Flash Attention 2 and BetterTransformer API are not compatible. Please make sure to disable BetterTransformers by doing model.reverse_bettertransformer()"
-                )
-
-            param_devices = list({param.device for param in self.parameters()})
-            if len(param_devices) == 1 and param_devices[0].type == "cpu":
-                if torch.cuda.is_available():
-                    logger.warning_once(
-                        "You are attempting to use Flash Attention 2 with a model not initialized on GPU. Make sure to move the model to GPU"
-                        " after initializing it on CPU with `model.to('cuda')`."
-                    )
-                elif is_torch_mlu_available():
-                    logger.warning_once(
-                        "You are attempting to use Flash Attention 2 with a model not initialized on MLU. Make sure to move the model to MLU"
-                        " after initializing it on CPU with `model.to('mlu')`."
-                    )
-                else:
-                    raise ValueError(
-                        "You are attempting to use Flash Attention 2 with a model not initialized on GPU and with no GPU available. "
-                        "This is not supported yet. Please make sure to have access to a GPU and either initialise the model on a GPU by passing a device_map "
-                        "or initialising the model on CPU and then moving it to GPU."
-                    )
-
-        # If no error raise by this point, we can return `True`
-        return True
-
-    def _flash_attn_3_can_dispatch(self, is_init_check: bool = False) -> bool:
-        """
-        Check the availability of Flash Attention 3 for a given model.
-
-        Args:
-            is_init_check (`bool`, *optional*):
-                Whether this check is performed early, i.e. at __init__ time, or later when the model and its weights are
-                fully instantiated. This is needed as we also check the devices of the weights, and/or if the model uses
-                BetterTransformer, which are only available later after __init__. This allows to raise proper exceptions early
-                before instantiating the full models if we know that the model does not support the requested attention.
-        """
-        dtype = self.config.dtype
-
-        if not self._supports_flash_attn:
-            raise ValueError(
-                f"{self.__class__.__name__} does not support Flash Attention 3 yet. Please request to add support where"
-                f" the model is hosted, on its model hub page: https://huggingface.co/{self.config._name_or_path}/discussions/new"
-                " or in the Transformers GitHub repo: https://github.com/huggingface/transformers/issues/new"
-            )
-
-        if not is_flash_attn_3_available():
-            preface = "FlashAttention3 has been toggled on, but it cannot be used due to the following error:"
-
-            if importlib.util.find_spec("flash_attn_3") is None:
-                raise ImportError(f"{preface} the package flash_attn_3 seems to be not installed.")
-
-            if torch.cuda.is_available():
-                major, _ = torch.cuda.get_device_capability()
-                if major < 9:
-                    raise ValueError(
-                        f"{preface} Flash Attention 3 requires compute capability >= 9.0, but found {torch.cuda.get_device_capability()} with compute capability {major}.0."
-                    )
-                else:
-                    raise ImportError(f"{preface} Flash Attention 3 is not available.")
-            else:
-                raise ValueError(
-                    f"{preface} Flash Attention 3 is not available on CPU. Please make sure torch can access a CUDA device."
-                )
-
-        if dtype is None:
-            logger.warning_once(
-                "You are attempting to use Flash Attention 3 without specifying a torch dtype. This might lead to unexpected behaviour"
-            )
-        elif dtype is not None and dtype not in [torch.float16, torch.bfloat16]:
-            logger.warning_once(
-                "Flash Attention 3 only supports torch.float16 and torch.bfloat16 dtypes, but"
-                f" the current dype in {self.__class__.__name__} is {dtype}. You should run training or inference using Automatic Mixed-Precision via the `with torch.autocast(device_type='torch_device'):` decorator,"
-                ' or load the model with the `dtype` argument. Example: `model = AutoModel.from_pretrained("meta-llama/Llama-3.2-1B", attn_implementation="flash_attention_3", dtype=torch.float16)`'
-            )
-
-        if getattr(self.config, "alibi", False) or getattr(self.config, "use_alibi", False):
-            raise ValueError("Model is configured to use ALiBi, which is not supported by Flash Attention 3.")
-
-        # Check for attention dropout, which is incompatible with FA3
-        if hasattr(self.config, "attention_dropout") and self.config.attention_dropout > 0:
-            raise ValueError(
-                f"Model has attention_dropout={self.config.attention_dropout}, which is not supported by Flash Attention 3."
-            )
-
-        # With the early check, the parameters are not yet initialized correctly
-        if not is_init_check:
-            param_devices = list({param.device for param in self.parameters()})
-            if len(param_devices) == 1 and param_devices[0].type == "cpu":
-                if torch.cuda.is_available():
-                    logger.warning_once(
-                        "You are attempting to use Flash Attention 3 with a model not initialized on GPU. Make sure to move the model to GPU"
-                        " after initializing it on CPU with `model.to('cuda')`."
-                    )
-                else:
-                    raise ValueError(
-                        "You are attempting to use Flash Attention 3 with a model not initialized on GPU and with no GPU available. "
-                        "This is not supported yet. Please make sure to have access to a GPU and either initialise the model on a GPU by passing a device_map "
-                        "or initialising the model on CPU and then moving it to GPU."
-                    )
-
-        return True
 
     def _sdpa_can_dispatch(self, is_init_check: bool = False) -> bool:
         """
@@ -1159,7 +382,7 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
             and torch.cuda.device_count() > 1
             and version.parse(torch.__version__) < version.parse("2.4.1")
         ):
-            logger.warning_once(
+            print(
                 "Using the `SDPA` attention implementation on multi-gpu setup with ROCM may lead to performance issues due to the FA backend. Disabling it to use alternative backends."
             )
             torch.backends.cuda.enable_flash_sdp(False)
@@ -1170,39 +393,6 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
                     "SDPA and BetterTransformer API are not compatible. Please make sure to disable BetterTransformers by doing model.reverse_bettertransformer()"
                 )
 
-        return True
-
-    def _flex_attn_can_dispatch(self, is_init_check: bool = False) -> bool:
-        """
-        Check the availability of Flex Attention for a given model.
-
-        Args:
-            is_init_check (`bool`, *optional*):
-                Whether this check is performed early, i.e. at __init__ time, or later when the model and its weights are
-                fully instantiated. This is needed as we also check the devices of the weights, and/or if the model uses
-                BetterTransformer, which are only available later after __init__. This allows to raise proper exceptions early
-                before instantiating the full models if we know that the model does not support the requested attention.
-        """
-        if not self._supports_flex_attn:
-            raise ValueError(
-                f"{self.__class__.__name__} does not support an attention implementation through torch's flex_attention."
-                " Please request the support for this architecture: https://github.com/huggingface/transformers/issues/34809."
-                " If you believe this error is a bug, please open an issue in Transformers GitHub repository"
-                ' and load your model with the argument `attn_implementation="eager"` meanwhile.'
-                ' Example: `model = AutoModel.from_pretrained("openai/whisper-tiny", attn_implementation="eager")`'
-            )
-        if not is_torch_flex_attn_available():
-            raise ImportError(
-                "PyTorch Flex Attention requirements in Transformers are not met. Please install torch>=2.5.0."
-            )
-
-        if not is_init_check:
-            if getattr(self, "use_bettertransformer", False):
-                raise ValueError(
-                    "FlexAttention and BetterTransformer API are not compatible. Please make sure to disable BetterTransformers by doing model.reverse_bettertransformer()"
-                )
-
-        # If no error raise by this point, we can return `True`
         return True
 
     def _check_and_adjust_attn_implementation(
@@ -1226,70 +416,14 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
             None to sdpa (to potentially eager).
         """
         applicable_attn_implementation = attn_implementation
-        # If FA not installed, do not fail but use kernels instead
-        if (
-            applicable_attn_implementation == "flash_attention_2"
-            and self._supports_flash_attn
-            and not is_flash_attn_2_available()
-            and is_kernels_available()
-        ):
-            applicable_attn_implementation = "kernels-community/flash-attn"
-        if is_kernel(applicable_attn_implementation):
-            try:
-                load_and_register_kernel(applicable_attn_implementation)
-                # log that we used kernel fallback if successful
-                if attn_implementation == "flash_attention_2":
-                    logger.warning_once(
-                        "You do not have `flash_attn` installed, using `kernels-community/flash-attn` from the `kernels` "
-                        "library instead!"
-                    )
-            except Exception as e:
-                if attn_implementation == "flash_attention_2":
-                    self._flash_attn_2_can_dispatch()  # will fail as fa2 is not available but raise the proper exception
-                logger.warning_once(
-                    f"Could not find a kernel matching `{applicable_attn_implementation}` compatible with your device in the "
-                    f"hub:\n{e}.\nUsing default attention implementation instead (sdpa if available, eager otherwise)."
-                )
-                try:
-                    self._sdpa_can_dispatch(is_init_check)
-                    applicable_attn_implementation = "sdpa"
-                except (ValueError, ImportError) as e:
-                    applicable_attn_implementation = "eager"
-        else:
-            applicable_attn_implementation = self.get_correct_attn_implementation(
-                applicable_attn_implementation, is_init_check
-            )
-            # preload flash attention here to allow compile with fullgraph
-            if applicable_attn_implementation.startswith("flash_attention"):
-                lazy_import_flash_attention(applicable_attn_implementation)
-
+        # we'll always use sdpa so no point of checking kernels and what not
         return applicable_attn_implementation
 
     def get_correct_attn_implementation(self, requested_attention: Optional[str], is_init_check: bool = False) -> str:
         applicable_attention = "sdpa" if requested_attention is None else requested_attention
 
-        if applicable_attention not in ["eager"] + ALL_ATTENTION_FUNCTIONS.valid_keys():
-            message = (
-                f'Specified `attn_implementation="{applicable_attention}"` is not supported. The only possible arguments are '
-                '`attn_implementation="eager"`'
-            )
-            # check `supports_flash_attn_2` for BC with custom code. TODO: remove after a few releases
-            if self._supports_flash_attn or getattr(self, "_supports_flash_attn_2", False):
-                message += ', `"attn_implementation=flash_attention_3"`, `"attn_implementation=flash_attention_2"`'
-            if self._supports_sdpa:
-                message += ', `"attn_implementation=sdpa"'
-            if self._supports_flex_attn:
-                message += ', `"attn_implementation=flex_attention"`'
-            raise ValueError(message + ".")
-
         # Perform relevant checks
-        if applicable_attention == "flash_attention_2":
-            self._flash_attn_2_can_dispatch(is_init_check)
-        elif applicable_attention == "flash_attention_3":
-            self._flash_attn_3_can_dispatch(is_init_check)
-        elif applicable_attention == "flex_attention":
-            self._flex_attn_can_dispatch(is_init_check)
-        elif applicable_attention == "sdpa":
+        if applicable_attention == "sdpa":
             # Sdpa is the default, so we try it and fallback to eager otherwise when not possible
             try:
                 self._sdpa_can_dispatch(is_init_check)
@@ -1339,7 +473,7 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
         if requested_implementation != self.config._attn_implementation:
             # In this case, raise
             if not self._can_set_attn_implementation():
-                logger.warning(
+                print(
                     f"{self.__class__.__name__} does not support setting its attention implementation dynamically, because it "
                     "does not follow the functional approach based on AttentionInterface "
                     "(see https://huggingface.co/docs/transformers/en/attention_interface)"
@@ -1364,7 +498,7 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
             ):
                 # In this case, warn and skip
                 if not submodule._can_set_attn_implementation():
-                    logger.warning(
+                    print(
                         f"{submodule.__class__.__name__} does not support setting its attention implementation dynamically, because it "
                         "does not follow the functional approach based on AttentionInterface "
                         "(see https://huggingface.co/docs/transformers/en/attention_interface)"
@@ -1402,14 +536,14 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
                 # If it's already the same, then no need to enter here and raise warnings
                 and sub_implementation != subconfig._attn_implementation
             ):
-                if sub_implementation not in ["eager"] + ALL_ATTENTION_FUNCTIONS.valid_keys():
+                if sub_implementation not in ["eager"] + list(ALL_ATTENTION_FUNCTIONS.keys()):
                     raise ValueError(
                         f'Specified `attn_implementation="{sub_implementation}"` is not supported for {subconfig_key}. '
                         'The only possible arguments are "eager" (manual attention implementation)'
-                        f"or one of the following: {list(ALL_ATTENTION_FUNCTIONS.valid_keys())}"
+                        f"or one of the following: {list(ALL_ATTENTION_FUNCTIONS.keys())}"
                     )
                 subconfig._attn_implementation_internal = sub_implementation
-                logger.warning(
+                print(
                     f"We set the attention implementation for the sub-config `{subconfig_key}` to `{sub_implementation}` "
                     "without finding the associated sub-model. For this reason we could not check if the model supports it. "
                     "You may encounter undefined behavior."
@@ -1418,23 +552,6 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
             else:
                 if hasattr(subconfig, "_attn_was_changed"):
                     del subconfig._attn_was_changed
-
-    def enable_input_require_grads(self):
-        """
-        Enables the gradients for the input embeddings. This is useful for fine-tuning adapter weights while keeping
-        the model weights fixed.
-        """
-
-        def make_inputs_require_grads(module, input, output):
-            output.requires_grad_(True)
-
-        self._require_grads_hook = self.get_input_embeddings().register_forward_hook(make_inputs_require_grads)
-
-    def disable_input_require_grads(self):
-        """
-        Removes the `_require_grads_hook`.
-        """
-        self._require_grads_hook.remove()
 
     def get_decoder(self):
         """
@@ -1597,7 +714,7 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
         uninitialized_encoder_weights: list[str] = []
         tied_weights: list[str] = []
         if decoder.__class__ != encoder.__class__:
-            logger.info(
+            print(
                 f"{decoder.__class__} and {encoder.__class__} are not equal. In this case make sure that all encoder"
                 " weights are correctly initialized."
             )
@@ -1675,7 +792,7 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
         )
 
         if len(uninitialized_encoder_weights) > 0:
-            logger.warning(
+            print(
                 f"The following encoder weights were not tied to the decoder {uninitialized_encoder_weights}"
             )
         return tied_weights
@@ -1782,13 +899,7 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
 
         # Since we are basically reusing the same old embeddings with new weight values, gathering is required
         is_quantized = hasattr(self, "hf_quantizer") and self.hf_quantizer is not None
-        if is_deepspeed_zero3_enabled() and not is_quantized:
-            import deepspeed
-
-            with deepspeed.zero.GatheredParameters(model_embeds.weight, modifier_rank=None):
-                vocab_size = model_embeds.weight.shape[0]
-        else:
-            vocab_size = model_embeds.weight.shape[0]
+        vocab_size = model_embeds.weight.shape[0]
 
         # Update base model and current model config.
         self.config.get_text_config().vocab_size = vocab_size
@@ -1814,13 +925,7 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
 
         # Update new_num_tokens with the actual size of new_embeddings
         if pad_to_multiple_of is not None:
-            if is_deepspeed_zero3_enabled() and not is_quantized:
-                import deepspeed
-
-                with deepspeed.zero.GatheredParameters(new_embeddings.weight, modifier_rank=None):
-                    new_num_tokens = new_embeddings.weight.shape[0]
-            else:
-                new_num_tokens = new_embeddings.weight.shape[0]
+            new_num_tokens = new_embeddings.weight.shape[0]
 
         # if word embeddings are not tied, make sure that lm head is resized as well
         if (
@@ -1943,7 +1048,7 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
             # initialize new embeddings  (in particular added tokens). The new embeddings will be initialized
             # from a multivariate normal distribution that has old embeddings' mean and covariance.
             # as described in this article: https://nlp.stanford.edu/~johnhew/vocab-expansion.html
-            logger.warning_once(
+            print(
                 "The new embeddings will be initialized from a multivariate normal distribution that has old embeddings' mean and covariance. "
                 "As described in this article: https://nlp.stanford.edu/~johnhew/vocab-expansion.html. "
                 "To disable this, use `mean_resizing=False`"
@@ -1967,35 +1072,16 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
         # numbers of tokens to copy
         n = min(old_num_tokens, new_num_tokens)
 
-        if is_deepspeed_zero3_enabled() and not is_quantized:
-            import deepspeed
-
-            params = [old_embeddings.weight, new_embeddings.weight]
-            with deepspeed.zero.GatheredParameters(params, modifier_rank=0):
-                new_embeddings.weight.data[:n, :] = old_embeddings.weight.data[:n, :]
-        else:
-            new_embeddings.weight.data[:n, :] = old_embeddings.weight.data[:n, :]
+        new_embeddings.weight.data[:n, :] = old_embeddings.weight.data[:n, :]
 
         # Replace weights in old_embeddings and return to maintain the same embedding type.
         # This ensures correct functionality when a Custom Embedding class is passed as input.
         # The input and output embedding types remain consistent. (c.f. https://github.com/huggingface/transformers/pull/31979)
-        if is_deepspeed_zero3_enabled() and not is_quantized:
-            import deepspeed
 
-            params = [old_embeddings.weight, new_embeddings.weight]
-            with deepspeed.zero.GatheredParameters(params, modifier_rank=0):
-                old_embeddings.weight = new_embeddings.weight
-                old_embeddings.num_embeddings = new_embeddings.weight.data.shape[0]
-
-                # If the new number of tokens is smaller than the original `padding_idx`, the `padding_idx`
-                # will be set to `None` in the resized embeddings.
-                if old_embeddings.padding_idx is not None and (new_num_tokens - 1) < old_embeddings.padding_idx:
-                    old_embeddings.padding_idx = None
-        else:
-            old_embeddings.weight.data = new_embeddings.weight.data
-            old_embeddings.num_embeddings = new_embeddings.weight.data.shape[0]
-            if old_embeddings.padding_idx is not None and (new_num_tokens - 1) < old_embeddings.padding_idx:
-                old_embeddings.padding_idx = None
+        old_embeddings.weight.data = new_embeddings.weight.data
+        old_embeddings.num_embeddings = new_embeddings.weight.data.shape[0]
+        if old_embeddings.padding_idx is not None and (new_num_tokens - 1) < old_embeddings.padding_idx:
+            old_embeddings.padding_idx = None
 
         return old_embeddings
 
@@ -2039,19 +1125,11 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
             return old_lm_head
 
         is_quantized = hasattr(self, "hf_quantizer") and self.hf_quantizer is not None
-        if is_deepspeed_zero3_enabled() and not is_quantized:
-            import deepspeed
+        old_num_tokens, old_lm_head_dim = (
+            old_lm_head.weight.size() if not transposed else old_lm_head.weight.t().size()
+        )
 
-            with deepspeed.zero.GatheredParameters(old_lm_head.weight, modifier_rank=None):
-                old_num_tokens, old_lm_head_dim = (
-                    old_lm_head.weight.size() if not transposed else old_lm_head.weight.t().size()
-                )
-        else:
-            old_num_tokens, old_lm_head_dim = (
-                old_lm_head.weight.size() if not transposed else old_lm_head.weight.t().size()
-            )
-
-        if old_num_tokens == new_num_tokens and not is_deepspeed_zero3_enabled():
+        if old_num_tokens == new_num_tokens:
             return old_lm_head
 
         if not isinstance(old_lm_head, nn.Linear):
@@ -2084,47 +1162,24 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
             # initialize new lm_head weights (in particular added tokens). The new lm_head weights
             # will be initialized from a multivariate normal distribution that has old embeddings' mean and covariance.
             # as described in this article: https://nlp.stanford.edu/~johnhew/vocab-expansion.html
-            logger.warning_once(
+            print(
                 "The new lm_head weights will be initialized from a multivariate normal distribution that has old embeddings' mean and covariance. "
                 "As described in this article: https://nlp.stanford.edu/~johnhew/vocab-expansion.html. "
                 "To disable this, use `mean_resizing=False`"
             )
 
             added_num_tokens = new_num_tokens - old_num_tokens
-            if is_deepspeed_zero3_enabled() and not is_quantized:
-                import deepspeed
-
-                params = [old_lm_head.weight]
-                if has_new_lm_head_bias:
-                    params += [old_lm_head.bias]
-                with deepspeed.zero.GatheredParameters(params, modifier_rank=None):
-                    self._init_added_lm_head_weights_with_mean(
-                        old_lm_head, new_lm_head, old_lm_head_dim, old_num_tokens, added_num_tokens, transposed
-                    )
-                    if has_new_lm_head_bias:
-                        self._init_added_lm_head_bias_with_mean(old_lm_head, new_lm_head, added_num_tokens)
-
-            else:
-                self._init_added_lm_head_weights_with_mean(
-                    old_lm_head, new_lm_head, old_lm_head_dim, old_num_tokens, added_num_tokens, transposed
-                )
-                if has_new_lm_head_bias:
-                    self._init_added_lm_head_bias_with_mean(old_lm_head, new_lm_head, added_num_tokens)
+            self._init_added_lm_head_weights_with_mean(
+                old_lm_head, new_lm_head, old_lm_head_dim, old_num_tokens, added_num_tokens, transposed
+            )
+            if has_new_lm_head_bias:
+                self._init_added_lm_head_bias_with_mean(old_lm_head, new_lm_head, added_num_tokens)
 
         num_tokens_to_copy = min(old_num_tokens, new_num_tokens)
 
-        if is_deepspeed_zero3_enabled() and not is_quantized:
-            import deepspeed
-
-            params = [old_lm_head.weight, old_lm_head.bias, new_lm_head.weight, new_lm_head.bias]
-            with deepspeed.zero.GatheredParameters(params, modifier_rank=0):
-                self._copy_lm_head_original_to_resized(
-                    new_lm_head, old_lm_head, num_tokens_to_copy, transposed, has_new_lm_head_bias
-                )
-        else:
-            self._copy_lm_head_original_to_resized(
-                new_lm_head, old_lm_head, num_tokens_to_copy, transposed, has_new_lm_head_bias
-            )
+        self._copy_lm_head_original_to_resized(
+            new_lm_head, old_lm_head, num_tokens_to_copy, transposed, has_new_lm_head_bias
+        )
 
         return new_lm_head
 
@@ -2271,7 +1326,7 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
             self._set_gradient_checkpointing(enable=True, gradient_checkpointing_func=gradient_checkpointing_func)
         else:
             self.apply(partial(self._set_gradient_checkpointing, value=True))
-            logger.warning(
+            print(
                 "You are using an old version of the checkpointing format that is deprecated (We will also silently ignore `gradient_checkpointing_kwargs` in case you passed it)."
                 "Please update to the new format on your modeling file. To use the new format, you need to completely remove the definition of the method `_set_gradient_checkpointing` in your model."
             )
@@ -2319,7 +1374,7 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
             if not _is_using_old_format:
                 self._set_gradient_checkpointing(enable=False)
             else:
-                logger.warning(
+                print(
                     "You are using an old version of the checkpointing format that is deprecated (We will also silently ignore `gradient_checkpointing_kwargs` in case you passed it)."
                     "Please update to the new format on your modeling file. To use the new format, you need to completely remove the definition of the method `_set_gradient_checkpointing` in your model."
                 )
@@ -2337,480 +1392,6 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
         activations".
         """
         return any(hasattr(m, "gradient_checkpointing") and m.gradient_checkpointing for m in self.modules())
-
-    def save_pretrained(
-        self,
-        save_directory: Union[str, os.PathLike],
-        is_main_process: bool = True,
-        state_dict: Optional[dict] = None,
-        save_function: Callable = torch.save,
-        push_to_hub: bool = False,
-        max_shard_size: Union[int, str] = "5GB",
-        safe_serialization: bool = True,
-        variant: Optional[str] = None,
-        token: Optional[Union[str, bool]] = None,
-        save_peft_format: bool = True,
-        **kwargs,
-    ):
-        """
-        Save a model and its configuration file to a directory, so that it can be re-loaded using the
-        [`~PreTrainedModel.from_pretrained`] class method.
-
-        Arguments:
-            save_directory (`str` or `os.PathLike`):
-                Directory to which to save. Will be created if it doesn't exist.
-            is_main_process (`bool`, *optional*, defaults to `True`):
-                Whether the process calling this is the main process or not. Useful when in distributed training like
-                TPUs and need to call this function on all processes. In this case, set `is_main_process=True` only on
-                the main process to avoid race conditions.
-            state_dict (nested dictionary of `torch.Tensor`):
-                The state dictionary of the model to save. Will default to `self.state_dict()`, but can be used to only
-                save parts of the model or if special precautions need to be taken when recovering the state dictionary
-                of a model (like when using model parallelism).
-            save_function (`Callable`):
-                The function to use to save the state dictionary. Useful on distributed training like TPUs when one
-                need to replace `torch.save` by another method.
-            push_to_hub (`bool`, *optional*, defaults to `False`):
-                Whether or not to push your model to the Hugging Face model hub after saving it. You can specify the
-                repository you want to push to with `repo_id` (will default to the name of `save_directory` in your
-                namespace).
-            max_shard_size (`int` or `str`, *optional*, defaults to `"5GB"`):
-                The maximum size for a checkpoint before being sharded. Checkpoints shard will then be each of size
-                lower than this size. If expressed as a string, needs to be digits followed by a unit (like `"5MB"`).
-                We default it to 5GB in order for models to be able to run easily on free-tier google colab instances
-                without CPU OOM issues.
-
-                <Tip warning={true}>
-
-                If a single weight of the model is bigger than `max_shard_size`, it will be in its own checkpoint shard
-                which will be bigger than `max_shard_size`.
-
-                </Tip>
-
-            safe_serialization (`bool`, *optional*, defaults to `True`):
-                Whether to save the model using `safetensors` or the traditional PyTorch way (that uses `pickle`).
-            variant (`str`, *optional*):
-                If specified, weights are saved in the format pytorch_model.<variant>.bin.
-            token (`str` or `bool`, *optional*):
-                The token to use as HTTP bearer authorization for remote files. If `True`, or not specified, will use
-                the token generated when running `hf auth login` (stored in `~/.huggingface`).
-            save_peft_format (`bool`, *optional*, defaults to `True`):
-                For backward compatibility with PEFT library, in case adapter weights are attached to the model, all
-                keys of the state dict of adapters needs to be prepended with `base_model.model`. Advanced users can
-                disable this behaviours by setting `save_peft_format` to `False`.
-            kwargs (`dict[str, Any]`, *optional*):
-                Additional key word arguments passed along to the [`~utils.PushToHubMixin.push_to_hub`] method.
-        """
-        use_auth_token = kwargs.pop("use_auth_token", None)
-        ignore_metadata_errors = kwargs.pop("ignore_metadata_errors", False)
-
-        if use_auth_token is not None:
-            warnings.warn(
-                "The `use_auth_token` argument is deprecated and will be removed in v5 of Transformers. Please use `token` instead.",
-                FutureWarning,
-            )
-            if token is not None:
-                raise ValueError(
-                    "`token` and `use_auth_token` are both specified. Please set only the argument `token`."
-                )
-            token = use_auth_token
-
-        if token is not None:
-            kwargs["token"] = token
-
-        _hf_peft_config_loaded = getattr(self, "_hf_peft_config_loaded", False)
-
-        hf_quantizer = getattr(self, "hf_quantizer", None)
-        quantization_serializable = (
-            hf_quantizer is not None
-            and isinstance(hf_quantizer, HfQuantizer)
-            and hf_quantizer.is_serializable(safe_serialization=safe_serialization)
-        )
-
-        if hf_quantizer is not None and not _hf_peft_config_loaded and not quantization_serializable:
-            raise ValueError(
-                f"The model is quantized with {hf_quantizer.quantization_config.quant_method} and is not serializable - check out the warnings from"
-                " the logger on the traceback to understand the reason why the quantized model is not serializable."
-            )
-
-        if "save_config" in kwargs:
-            warnings.warn(
-                "`save_config` is deprecated and will be removed in v5 of Transformers. Use `is_main_process` instead."
-            )
-            is_main_process = kwargs.pop("save_config")
-        if safe_serialization and not is_safetensors_available():
-            raise ImportError("`safe_serialization` requires the `safetensors library: `pip install safetensors`.")
-
-        # we need to check against tp_size, not tp_plan, as tp_plan is substituted to the class one
-        if self._tp_size is not None and not is_huggingface_hub_greater_or_equal("0.31.4"):
-            raise ImportError(
-                "Saving a model with tensor parallelism requires `huggingface_hub` version 0.31.4 or higher."
-            )
-
-        if os.path.isfile(save_directory):
-            logger.error(f"Provided path ({save_directory}) should be a directory, not a file")
-            return
-
-        os.makedirs(save_directory, exist_ok=True)
-
-        if push_to_hub:
-            commit_message = kwargs.pop("commit_message", None)
-            repo_id = kwargs.pop("repo_id", save_directory.split(os.path.sep)[-1])
-            create_pr = kwargs.pop("create_pr", False)
-            repo_id = self._create_repo(repo_id, **kwargs)
-            files_timestamps = self._get_files_timestamps(save_directory)
-
-        if hf_quantizer is not None:
-            state_dict = hf_quantizer.get_state_dict(self)
-        # Only save the model itself if we are using distributed training
-        model_to_save = unwrap_model(self)
-        # save the string version of dtype to the config, e.g. convert torch.float32 => "float32"
-        # we currently don't use this setting automatically, but may start to use with v5
-        dtype = get_parameter_dtype(model_to_save)
-        model_to_save.config.dtype = str(dtype).split(".")[1]
-
-        # Attach architecture to the config
-        model_to_save.config.architectures = [model_to_save.__class__.__name__]
-
-        # If we have a custom model, we copy the file defining it in the folder and set the attributes so it can be
-        # loaded from the Hub.
-        if self._auto_class is not None:
-            custom_object_save(self, save_directory, config=self.config)
-
-        # Save the config
-        if is_main_process:
-            if not _hf_peft_config_loaded:
-                # If the model config has set attributes that should be in the generation config, move them there.
-                misplaced_generation_parameters = model_to_save.config._get_non_default_generation_parameters()
-                if self.can_generate() and len(misplaced_generation_parameters) > 0:
-                    warnings.warn(
-                        "Moving the following attributes in the config to the generation config: "
-                        f"{misplaced_generation_parameters}. You are seeing this warning because you've set "
-                        "generation parameters in the model config, as opposed to in the generation config.",
-                        UserWarning,
-                    )
-                    for param_name, param_value in misplaced_generation_parameters.items():
-                        setattr(model_to_save.generation_config, param_name, param_value)
-                        setattr(model_to_save.config, param_name, None)
-
-                model_to_save.config.save_pretrained(save_directory)
-            if self.can_generate():
-                model_to_save.generation_config.save_pretrained(save_directory)
-
-            if _hf_peft_config_loaded:
-                logger.info(
-                    "Detected adapters on the model, saving the model in the PEFT format, only adapter weights will be saved."
-                )
-                state_dict = model_to_save.get_adapter_state_dict(state_dict=state_dict)
-
-                if save_peft_format:
-                    logger.info(
-                        "To match the expected format of the PEFT library, all keys of the state dict of adapters will be prepended with `base_model.model`."
-                    )
-                    peft_state_dict = {}
-                    for key, value in state_dict.items():
-                        peft_state_dict[f"base_model.model.{key}"] = value
-                    state_dict = peft_state_dict
-
-                active_adapter = self.active_adapters()
-
-                if len(active_adapter) > 1:
-                    raise ValueError(
-                        "Multiple active adapters detected, saving multiple active adapters is not supported yet. You can save adapters separately one by one "
-                        "by iteratively calling `model.set_adapter(adapter_name)` then `model.save_pretrained(...)`"
-                    )
-                active_adapter = active_adapter[0]
-
-                current_peft_config = self.peft_config[active_adapter]
-                current_peft_config.save_pretrained(save_directory)
-
-        # for offloaded modules
-        module_map = {}
-
-        # Save the model
-        if state_dict is None:
-            # if any model parameters are offloaded, make module map
-            if (
-                hasattr(self, "hf_device_map")
-                and len(set(self.hf_device_map.values())) > 1
-                and ("cpu" in self.hf_device_map.values() or "disk" in self.hf_device_map.values())
-            ):
-                warnings.warn(
-                    "Attempting to save a model with offloaded modules. Ensure that unallocated cpu memory exceeds the `shard_size` (5GB default)"
-                )
-                for name, module in model_to_save.named_modules():
-                    if name == "":
-                        continue
-                    module_state_dict = module.state_dict()
-
-                    for key in module_state_dict:
-                        module_map[name + f".{key}"] = module
-            state_dict = model_to_save.state_dict()
-
-        if any(
-            allowed_name in class_name.__name__.lower()
-            for class_name in self.__class__.__mro__[:-1]
-            for allowed_name in VLMS
-        ):
-            reverse_key_mapping = {v: k for k, v in self._checkpoint_conversion_mapping.items()}
-
-            original_state_dict = {}
-            for key, value in state_dict.items():
-                for pattern, replacement in reverse_key_mapping.items():
-                    replacement = replacement.lstrip("^")  # strip off un-needed chars and patterns
-                    replacement = re.sub(r"\(.*\)", "", replacement)
-                    key, n_replace = re.subn(pattern, replacement, key)
-                    # Early exit of the loop
-                    if n_replace > 0:
-                        break
-                original_state_dict[key] = value
-            state_dict = original_state_dict
-
-        # Translate state_dict from smp to hf if saving with smp >= 1.10
-        if IS_SAGEMAKER_MP_POST_1_10:
-            for smp_to_hf, _ in smp.state.module_manager.translate_functions:
-                state_dict = smp_to_hf(state_dict)
-
-        # Handle the case where some state_dict keys shouldn't be saved
-        if self._keys_to_ignore_on_save is not None:
-            for ignore_key in self._keys_to_ignore_on_save:
-                if ignore_key in state_dict:
-                    del state_dict[ignore_key]
-
-        # Rename state_dict keys before saving to file. Do nothing unless overridden in a particular model.
-        # (initially introduced with TimmWrapperModel to remove prefix and make checkpoints compatible with timm)
-        state_dict = self._fix_state_dict_keys_on_save(state_dict)
-        # If model was sharded, we cannot properly determine sizes of tensors that `local_*` strategy was used,
-        # therefore we replace them with DTensors that are equivalently sharded
-        if self._tp_size is not None:
-            state_dict = replace_state_dict_local_with_dtensor(state_dict, self._tp_plan, self._device_mesh)
-
-        if safe_serialization:
-            # TODO: fix safe_serialization for tied weights
-            # Safetensors does not allow tensor aliasing.
-            # We're going to remove aliases before saving
-            ptrs = collections.defaultdict(list)
-            for name, tensor in state_dict.items():
-                if not isinstance(tensor, torch.Tensor):
-                    # Sometimes in the state_dict we have non-tensor objects.
-                    # e.g. in bitsandbytes we have some `str` objects in the state_dict
-                    # In the non-tensor case, fall back to the pointer of the object itself
-                    ptrs[id(tensor)].append(name)
-
-                elif tensor.device.type == "meta":
-                    # In offloaded cases, there may be meta tensors in the state_dict.
-                    # For these cases, key by the pointer of the original tensor object
-                    # (state_dict tensors are detached and therefore no longer shared)
-                    tensor = self.get_parameter(name)
-                    ptrs[id(tensor)].append(name)
-
-                else:
-                    ptrs[id_tensor_storage(tensor)].append(name)
-
-            shared_ptrs = {ptr: names for ptr, names in ptrs.items() if len(names) > 1}
-
-            # Recursively descend to find tied weight keys
-            _tied_weights_keys = _get_tied_weight_keys(self)
-            error_names = []
-            to_delete_names = set()
-            for names in shared_ptrs.values():
-                # Removing the keys which are declared as known duplicates on
-                # load. This allows to make sure the name which is kept is consistent.
-                if _tied_weights_keys is not None:
-                    found = 0
-                    for name in sorted(names):
-                        matches_pattern = any(re.search(pat, name) for pat in _tied_weights_keys)
-                        if matches_pattern and name in state_dict:
-                            found += 1
-                            if found < len(names):
-                                to_delete_names.add(name)
-            # We are entering a place where the weights and the transformers configuration do NOT match.
-            shared_names, disjoint_names = _find_disjoint(shared_ptrs.values(), state_dict)
-            # Those are actually tensor sharing but disjoint from each other, we can safely clone them
-            # Reloaded won't have the same property, but it shouldn't matter in any meaningful way.
-            for name in disjoint_names:
-                state_dict[name] = state_dict[name].clone()
-
-            # When not all duplicates have been cleaned, still remove those keys, but put a clear warning.
-            # If the link between tensors was done at runtime then `from_pretrained` will not get
-            # the key back leading to random tensor. A proper warning will be shown
-            # during reload (if applicable), but since the file is not necessarily compatible with
-            # the config, better show a proper warning.
-            shared_names, identical_names = _find_identical(shared_names, state_dict)
-            # delete tensors that have identical storage
-            for inames in identical_names:
-                known = inames.intersection(to_delete_names)
-                for name in known:
-                    del state_dict[name]
-                unknown = inames.difference(to_delete_names)
-                if len(unknown) > 1:
-                    error_names.append(unknown)
-
-            if shared_names:
-                error_names.extend(shared_names)
-
-            if len(error_names) > 0:
-                raise RuntimeError(
-                    f"The weights trying to be saved contained shared tensors {error_names} that are mismatching "
-                    "the transformers base configuration. Try saving using `safe_serialization=False`, setting the "
-                    "`_dynamic_tied_weights_keys` attribute for affected modules, or remove this tensor sharing.",
-                )
-
-        # Shard the model if it is too big.
-        if not _hf_peft_config_loaded:
-            weights_name = SAFE_WEIGHTS_NAME if safe_serialization else WEIGHTS_NAME
-            weights_name = _add_variant(weights_name, variant)
-        else:
-            weights_name = ADAPTER_SAFE_WEIGHTS_NAME if safe_serialization else ADAPTER_WEIGHTS_NAME
-
-        filename_pattern = weights_name.replace(".bin", "{suffix}.bin").replace(".safetensors", "{suffix}.safetensors")
-        state_dict_split = split_torch_state_dict_into_shards(
-            state_dict, filename_pattern=filename_pattern, max_shard_size=max_shard_size
-        )
-        # Save index if sharded
-        index = None
-        if state_dict_split.is_sharded:
-            index = {
-                "metadata": {"total_parameters": self.num_parameters(), **state_dict_split.metadata},
-                "weight_map": state_dict_split.tensor_to_filename,
-            }
-
-        # Clean the folder from a previous save
-        for filename in os.listdir(save_directory):
-            full_filename = os.path.join(save_directory, filename)
-            # If we have a shard file that is not going to be replaced, we delete it, but only from the main process
-            # in distributed settings to avoid race conditions.
-            weights_no_suffix = weights_name.replace(".bin", "").replace(".safetensors", "")
-
-            # make sure that file to be deleted matches format of sharded file, e.g. pytorch_model-00001-of-00005
-            filename_no_suffix = filename.replace(".bin", "").replace(".safetensors", "")
-            reg = re.compile(r"(.*?)-\d{5}-of-\d{5}")
-
-            if (
-                filename.startswith(weights_no_suffix)
-                and os.path.isfile(full_filename)
-                and filename not in state_dict_split.filename_to_tensors
-                and is_main_process
-                and reg.fullmatch(filename_no_suffix) is not None
-            ):
-                os.remove(full_filename)
-        # Save the model
-        filename_to_tensors = state_dict_split.filename_to_tensors.items()
-        if module_map:
-            filename_to_tensors = logging.tqdm(filename_to_tensors, desc="Saving checkpoint shards")
-        for shard_file, tensors in filename_to_tensors:
-            shard = {}
-            for tensor in tensors:
-                if _is_dtensor_available and isinstance(state_dict[tensor], DTensor):
-                    full_tensor = state_dict[tensor].full_tensor()
-                    # to get the correctly ordered tensor we need to repack if packed
-                    if _get_parameter_tp_plan(tensor, self._tp_plan) in ("local_packed_rowwise",):
-                        full_tensor = repack_weights(full_tensor, -1, self._tp_size, 2)
-                    shard[tensor] = full_tensor.contiguous()  # only do contiguous after it's permuted correctly
-                else:
-                    shard[tensor] = state_dict[tensor].contiguous()
-                # delete reference, see https://github.com/huggingface/transformers/pull/34890
-                del state_dict[tensor]
-
-            # remake shard with onloaded parameters if necessary
-            if module_map:
-                if accelerate_version < version.parse("0.31"):
-                    raise ImportError(
-                        f"You need accelerate version to be greater or equal than 0.31 to save models with offloaded parameters. Detected version {accelerate_version}. "
-                        f"Please upgrade accelerate with `pip install -U accelerate`"
-                    )
-                # init state_dict for this shard
-                shard_state_dict = dict.fromkeys(shard, "")
-                for module_name in shard:
-                    # note that get_state_dict_from_offload can update with meta tensors
-                    # if both a parent module and its descendant are offloaded
-                    tensor = shard_state_dict[module_name]
-                    if tensor == "" or (isinstance(tensor, torch.Tensor) and tensor.device.type == "meta"):
-                        # update state dict with onloaded parameters
-                        module = module_map[module_name]
-                        shard_state_dict = get_state_dict_from_offload(module, module_name, shard_state_dict)
-
-                # assign shard to be the completed state dict
-                shard = shard_state_dict
-                del shard_state_dict
-                gc.collect()
-
-            if safe_serialization:
-                # At some point we will need to deal better with save_function (used for TPU and other distributed
-                # joyfulness), but for now this enough.
-                safe_save_file(shard, os.path.join(save_directory, shard_file), metadata={"format": "pt"})
-            else:
-                save_function(shard, os.path.join(save_directory, shard_file))
-
-        del state_dict
-
-        if index is None:
-            path_to_weights = os.path.join(save_directory, weights_name)
-            logger.info(f"Model weights saved in {path_to_weights}")
-        else:
-            save_index_file = SAFE_WEIGHTS_INDEX_NAME if safe_serialization else WEIGHTS_INDEX_NAME
-            save_index_file = os.path.join(save_directory, _add_variant(save_index_file, variant))
-            # Save the index as well
-            with open(save_index_file, "w", encoding="utf-8") as f:
-                content = json.dumps(index, indent=2, sort_keys=True) + "\n"
-                f.write(content)
-            logger.info(
-                f"The model is bigger than the maximum size per checkpoint ({max_shard_size}) and is going to be "
-                f"split in {len(state_dict_split.filename_to_tensors)} checkpoint shards. You can find where each parameters has been saved in the "
-                f"index located at {save_index_file}."
-            )
-
-        if push_to_hub:
-            # Eventually create an empty model card
-            model_card = create_and_tag_model_card(
-                repo_id, self.model_tags, token=token, ignore_metadata_errors=ignore_metadata_errors
-            )
-
-            # Update model card if needed:
-            model_card.save(os.path.join(save_directory, "README.md"))
-
-            self._upload_modified_files(
-                save_directory,
-                repo_id,
-                files_timestamps,
-                commit_message=commit_message,
-                token=token,
-                create_pr=create_pr,
-            )
-
-    @wraps(PushToHubMixin.push_to_hub)
-    def push_to_hub(self, *args, **kwargs):
-        tags = self.model_tags if self.model_tags is not None else []
-
-        tags_kwargs = kwargs.get("tags", [])
-        if isinstance(tags_kwargs, str):
-            tags_kwargs = [tags_kwargs]
-
-        for tag in tags_kwargs:
-            if tag not in tags:
-                tags.append(tag)
-
-        if tags:
-            kwargs["tags"] = tags
-        return super().push_to_hub(*args, **kwargs)
-
-    def get_memory_footprint(self, return_buffers=True):
-        r"""
-        Get the memory footprint of a model. This will return the memory footprint of the current model in bytes.
-        Useful to benchmark the memory footprint of the current model and design some tests. Solution inspired from the
-        PyTorch discussions: https://discuss.pytorch.org/t/gpu-memory-that-model-uses/56822/2
-
-        Arguments:
-            return_buffers (`bool`, *optional*, defaults to `True`):
-                Whether to return the size of the buffer tensors in the computation of the memory footprint. Buffers
-                are tensors that do not require gradients and not registered as parameters. E.g. mean and std in batch
-                norm layers. Please see: https://discuss.pytorch.org/t/what-pytorch-means-by-buffers/120266/2
-        """
-        mem = sum([param.nelement() * param.element_size() for param in self.parameters()])
-        if return_buffers:
-            mem_bufs = sum([buf.nelement() * buf.element_size() for buf in self.buffers()])
-            mem = mem + mem_bufs
-        return mem
 
     @wraps(torch.nn.Module.cuda)
     def cuda(self, *args, **kwargs):
@@ -2948,7 +1529,6 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
         return init_contexts
 
     @classmethod
-    @restore_default_dtype
     def from_pretrained(
         cls: type[SpecificPreTrainedModelType],
         pretrained_model_name_or_path: Optional[Union[str, os.PathLike]],
@@ -3242,7 +1822,7 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
 
         # For BC on torch_dtype argument
         if torch_dtype is not None:
-            logger.warning_once("`torch_dtype` is deprecated! Use `dtype` instead!")
+            print("`torch_dtype` is deprecated! Use `dtype` instead!")
             # If both kwargs are provided, use `dtype`
             dtype = dtype if dtype is not None else torch_dtype
 
@@ -3352,7 +1932,7 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
             device_in_context = get_torch_context_manager_or_global_device()
             if device_in_context == torch.device("meta"):
                 # TODO Cyril: raise an error instead of the warning in v4.53 (and change the test to check for raise instead of success)
-                logger.warning(
+                print(
                     "We detected that you are using `from_pretrained` with a meta device context manager or `torch.set_default_device('meta')`\n"
                     "This is an anti-pattern and will raise an Error in version v4.53\nIf you want to initialize a model on the meta device, use "
                     "the context manager or global device with `from_config`, or `ModelClass(config)`"
@@ -3401,7 +1981,7 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
             quantization_config, kwargs = BitsAndBytesConfig.from_dict(
                 config_dict=config_dict, return_unused_kwargs=True, **kwargs
             )
-            logger.warning(
+            print(
                 "The `load_in_4bit` and `load_in_8bit` arguments are deprecated and will be removed in the future versions. "
                 "Please, pass a `BitsAndBytesConfig` object in `quantization_config` argument instead."
             )
@@ -4159,7 +2739,7 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
             raise RuntimeError(f"Error(s) in loading state_dict for {model.__class__.__name__}:\n\t{error_msg}")
         if len(unexpected_keys) > 0:
             archs = [] if model.config.architectures is None else model.config.architectures
-            warner = logger.warning if model.__class__.__name__ in archs else logger.info
+            warner = print if model.__class__.__name__ in archs else logger.info
             warner(
                 f"Some weights of the model checkpoint at {pretrained_model_name_or_path} were not used when"
                 f" initializing {model.__class__.__name__}: {unexpected_keys}\n- This IS expected if you are"
@@ -4172,7 +2752,7 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
         else:
             logger.info(f"All model checkpoint weights were used when initializing {model.__class__.__name__}.\n")
         if len(missing_keys) > 0:
-            logger.warning(
+            print(
                 f"Some weights of {model.__class__.__name__} were not initialized from the model checkpoint at"
                 f" {pretrained_model_name_or_path} and are newly initialized: {missing_keys}\nYou should probably"
                 " TRAIN this model on a down-stream task to be able to use it for predictions and inference."
@@ -4191,7 +2771,7 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
                     for key, (shape1, shape2) in zip(mismatched_keys, mismatched_shapes)
                 ]
             )
-            logger.warning(
+            print(
                 f"Some weights of {model.__class__.__name__} were not initialized from the model checkpoint at"
                 f" {pretrained_model_name_or_path} and are newly initialized because the shapes did not"
                 f" match:\n{mismatched_warning}\nYou should probably TRAIN this model on a down-stream task to be able"
@@ -4366,7 +2946,7 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
                     f"or the `sep_token_id` ({self.config.sep_token_id}), and your input is not padded."
                 )
 
-            logger.warning_once(warn_string)
+            print(warn_string)
 
     @property
     def supports_tp_plan(self):
@@ -4407,7 +2987,7 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
         loss_type = getattr(self, "loss_type", None)
 
         if loss_type is None or loss_type not in LOSS_MAPPING:
-            logger.warning_once(
+            print(
                 f"`loss_type={loss_type}` was set in the config but it is unrecognized. "
                 f"Using the default loss: `ForCausalLMLoss`."
             )
@@ -4539,27 +3119,3 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
             return module.get_extra_state()
 
         raise AttributeError(f"`{target}` is neither a parameter, buffer, nor extra state.")
-
-
-class AttentionInterface(GeneralInterface):
-    """
-    Dict-like object keeping track of allowed attention functions. You can easily add a new attention function
-    with a call to `register()`. If a model needs to locally overwrite an existing attention function, say `sdpa`,
-    it needs to declare a new instance of this class inside the `modeling_<model>.py`, and declare it on that instance.
-    """
-
-    # Class instance object, so that a call to `register` can be reflected into all other files correctly, even if
-    # a new instance is created (in order to locally override a given function)
-    _global_mapping = {
-        "flash_attention_3": flash_attention_forward,
-        "flash_attention_2": flash_attention_forward,
-        "flex_attention": flex_attention_forward,
-        "paged_attention": paged_attention_forward,
-        "sdpa": sdpa_attention_forward,
-        "sdpa_paged": sdpa_attention_paged_forward,
-        "eager_paged": eager_paged_attention_forward,
-    }
-
-
-# Global AttentionInterface shared by all models which do not need to overwrite any of the existing ones
-ALL_ATTENTION_FUNCTIONS: AttentionInterface = AttentionInterface()
