@@ -14,8 +14,9 @@ class DType(Enum):
     bf16 = torch.bfloat16
     uint8 = torch.uint8
     int8 = torch.int8
-    # todo from here onwards, maybe use torchao dtypes
-    fp8 = torch.float16
+    #  from here onwards, maybe use torchao dtypes
+    fp8_e4m3 = torch.float8_e4m3fn  # these are mx fp8 i believe, confirm and support both mx and nvfp8
+    fp8_e5m2 = torch.float8_e5m2
     int4 = torch.float16
     mxfp4 = torch.float16
     nvfp4 = torch.float16

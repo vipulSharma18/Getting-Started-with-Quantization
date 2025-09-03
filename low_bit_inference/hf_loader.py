@@ -1,5 +1,6 @@
 import math
-from .model import LlamaForCausalLM, AutoTokenizer
+from transformers import AutoTokenizer
+from .model import LlamaForCausalLM
 from .utils.config_utils import to_torch_dtype
 from .optims.attention_optim import setup_cache
 
