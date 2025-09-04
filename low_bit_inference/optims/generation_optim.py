@@ -345,6 +345,10 @@ class GenerationMixinCustom:
         os.environ["TOKENIZERS_PARALLELISM"] = "0"
         is_prefill = True
 
+        # TODO: pick from here.
+        # git commit -am "wip: figure out the forward v/s __call__ and compiled method resolution 
+        # and fix the compilation. currently base model output with past is returned instead of 
+        # causal lm output which has logits that we need"
         compiled_model_forward_decode = self.get_compiled_call(self.model, dynamic = False)
         compiled_model_forward_prefill = self.get_compiled_call(self.model, dynamic = True)
         while not this_peer_finished:
