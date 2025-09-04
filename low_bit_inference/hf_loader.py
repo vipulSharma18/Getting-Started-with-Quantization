@@ -18,7 +18,6 @@ def load_model_tokenizer_prompt_cache(config):
         cache_dir=config.cache_dir,
         device_map=config.device,
     )
-    # model = LlamaForCausalLM.from_pretrained("unsloth/Meta-Llama-3.1-8B-Instruct")
     params = sum(p.numel() for p in model.parameters())
     print(f"Number of parameters in model: {params}")
     model.eval()
@@ -42,10 +41,9 @@ def load_model_tokenizer_prompt_cache(config):
 
     past_key_values = None
     if config.use_cache:
-        print("Setting up cache")
         model.config.use_cache = config.use_cache
         model.generation_config.cache_implementation = None  # remove the gen config var otherwise value error for setting it here and passing an explicit key value store past_key_values
         cache_size = 2**math.ceil(math.log(len(prompt) + config.max_new_tokens, 2))
         past_key_values = setup_cache(cache_size, model.config, config)
-
+        print("Set up KV cache with max length across attention layers:", past_key_values.max_cache_len)
     return model, tokenizer, prompt, past_key_values
