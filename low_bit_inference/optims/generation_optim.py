@@ -31,7 +31,7 @@ from transformers import (
 ALL_STATIC_CACHE_IMPLEMENTATIONS = ("static", "offloaded_static")
 
 
-class GenerationMixin:
+class GenerationMixinCustom:
     def _cache_dependant_input_preparation(
         self,
         input_ids: torch.LongTensor,
@@ -291,7 +291,6 @@ class GenerationMixin:
         generation_config._pad_token_tensor = pad_token_tensor
         generation_config._decoder_start_token_tensor = decoder_start_token_tensor
 
-    @torch.inference_mode()
     def generate(self, inputs = None, generation_config = None, use_model_defaults = None, **kwargs):
 
         # 1. Handle `generation_config` and kwargs that might update it, and validate the `.generate()` call

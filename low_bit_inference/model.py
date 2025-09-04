@@ -6,7 +6,7 @@ from torch import nn
 from .optims.rms_norm_kernels.liger_rms_norm import LigerRMSNorm
 from .optims.activation_optim import ACT2FN
 from .optims.masking_optim import create_causal_mask
-from .optims.generation_optim import GenerationMixin
+from .optims.generation_optim import GenerationMixinCustom
 from .optims.cache_optim import Cache, DynamicCache
 from .optims.model_output_optim import BaseModelOutputWithPast, CausalLMOutputWithPast
 from .optims.rope_optim import ROPE_INIT_FUNCTIONS, dynamic_rope_update
@@ -386,7 +386,8 @@ class LlamaModel(LlamaPreTrainedModel):
         )
 
 
-class LlamaForCausalLM(LlamaPreTrainedModel, GenerationMixin):
+# LlamaPreTrainedModel inherits PreTrained which inherits GenerationMixin, so it needs to be later in the MRO/class inheritance list to ensure our code is used for generation.
+class LlamaForCausalLM(GenerationMixinCustom, LlamaPreTrainedModel):
     _tied_weights_keys = ["lm_head.weight"]
     _tp_plan = {"lm_head": "colwise_rep"}
     _pp_plan = {"lm_head": (["hidden_states"], ["logits"])}
