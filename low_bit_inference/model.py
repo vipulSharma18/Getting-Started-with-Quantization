@@ -235,8 +235,7 @@ class LlamaAttention(nn.Module):
         return attn_output, attn_weights
 
 
-# TODO: resolve GradientCheckpointingLayer
-class LlamaDecoderLayer(GradientCheckpointingLayer):
+class LlamaDecoderLayer(nn.Module):
     def __init__(self, config: LlamaConfig, layer_idx: int):
         super().__init__()
         self.hidden_size = config.hidden_size
@@ -281,7 +280,6 @@ class LlamaDecoderLayer(GradientCheckpointingLayer):
         return hidden_states
 
 
-# TODO: resolve the PreTrainedModel dependency, it's the main source/parent clas for models
 class LlamaPreTrainedModel(PreTrainedModel):
     config: LlamaConfig
     base_model_prefix = "model"
@@ -291,7 +289,9 @@ class LlamaPreTrainedModel(PreTrainedModel):
     _supports_flash_attn = True
     _supports_sdpa = True
     _supports_flex_attn = True
-
+    _supports_cache_class = True
+    _supports_quantized_cache = True
+    _supports_static_cache = True
     _can_compile_fullgraph = True
     _supports_attention_backend = True
     _can_record_outputs = {
@@ -389,6 +389,24 @@ class LlamaForCausalLM(LlamaPreTrainedModel, GenerationMixin):
 
         # Initialize weights and apply final processing
         self.post_init()
+
+    def get_input_embeddings(self):
+        return self.model.embed_tokens
+
+    def set_input_embeddings(self, value):
+        self.model.embed_tokens = value
+
+    def get_output_embeddings(self):
+        return self.lm_head
+
+    def set_output_embeddings(self, new_embeddings):
+        self.lm_head = new_embeddings
+
+    def set_decoder(self, decoder):
+        self.model = decoder
+
+    def get_decoder(self):
+        return self.model
 
     def forward(
         self,

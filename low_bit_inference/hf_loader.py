@@ -18,6 +18,7 @@ def load_model_tokenizer_prompt_cache(config):
         cache_dir=config.cache_dir,
         device_map=config.device,
     )
+    # model = LlamaForCausalLM.from_pretrained("unsloth/Meta-Llama-3.1-8B-Instruct")
     params = sum(p.numel() for p in model.parameters())
     print(f"Number of parameters in model: {params}")
     model.eval()
