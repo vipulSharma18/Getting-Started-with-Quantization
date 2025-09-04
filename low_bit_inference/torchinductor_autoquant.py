@@ -1,4 +1,3 @@
-import os
 import torch
 import torchao
 from omegaconf import OmegaConf
@@ -6,7 +5,6 @@ from omegaconf import OmegaConf
 from .hf_loader import load_model_tokenizer_prompt_cache
 from .utils.config_utils import get_config
 from .utils.profile_utils import profile_model
-from .utils.compile_utils import compile_model
 
 
 config = get_config()
@@ -26,15 +24,22 @@ torch.backends.cuda.enable_flash_sdp(True)
 torch.backends.cudnn.allow_tf32 = True
 torch.backends.cudnn.deterministic = False
 torch.backends.cudnn.benchmark = True
-os.environ["TORCHINDUCTOR_COORDINATE_DESCENT_TUNING"] = "1"
-os.environ["TORCHINDUCTOR_BENCHMARK_FUSION"] = "1"
-os.environ["TORCHINDUCTOR_BENCHMARK_KERNEL"] = "1"
-os.environ["TORCHINDUCTOR_FREEZING"] = "1" 
 
+torch._inductor.config.benchmark_kernel = True
+torch._inductor.config.max_autotune = True
+torch._inductor.config.coordinate_descent_tuning = True
+torch._inductor.config.triton.cudagraphs = True
+torch._inductor.config.benchmark_fusion = True
+torch._inductor.config.freezing = True
+
+def get_compiled_call(model, dynamic = None):
+    compiled_call = torchao.autoquant(
+        torch.compile(model.__call__, fullgraph=True, dynamic=dynamic),
+        set_inductor_config = False)
+    return compiled_call
+
+model.get_compiled_call = get_compiled_call
 model = model.to(config.device)
-model, tokenizer = compile_model(model, tokenizer)
-model = torchao.autoquant(model)
-
 print("Model moved to GPU, starting profiling.")
 
 profile_model(model, tokenizer, past_key_values, prompt, config)

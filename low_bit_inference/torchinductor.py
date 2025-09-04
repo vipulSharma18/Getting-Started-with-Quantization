@@ -1,11 +1,9 @@
-import os
 import torch
 from omegaconf import OmegaConf
 # utils
 from .hf_loader import load_model_tokenizer_prompt_cache
 from .utils.config_utils import get_config
 from .utils.profile_utils import profile_model
-from .utils.compile_utils import compile_model
 
 
 config = get_config()
@@ -26,30 +24,19 @@ torch.backends.cuda.enable_flash_sdp(True)
 torch.backends.cudnn.allow_tf32 = True
 torch.backends.cudnn.deterministic = False
 torch.backends.cudnn.benchmark = True
-os.environ["TORCHINDUCTOR_BENCHMARK_KERNEL"] = "1"
-os.environ["TORCHINDUCTOR_MAX_AUTOTUNE"] = "1"
 
-# Note for mode to option resolution:
-# In [9]: torch._inductor.list_mode_options()
-# Out[9]:
-# {
-#     'default': {},
-#     'reduce-overhead': {
-#         'triton.cudagraphs': True
-#         },
-#     'max-autotune-no-cudagraphs': {
-#         'max_autotune': True,
-#         'coordinate_descent_tuning': True
-#         },
-#     'max-autotune': {
-#         'max_autotune': True,
-#         'triton.cudagraphs': True,
-#         'coordinate_descent_tuning': True
-#         }
-# }
+torch._inductor.config.benchmark_kernel = True
+torch._inductor.config.max_autotune = True
+torch._inductor.config.coordinate_descent_tuning = True
+torch._inductor.config.triton.cudagraphs = True
+torch._inductor.config.benchmark_fusion = True
 
+def get_compiled_call(model, dynamic = None):
+    compiled_call = torch.compile(model.__call__, fullgraph=True, dynamic=dynamic)
+    return compiled_call
+
+model.get_compiled_call = get_compiled_call
 model = model.to(config.device)
-model, tokenizer = compile_model(model, tokenizer)
 print("Model moved to GPU, starting profiling.")
 
 profile_model(model, tokenizer, past_key_values, prompt, config)

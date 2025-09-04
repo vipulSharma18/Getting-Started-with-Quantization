@@ -2269,6 +2269,12 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
                 self._tp_plan.update({f"{name}.{k}": v for k, v in plan.copy().items()})
             if plan := getattr(module, "_pp_plan", None):
                 self._pp_plan.update({f"{name}.{k}": v for k, v in plan.copy().items()})
+        
+        # default compiled function
+        def compiled_call(model, dynamic = None):
+            return model.__call__
+
+        self.get_compiled_call = compiled_call
 
     @property
     def tp_plan(self) -> dict[str, str]:
@@ -5965,10 +5971,6 @@ class PreTrainedModel(nn.Module, EmbeddingAccessMixin, ModuleUtilsMixin, PushToH
     @loss_function.setter
     def loss_function(self, value):
         self._loss_function = value
-
-    def get_compiled_call(self) -> Callable:  # this is the only change introduced by me - Vipul
-        print("[PreTrainedModel] No compilation done, just the __call__ returned as is.")
-        return self.__call__
 
     @classmethod
     def is_backend_compatible(cls):

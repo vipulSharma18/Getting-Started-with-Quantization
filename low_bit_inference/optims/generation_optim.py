@@ -347,9 +347,8 @@ class GenerationMixin(ContinuousMixin):
         os.environ["TOKENIZERS_PARALLELISM"] = "0"
         is_prefill = True
 
-        # TODO: pick from here 9/3/2025 -> save 2 compiled models, one for prefill and one for AR decode
-        compiled_model_forward_decode = self.get_compiled_call()
-        compiled_model_forward_prefill = self.get_compiled_call()
+        compiled_model_forward_decode = self.get_compiled_call(self.model, dynamic = False)
+        compiled_model_forward_prefill = self.get_compiled_call(self.model, dynamic = True)
         while not this_peer_finished:
             # prepare model inputs
             model_inputs = self.prepare_inputs_for_generation(input_ids, **model_kwargs)

@@ -28,13 +28,6 @@ Only compiling model.forward function: 48.54674292202595 tokens per second
 python -m low_bit_inference.torchinductor configs/profile_inductor.yaml tps_only=True
 ```
 
-**Torch compile with custom inductor configs**: 
-
-Only compiling model.forward function: 48.59706179755857 tokens per second
-```
-python -m low_bit_inference.torchinductor_tuned configs/profile_inductor.yaml tps_only=True
-```
-
 **Torch compile with TorchAO AutoQuant**: 
 ```
 python -m low_bit_inference.torchinductor_autoquant configs/profile_inductor.yaml tps_only=True
@@ -62,6 +55,25 @@ python -m low_bit_inference.torchinductor_fp8 configs/profile_inductor.yaml tps_
 - [ ] llama.cpp deployment with our model: https://github.com/ggml-org/llama.cpp.
 
 ## Benchmarking Notes:
+* **Compiler Mode and Options Map**:    
+```
+{
+    'default': {},
+    'reduce-overhead': {
+        'triton.cudagraphs': True
+        },
+    'max-autotune-no-cudagraphs': {
+        'max_autotune': True,
+        'coordinate_descent_tuning': True
+        },
+    'max-autotune': {
+        'max_autotune': True,
+        'triton.cudagraphs': True,
+        'coordinate_descent_tuning': True
+        }
+}
+```
+
 * **Prefill Compilation**: Since we have a known prompt length, we're doing compilation for prefill stage as well. In practice, we'd do compile with different prompt lengths before serving to ensure compile cache is hit. Such issues don't occur in the decode stage as the input is always 1 token long (with a static KV cache, i.e., the KV don't change length and the query is 1 length).
 
 * **Decoding**: HF by default uses greedy decoding but we can do speculative decoding, and structured/guided generation to speed-up generation.

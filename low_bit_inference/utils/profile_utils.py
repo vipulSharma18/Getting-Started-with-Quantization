@@ -22,7 +22,7 @@ def profile_model(model, tokenizer, past_key_values, prompt, config):
 
     # returns a dict of token_ids and attention_mask keys
     tokenized_prompt = tokenizer(prompt, return_tensors="pt").to(config.device)
-    
+
     if config.tps_only:
         activities = [torch.profiler.ProfilerActivity.CPU]
         profiling_flag = False
@@ -81,32 +81,3 @@ def profile_model(model, tokenizer, past_key_values, prompt, config):
             prof.export_chrome_trace(config.profiling_dir + "/trace.json")
     except Exception:
         print("Trace was already saved. Exiting.")
-
-def dump_device_tensors(device_id=0):
-    device = torch.device(f'cuda:{device_id}')
-    
-    # Get all tensors in memory
-    tensors = []
-    for obj in gc.get_objects():
-        try:
-            if torch.is_tensor(obj) and obj.device == device:
-                tensors.append({
-                    'shape': tuple(obj.shape),
-                    'dtype': obj.dtype,
-                    'size_mb': obj.numel() * obj.element_size() / (1024**2),
-                    'requires_grad': obj.requires_grad,
-                    'id': id(obj)
-                })
-        except Exception as e:
-            print(f"Error processing tensor object: {e}")
-    
-    # Sort by size
-    tensors.sort(key=lambda x: x['size_mb'], reverse=True)
-    
-    total_mb = sum(t['size_mb'] for t in tensors)
-    print(f"Device {device_id} - {len(tensors)} tensors, {total_mb:.2f}MB total")
-    
-    for i, t in enumerate(tensors[:20]):  # top 20
-        print(f"{i+1:2d}. {t['shape']} {t['dtype']} {t['size_mb']:.2f}MB grad:{t['requires_grad']}")
-    
-    return tensors
