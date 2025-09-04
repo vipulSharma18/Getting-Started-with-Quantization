@@ -6,7 +6,6 @@ from torch import nn
 from .optims.rms_norm_kernels.liger_rms_norm import LigerRMSNorm
 from .optims.activation_optim import ACT2FN
 from .optims.masking_optim import create_causal_mask
-from .optims.gradient_checkpoint_optim import GradientCheckpointingLayer
 from .optims.generation_optim import GenerationMixin
 from .optims.cache_optim import Cache, DynamicCache
 from .optims.model_output_optim import BaseModelOutputWithPast, CausalLMOutputWithPast
@@ -282,6 +281,7 @@ class LlamaDecoderLayer(nn.Module):
 
 class LlamaPreTrainedModel(PreTrainedModel):
     config: LlamaConfig
+    config_class: LlamaConfig
     base_model_prefix = "model"
     supports_gradient_checkpointing = True
     _no_split_modules = ["LlamaDecoderLayer"]
