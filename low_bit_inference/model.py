@@ -12,7 +12,7 @@ from .optims.cache_optim import Cache, DynamicCache
 from .optims.model_output_optim import BaseModelOutputWithPast, CausalLMOutputWithPast
 from .optims.rope_optim import ROPE_INIT_FUNCTIONS, dynamic_rope_update
 
-from .utils.modeling_utils import ALL_ATTENTION_FUNCTIONS, PreTrainedModel
+from transformers.modeling_utils import ALL_ATTENTION_FUNCTIONS, PreTrainedModel
 from .utils.generic_utils import TransformersKwargs 
 from .utils.model_configuration_utils import LlamaConfig
 
