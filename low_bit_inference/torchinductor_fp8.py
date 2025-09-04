@@ -39,6 +39,7 @@ def get_compiled_call(model, dynamic = None):
 
 model.get_compiled_call = get_compiled_call
 quantize_(model, Float8WeightOnlyConfig())
+quantize_(past_key_values, Float8WeightOnlyConfig())
 model = model.to(config.device)
 print("Model moved to GPU, starting profiling.")
 
