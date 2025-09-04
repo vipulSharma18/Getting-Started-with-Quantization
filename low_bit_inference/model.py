@@ -281,7 +281,7 @@ class LlamaDecoderLayer(nn.Module):
 
 class LlamaPreTrainedModel(PreTrainedModel):
     config: LlamaConfig
-    config_class: LlamaConfig
+    config_class = LlamaConfig
     base_model_prefix = "model"
     supports_gradient_checkpointing = True
     _no_split_modules = ["LlamaDecoderLayer"]
@@ -299,6 +299,16 @@ class LlamaPreTrainedModel(PreTrainedModel):
         "attentions": LlamaAttention,
     }
 
+    def _init_weights(self, module):
+        std = self.config.initializer_range
+        if isinstance(module, nn.Linear):
+            module.weight.data.normal_(mean=0.0, std=std)
+            if module.bias is not None:
+                module.bias.data.zero_()
+        elif isinstance(module, nn.Embedding):
+            module.weight.data.normal_(mean=0.0, std=std)
+            if module.padding_idx is not None:
+                module.weight.data[module.padding_idx].zero_()
 
 class LlamaModel(LlamaPreTrainedModel):
     def __init__(self, config: LlamaConfig):
