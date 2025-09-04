@@ -22,9 +22,6 @@ from typing import Any, Optional, Union
 import torch
 from .cache_optim import Cache
 from .masking_optim import create_masks_for_generate
-
-from transformers.generation import ContinuousMixin
-
 from transformers import (
     EosTokenCriteria,
     MaxLengthCriteria,
@@ -34,7 +31,7 @@ from transformers import (
 ALL_STATIC_CACHE_IMPLEMENTATIONS = ("static", "offloaded_static")
 
 
-class GenerationMixin(ContinuousMixin):
+class GenerationMixin:
     def _cache_dependant_input_preparation(
         self,
         input_ids: torch.LongTensor,
