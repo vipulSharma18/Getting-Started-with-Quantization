@@ -22,8 +22,16 @@ from typing import Any, Optional, Union
 import torch
 from .cache_optim import Cache
 from .masking_optim import create_masks_for_generate
-from transformers.generation.continuous_batching import ContinuousMixin # imported from HF cause suspect it's not really used
-from transformers.generation.stopping_criteria import (
+
+# figure out transformers module and allowed import structure. worst case override the class with another classname that inherits but overrides some functions.
+# use the new inherited class as the base for pretraining model and so on.
+from transformers.generation.continuous_batching.continuous_api import ContinuousMixin
+from transformers.generation import ContinuousMixi
+from transformers.generation.continuous_api import ContinuousMixin
+from transformers.generation.continuous_batching import ContinuousMixin
+
+
+from transformers import (
     EosTokenCriteria,
     MaxLengthCriteria,
     StoppingCriteriaList,
