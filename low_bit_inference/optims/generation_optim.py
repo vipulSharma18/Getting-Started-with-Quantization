@@ -345,21 +345,17 @@ class GenerationMixinCustom:
         os.environ["TOKENIZERS_PARALLELISM"] = "0"
         is_prefill = True
 
-        # TODO: pick from here.
-        # git commit -am "wip: figure out the forward v/s __call__ and compiled method resolution 
-        # and fix the compilation. currently base model output with past is returned instead of 
-        # causal lm output which has logits that we need"
-        compiled_model_forward_decode = self.get_compiled_call(self.model, dynamic = False)
-        compiled_model_forward_prefill = self.get_compiled_call(self.model, dynamic = True)
+        compiled_forward_decode = self.get_compiled_call(self.forward, dynamic = False)
+        compiled_forward_prefill = self.get_compiled_call(self.forward, dynamic = True)
         while not this_peer_finished:
             # prepare model inputs
             model_inputs = self.prepare_inputs_for_generation(input_ids, **model_kwargs)
 
             if is_prefill: # the shape of prefill stage is unknown as the prompt can be of any length, so we can't use compile well.
-                outputs = compiled_model_forward_prefill(**model_inputs, return_dict=True)
+                outputs = compiled_forward_prefill(**model_inputs, return_dict=True)
                 is_prefill = False
             else: # decode only happens one token at a time, so we can use compile well.
-                outputs = compiled_model_forward_decode(**model_inputs, return_dict=True)
+                outputs = compiled_forward_decode(**model_inputs, return_dict=True)
 
             # don't waste resources running the code we don't need; kwargs must be updated before skipping
             model_kwargs = self._update_model_kwargs_for_generation(

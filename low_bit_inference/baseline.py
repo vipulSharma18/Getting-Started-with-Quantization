@@ -17,9 +17,9 @@ print(f"Model loaded {config.model_id}.")
 ## compile the model here if you want
 torch.set_float32_matmul_precision('high')
 
-def get_compiled_call(model, dynamic = None):
-    # compiled_call = torch.compile(model.__call__, fullgraph=True, dynamic=False, mode="max-autotune")
-    return model.__call__
+def get_compiled_call(model_forward, dynamic = None):
+    # compiled_call = torch.compile(model_forward, fullgraph=True, dynamic=False, mode="max-autotune")
+    return model_forward
 
 model.get_compiled_call = get_compiled_call
 model = model.to(config.device)
