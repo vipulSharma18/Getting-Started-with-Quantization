@@ -157,88 +157,6 @@ class DynamicLayer(CacheLayerMixin):
             self.values = self.values[indices, ...]
 
 
-class DynamicSlidingWindowLayer(DynamicLayer):
-    """
-    A cache layer that grows dynamically as more tokens are generated, up until the sliding window size.
-    It stores the key and value states as tensors of shape `[batch_size, num_heads, min(seq_len, sliding_window), head_dim]`.
-    """
-
-    is_sliding = True
-
-    def __init__(self, sliding_window: int):
-        super().__init__()
-        self.sliding_window = sliding_window
-        self.cumulative_length = 0
-
-    def update(
-        self,
-        key_states: torch.Tensor,
-        value_states: torch.Tensor,
-        cache_kwargs: Optional[dict[str, Any]] = None,
-    ) -> tuple[torch.Tensor, torch.Tensor]:
-        """
-        Update the key and value caches in-place, and return the necessary keys and value states.
-
-        Args:
-            key_states (`torch.Tensor`): The new key states to cache.
-            value_states (`torch.Tensor`): The new value states to cache.
-            cache_kwargs (`dict[str, Any]`, *optional*): Additional arguments for the cache.
-
-        Returns:
-            tuple[`torch.Tensor`, `torch.Tensor`]: The key and value states.
-        """
-        # Lazy initialization
-        if self.keys is None:
-            self.lazy_initialization(key_states)
-
-        self.cumulative_length += key_states.shape[-2]
-
-        # Compute the full states
-        full_key_states = torch.cat([self.keys, key_states], dim=-2)
-        full_value_states = torch.cat([self.values, value_states], dim=-2)
-        # Only cache the last `self.sliding_window - 1` tokens (or all of them if lower than that)
-        self.keys = full_key_states[:, :, -self.sliding_window + 1 :, :]
-        self.values = full_value_states[:, :, -self.sliding_window + 1 :, :]
-
-        # Return the full states
-        return full_key_states, full_value_states
-
-    def get_mask_sizes(self, cache_position: torch.Tensor) -> tuple[int, int]:
-        """Return the length and offset of the cache, used to generate the attention mask"""
-        query_length = cache_position.shape[0]
-        first_cache_position = cache_position[0]
-
-        kv_offset = torch.clamp(first_cache_position - self.sliding_window + 1, min=0)
-
-        if self.get_seq_length() >= self.sliding_window:
-            kv_length = self.sliding_window - 1 + query_length
-        else:
-            kv_length = self.get_seq_length() + query_length
-
-        return kv_length, kv_offset
-
-    def get_seq_length(self) -> int:
-        """Returns the sequence length of the cached states."""
-        return self.cumulative_length
-
-    def get_max_cache_shape(self) -> int:
-        """Return the maximum cache shape of the cache"""
-        return self.sliding_window
-
-    def crop(self, max_length: int) -> None:
-        """
-        Crop the past key values up to a new `max_length` in terms of tokens. `max_length` can also be
-        negative to remove `max_length` tokens.
-        """
-        if self.get_seq_length() >= self.sliding_window:
-            raise ValueError(
-                "Cannot `crop` a `DynamicSlidingWindowLayer` after it has seen more tokens than its"
-                "sliding window (otherwise some states are lost)"
-            )
-        super().crop(max_length)
-        self.cumulative_length = self.keys.shape[-2]
-
-
 class StaticLayer(CacheLayerMixin):
     """
     A static cache layer that stores the key and value states as static tensors of shape `[batch_size, num_heads, max_cache_len), head_dim]`.
@@ -344,186 +262,6 @@ class StaticLayer(CacheLayerMixin):
     def get_max_cache_shape(self) -> int:
         """Return the maximum cache shape of the cache"""
         return self.max_cache_len
-
-
-class SlidingWindowLayer(StaticLayer):
-    """
-    A static cache layer that stores the key and value states as static tensors of shape
-    `[batch_size, num_heads, min(max_cache_len, sliding_window), head_dim]`. It lazily allocates its full backing
-    tensors, and then mutates them in-place. Built for `torch.compile` support.
-
-    Args:
-        max_cache_len (`int`):
-            Maximum number of tokens that can be stored, used for tensor preallocation.
-        sliding_window (`int`):
-            The size of the sliding window.
-    """
-
-    is_sliding = True
-
-    def __init__(self, max_cache_len: int, sliding_window: int):
-        effective_max_cache_len = min(sliding_window, max_cache_len)
-        super().__init__(max_cache_len=effective_max_cache_len)
-        self.cumulative_length = 0
-
-    def update(
-        self,
-        key_states: torch.Tensor,
-        value_states: torch.Tensor,
-        cache_kwargs: Optional[dict[str, Any]] = None,
-    ) -> tuple[torch.Tensor, torch.Tensor]:
-        """
-        Update the key and value caches in-place, and return the necessary keys and value states.
-
-        Args:
-            key_states (`torch.Tensor`): The new key states to cache.
-            value_states (`torch.Tensor`): The new value states to cache.
-            cache_kwargs (`dict[str, Any]`, *optional*): Additional arguments for the cache.
-
-        Returns:
-            tuple[`torch.Tensor`, `torch.Tensor`]: The key and value states.
-        """
-        # Lazy initialization
-        if self.keys is None:
-            self.lazy_initialization(key_states)
-
-        cache_position = cache_kwargs.get("cache_position")
-
-        is_full = self.cumulative_length >= self.max_cache_len
-        # Update it now that we saved the value above
-        self.cumulative_length += key_states.shape[-2]
-
-        # Handle prefill phase when prompt length > sliding_window_size.
-        # Note that we store cropped key/value states in the cache but return the full key/value states.
-        if cache_position.shape[0] > self.max_cache_len:
-            self.keys.copy_(key_states[:, :, -self.max_cache_len :, :])
-            self.values.copy_(value_states[:, :, -self.max_cache_len :, :])
-            # Return the full states here
-            return key_states, value_states
-
-        # Here we only assume decoding stage, i.e. 1 token at a time
-        if is_full:
-            # Roll all values to the left by 1 position
-            new_keys = self.keys.roll(-1, dims=-2)
-            new_values = self.values.roll(-1, dims=-2)
-            # Overwrite the last position with new states
-            # (note: very important to use a tensor to index here, see https://github.com/pytorch/pytorch/issues/159855)
-            index = torch.tensor([-1], dtype=int, device=self.device)
-            new_keys[:, :, index] = key_states
-            new_values[:, :, index] = value_states
-
-            # Copy back into `self` (do not just assign again) in order to keep the static dynamo address
-            self.keys.copy_(new_keys)
-            self.values.copy_(new_values)
-        else:
-            try:
-                self.keys.index_copy_(2, cache_position, key_states)
-                self.values.index_copy_(2, cache_position, value_states)
-            except NotImplementedError:
-                self.keys[:, :, cache_position] = key_states
-                self.values[:, :, cache_position] = value_states
-
-        return self.keys, self.values
-
-    def get_mask_sizes(self, cache_position: torch.Tensor) -> tuple[int, int]:
-        """Return the length and offset of the cache, used to generate the attention mask"""
-        query_length = cache_position.shape[0]
-        first_cache_position = cache_position[0]
-
-        kv_offset = torch.clamp(first_cache_position - self.max_cache_len + 1, min=0)
-        # This is not general (see HybridChunkedCache for the whole general case), but it's what the cache returns
-        kv_length = max(query_length, self.max_cache_len)
-        return kv_length, kv_offset
-
-    def get_seq_length(self) -> int:
-        """Returns the sequence length of the cached states."""
-        return self.cumulative_length
-
-
-class ChunkedSlidingLayer(SlidingWindowLayer):
-    """
-    An extended SlidingWindowLayer that supports prefill chunking, originally implemented for Llama 4.
-    """
-
-    def update(
-        self,
-        key_states: torch.Tensor,
-        value_states: torch.Tensor,
-        cache_kwargs: Optional[dict[str, Any]] = None,
-    ) -> tuple[torch.Tensor, torch.Tensor]:
-        """
-        Update the key and value caches in-place, and return the necessary keys and value states.
-
-        Args:
-            key_states (`torch.Tensor`): The new key states to cache.
-            value_states (`torch.Tensor`): The new value states to cache.
-            cache_kwargs (`dict[str, Any]`, *optional*): Additional arguments for the cache.
-
-        Returns:
-            tuple[`torch.Tensor`, `torch.Tensor`]: The key and value states.
-        """
-        # Lazy initialization
-        if self.keys is None:
-            self.lazy_initialization(key_states)
-
-        cache_position = cache_kwargs.get("cache_position")
-
-        cumulative_length = self.cumulative_length
-        is_full = cumulative_length >= self.max_cache_len
-        # Update it now that we saved the value above
-        self.cumulative_length += key_states.shape[-2]
-
-        if is_full:
-            full_key_states = torch.cat((self.keys[:, :, 1:, :], key_states), dim=-2)
-            full_value_states = torch.cat((self.values[:, :, 1:, :], value_states), dim=-2)
-            # Fast decoding path -> here as the effective size is still sliding window, it is extremely important
-            # to return `self.key_cache[layer_idx]` and `self.value_cache[layer_idx]`, as they have the fixed address
-            # in memory (the values are the same as the full states, but not the address!!)
-            if key_states.shape[-2] == 1:
-                self.keys.copy_(full_key_states)
-                self.values.copy_(full_value_states)
-                return self.keys, self.values
-        elif not is_full and cumulative_length + key_states.shape[2] > self.max_cache_len:
-            # Fast prefill path, no need to cat() in this case, as the cache is currently empty
-            if cumulative_length == 0:
-                full_key_states = key_states
-                full_value_states = value_states
-            else:
-                full_key_states = torch.cat((self.keys[:, :, :cumulative_length, :], key_states), dim=-2)
-                full_value_states = torch.cat((self.values[:, :, :cumulative_length, :], value_states), dim=-2)
-        else:
-            try:
-                self.keys.index_copy_(2, cache_position, key_states)
-                self.values.index_copy_(2, cache_position, value_states)
-            except NotImplementedError:
-                self.keys[:, :, cache_position] = key_states
-                self.values[:, :, cache_position] = value_states
-            return self.keys, self.values
-
-        self.keys.copy_(full_key_states[:, :, -self.max_cache_len :, :])
-        self.values.copy_(full_value_states[:, :, -self.max_cache_len :, :])
-        # we should return the whole states instead of `self.keys/values` here, as otherwise we lose some context
-        # which is outside the window
-        return full_key_states, full_value_states
-
-    def get_mask_sizes(self, cache_position: torch.Tensor) -> tuple[int, int]:
-        """Return the length and offset of the cache, used to generate the attention mask"""
-        query_length = cache_position.shape[0]
-        first_cache_position = cache_position[0]
-        sliding_window = self.max_cache_len
-
-        kv_offset = torch.clamp(first_cache_position - sliding_window + 1, min=0)
-        # This is the true general case for any Cache using local attention (sliding or chunked)
-        if first_cache_position >= sliding_window:
-            # Here the Cache is already full
-            kv_length = sliding_window + query_length - 1
-        elif first_cache_position < sliding_window and first_cache_position + query_length > sliding_window:
-            # Here the Cache becomes full with the new input
-            kv_length = first_cache_position + query_length
-        else:
-            # Here the Cache is still smaller than the local size, but we return the local size as it's static
-            kv_length = sliding_window
-        return kv_length, kv_offset
 
 
 class QuantizedLayer(DynamicLayer):
@@ -1007,12 +745,8 @@ class DynamicCache(Cache):
             # Some models have shared layers thus no cache is needed for them (e.g. Gemma3n)
             if hasattr(config, "num_kv_shared_layers"):
                 layer_types = layer_types[: -config.num_kv_shared_layers]
-
-            for layer_type in layer_types:
-                if layer_type in ("sliding_attention", "chunked_attention"):
-                    layers.append(DynamicSlidingWindowLayer(sliding_window=sliding_window))
-                else:
-                    layers.append(DynamicLayer())
+    
+            layers.append(DynamicLayer())
 
         # In this case, use the passed data to already fill in the Cache
         if ddp_cache_data is not None:
@@ -1112,25 +846,14 @@ class StaticCache(Cache):
         layer_types = getattr(config, "layer_types", None)
         # If `layer_types` is not explicitly provided, infer if the model is fully sliding
         if layer_types is None:
-            if getattr(config, "sliding_window", None) is not None:
-                layer_types = ["sliding_attention" for _ in range(config.num_hidden_layers)]
-            elif getattr(config, "attention_chunk_size", None) is not None:
-                layer_types = ["chunked_attention" for _ in range(config.num_hidden_layers)]
-            else:
-                layer_types = ["full_attention" for _ in range(config.num_hidden_layers)]
+            layer_types = ["full_attention" for _ in range(config.num_hidden_layers)]
         # Some models have shared layers thus no cache is needed for them (e.g. Gemma3n)
         if hasattr(config, "num_kv_shared_layers"):
             layer_types = layer_types[: -config.num_kv_shared_layers]
 
         layers = []
-        for layer_type in layer_types:
-            if layer_type == "sliding_attention":
-                layer = SlidingWindowLayer(max_cache_len=max_cache_len, sliding_window=config.sliding_window)
-            elif layer_type == "chunked_attention":
-                layer = ChunkedSlidingLayer(max_cache_len=max_cache_len, sliding_window=config.attention_chunk_size)
-            else:
-                layer = StaticLayer(max_cache_len=max_cache_len)
-            layers.append(layer)
+        layer = StaticLayer(max_cache_len=max_cache_len)
+        layers.append(layer)
 
         super().__init__(layers=layers, offloading=offloading, offload_only_non_sliding=offload_only_non_sliding)
 
