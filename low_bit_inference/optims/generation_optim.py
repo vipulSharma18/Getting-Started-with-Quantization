@@ -345,8 +345,11 @@ class GenerationMixinCustom:
         os.environ["TOKENIZERS_PARALLELISM"] = "0"
         is_prefill = True
 
-        compiled_forward_decode = self.get_compiled_call(dynamic=False)
-        compiled_forward_prefill = self.get_compiled_call(dynamic=True)
+        if self.custom_compile:
+            compiled_forward_decode = self.get_compiled_call(dynamic=False)
+            compiled_forward_prefill = self.get_compiled_call(dynamic=True)
+        else:
+            compiled_forward_decode = compiled_forward_prefill = self.forward
 
         while not this_peer_finished:
             # prepare model inputs

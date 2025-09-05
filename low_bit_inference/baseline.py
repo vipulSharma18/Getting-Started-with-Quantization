@@ -17,12 +17,8 @@ print(f"Model loaded {config.model_id}.")
 ## compile the model here if you want
 torch.set_float32_matmul_precision('high')
 
-def get_compiled_call(model_forward, dynamic = None):
-    # compiled_call = torch.compile(model_forward, fullgraph=True, dynamic=False, mode="max-autotune")
-    return model_forward
-
-model.get_compiled_call = get_compiled_call
 model = model.to(config.device)
 print(f"Model moved to {config.device}, starting profiling.")
+model.custom_compile = False
 
 profile_model(model, tokenizer, past_key_values, prompt, config)
