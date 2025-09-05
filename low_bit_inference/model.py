@@ -471,6 +471,10 @@ class LlamaForCausalLM(GenerationMixinCustom, LlamaPreTrainedModel):
             forward_call.__defaults__, forward_call.__closure__,
         )
 
+    def get_compiled_call(self, dynamic=True):
+        duped_forward = self.duped_forward(self.forward, int(dynamic))
+        compiled_call = torch.compile(duped_forward, fullgraph=True, dynamic=dynamic)
+        return compiled_call
 
 __all__ = [
     "LlamaForCausalLM",

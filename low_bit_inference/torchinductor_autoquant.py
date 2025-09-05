@@ -32,12 +32,8 @@ torch._inductor.config.triton.cudagraphs = True
 torch._inductor.config.benchmark_fusion = True
 torch._inductor.config.freezing = True
 
-def get_compiled_call(model_forward, dynamic = None):
-    compiled_call = torch.compile(model_forward, fullgraph=True, dynamic=dynamic)
-    return compiled_call
-
-model.get_compiled_call = get_compiled_call
-past_key_values = torch.autoquant(past_key_values)
+model = torch.autoquant(model, set_inductor_config=False)
+past_key_values = torch.autoquant(past_key_values, set_inductor_config=False)
 model = model.to(config.device)
 print("Model moved to GPU, starting profiling.")
 

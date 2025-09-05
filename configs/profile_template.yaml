@@ -15,7 +15,7 @@ repeat: 0
 tps_only: False
 
 # prompt args
-prompt: "Write an essay about large language models."
+prompt: ""
 max_new_tokens: 1024
 chat_template: ""
 do_sample: False

@@ -14,16 +14,11 @@ git config --global user.name "Vipul Sharma"
 Toy config for quick testing:
 ```
 import torch
-from low_bit_inference.utils.config_utils import get_config, to_torch_dtype
-from low_bit_inference.model import LlamaForCausalLM
+from low_bit_inference.utils.config_utils import get_config
+from low_bit_inference.hf_loader import load_model_tokenizer_prompt_cache
 config = get_config()
-model = LlamaForCausalLM.from_pretrained(
-    config.model_id,
-    torch_dtype=to_torch_dtype(config.compute_dtype),
-    attn_implementation=config.attn_implementation,
-    cache_dir=config.cache_dir,
-    device_map=config.device,
-)
+model, tokenizer, prompt, past_key_values = load_model_tokenizer_prompt_cache(config)
+tokenized_prompt = tokenizer([config.prompt], return_tensors="pt").to(config.device)
 ```
 
 ## Run benchmark:

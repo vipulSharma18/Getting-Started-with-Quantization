@@ -39,7 +39,7 @@ class ProfileConfig:
     tps_only: bool = False
 
     # inference args
-    prompt: str = "Write an essay about large language models."
+    prompt: str = ""
     max_new_tokens: int = 1024
     chat_template: str = ""
     do_sample: bool = False

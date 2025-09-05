@@ -31,11 +31,6 @@ torch._inductor.config.coordinate_descent_tuning = True
 torch._inductor.config.triton.cudagraphs = True
 torch._inductor.config.benchmark_fusion = True
 
-def get_compiled_call(model_forward, dynamic = None):
-    compiled_call = torch.compile(model_forward, fullgraph=True, dynamic=dynamic)
-    return compiled_call
-
-model.get_compiled_call = get_compiled_call
 model = model.to(config.device)
 print("Model moved to GPU, starting profiling.")
 

@@ -3,7 +3,6 @@ FROM debian:bookworm-slim
 ENV DEBIAN_FRONTEND=noninteractive \
     UV_LINK_MODE=copy \
     HF_HOME=/root/.cache/huggingface \
-    TRANSFORMERS_CACHE=/root/.cache/huggingface \
     HF_HUB_ENABLE_HF_TRANSFER=1 \
     PATH="/root/.local/bin/:$PATH"
 
@@ -38,7 +37,7 @@ RUN (type -p wget >/dev/null || (apt-get update && apt-get install wget -y)) \
 && rm -rf /var/lib/apt/lists/* \
 && sh /uv-installer.sh \
 && rm /uv-installer.sh \
-&& mkdir -p ${TRANSFORMERS_CACHE}
+&& mkdir -p ${HF_HOME}
 
 WORKDIR /app
 

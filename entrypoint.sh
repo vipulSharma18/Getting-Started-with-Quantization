@@ -2,7 +2,6 @@
 set -e
 
 export HF_HOME=/root/.cache/huggingface
-export TRANSFORMERS_CACHE=/root/.cache/huggingface
 export HF_HUB_ENABLE_HF_TRANSFER=1
 export UV_LINK_MODE=copy
 export PATH="/root/.local/bin/:$PATH"

@@ -10,7 +10,12 @@ def autoname_modules(m):
         module.name = name
 
 def load_model_tokenizer_prompt_cache(config):
-    tokenizer = AutoTokenizer.from_pretrained(config.model_id, cache_dir=config.cache_dir)  # if a rust based tokenizer is not avialable, this falls back to Python implementation which is slower.
+    tokenizer = AutoTokenizer.from_pretrained(
+        config.model_id,
+        cache_dir=config.cache_dir,
+
+    )
+    # if a rust based tokenizer is not avialable, this falls back to Python implementation which is slower.
     model = LlamaForCausalLM.from_pretrained(
         config.model_id,
         torch_dtype=to_torch_dtype(config.compute_dtype),
@@ -23,8 +28,6 @@ def load_model_tokenizer_prompt_cache(config):
     model.eval()
     autoname_modules(model)
 
-    tokenizer.add_bos_token = False
-    tokenizer.add_eos_token = False
     if not tokenizer.pad_token:
         tokenizer.add_special_tokens({"pad_token": "<<[PAD]>>"})
     tokenizer.padding_side = config.padding_side
