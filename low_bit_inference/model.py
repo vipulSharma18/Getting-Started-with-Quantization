@@ -1,4 +1,5 @@
 # reference: https://github.com/huggingface/transformers/blob/main/src/transformers/models/llama/modeling_llama.py
+from types import FunctionType
 from typing import Callable, Optional, Union, Unpack
 import torch
 from torch import nn
@@ -459,6 +460,17 @@ class LlamaForCausalLM(GenerationMixinCustom, LlamaPreTrainedModel):
             hidden_states=outputs.hidden_states,
             attentions=outputs.attentions,
         )
+
+    @staticmethod
+    def duped_forward(forward_call: Callable, salt: int):
+        co_new = forward_call.__code__.replace(
+            co_consts=forward_call.__code__.co_consts + (salt,),
+            )
+        return FunctionType(
+            co_new, forward_call.__globals__, forward_call.__name__,
+            forward_call.__defaults__, forward_call.__closure__,
+        )
+
 
 __all__ = [
     "LlamaForCausalLM",
