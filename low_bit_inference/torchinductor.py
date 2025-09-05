@@ -31,8 +31,8 @@ torch._inductor.config.coordinate_descent_tuning = True
 torch._inductor.config.triton.cudagraphs = True
 torch._inductor.config.benchmark_fusion = True
 
-def get_compiled_call(model, dynamic = None):
-    compiled_call = torch.compile(model.__call__, fullgraph=True, dynamic=dynamic)
+def get_compiled_call(model_forward, dynamic = None):
+    compiled_call = torch.compile(model_forward, fullgraph=True, dynamic=dynamic)
     return compiled_call
 
 model.get_compiled_call = get_compiled_call

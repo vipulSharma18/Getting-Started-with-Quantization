@@ -10,11 +10,6 @@ def autoname_modules(m):
         module.name = name
 
 def load_model_tokenizer_prompt_cache(config):
-    """
-    Toy config for quick testing:
-    import torch; from low_bit_inference.utils.config_utils import get_config; config = get_config()
-    from low_bit_inference.utils.config_utils import to_torch_dtype; from low_bit_inference.model import LlamaForCausalLM
-    """
     tokenizer = AutoTokenizer.from_pretrained(config.model_id, cache_dir=config.cache_dir)  # if a rust based tokenizer is not avialable, this falls back to Python implementation which is slower.
     model = LlamaForCausalLM.from_pretrained(
         config.model_id,

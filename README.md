@@ -11,6 +11,21 @@ git config --global user.email "vipuls181999@gmail.com"
 git config --global user.name "Vipul Sharma"
 ```
 
+Toy config for quick testing:
+```
+import torch
+from low_bit_inference.utils.config_utils import get_config, to_torch_dtype
+from low_bit_inference.model import LlamaForCausalLM
+config = get_config()
+model = LlamaForCausalLM.from_pretrained(
+    config.model_id,
+    torch_dtype=to_torch_dtype(config.compute_dtype),
+    attn_implementation=config.attn_implementation,
+    cache_dir=config.cache_dir,
+    device_map=config.device,
+)
+```
+
 ## Run benchmark:
 > Note: Run without tps_only=True to get trace of CPU and GPU kernels.
 
