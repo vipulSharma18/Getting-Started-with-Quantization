@@ -154,6 +154,7 @@ class StaticLayer(CacheLayerMixin):
 
         # Update the cache
         try:
+            # TODO: pick up from here. layers index error in decode stage.
             self.keys.index_copy_(2, cache_position, key_states)
             self.values.index_copy_(2, cache_position, value_states)
         except NotImplementedError:
