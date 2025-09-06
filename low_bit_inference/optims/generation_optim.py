@@ -35,7 +35,6 @@ class GenerationMixinCustom:
     def _cache_dependant_input_preparation(
         self,
         input_ids: torch.LongTensor,
-        inputs_embeds: Optional[torch.FloatTensor],
         cache_position: Optional[torch.LongTensor],
     ) -> tuple[torch.FloatTensor, torch.LongTensor]:
         """
@@ -43,14 +42,11 @@ class GenerationMixinCustom:
         The code is put in a separate function to allow granular unit testing
         as it needs a different implementation to be exportable.
         """
-        if (
-            inputs_embeds is not None  # Exception 1
-            or (cache_position[-1] >= input_ids.shape[1])  # Exception 3
-        ):
+        if (cache_position[-1] >= input_ids.shape[1]):  # cache position goes out of bounds, i.e., beyond the tokens that have been generated till now
             input_ids = input_ids[:, -cache_position.shape[0] :]
-        elif input_ids.shape[1] != cache_position.shape[0]:  # Default case (the "else", a no op, is Exception 2)
+        else:  # just take the last token generated, or at the cache position, for current query.
             input_ids = input_ids[:, cache_position]
-        return inputs_embeds, input_ids
+        return input_ids
 
 
     def prepare_inputs_for_generation(
@@ -58,7 +54,6 @@ class GenerationMixinCustom:
         input_ids: torch.LongTensor,
         past_key_values = None,
         attention_mask: Optional[torch.LongTensor] = None,
-        inputs_embeds: Optional[torch.FloatTensor] = None,
         cache_position: Optional[torch.LongTensor] = None,
         **kwargs,
     ):
@@ -77,18 +72,16 @@ class GenerationMixinCustom:
         # 2. Generic cache-dependent input preparation
         if past_key_values is not None:
             model_inputs["past_key_values"] = past_key_values
-            inputs_embeds, input_ids = self._cache_dependant_input_preparation(
-                input_ids, inputs_embeds, cache_position
+            input_ids = self._cache_dependant_input_preparation(
+                input_ids, cache_position
             )
 
         # 3. Prepare base model inputs
         input_ids_key = "input_ids"
         # `clone` calls in this function ensure a consistent stride. See #32227
         model_inputs[input_ids_key] = input_ids.clone(memory_format=torch.contiguous_format)
-        model_inputs["inputs_embeds"] = None
 
         # 4. Create missing `position_ids` on the fly
-        encoder_attention_mask = None
         attention_mask_key = "attention_mask"
         position_ids_key = "position_ids"
         if (
@@ -100,6 +93,15 @@ class GenerationMixinCustom:
             position_ids.masked_fill_(attention_mask == 0, 1)
             kwargs[position_ids_key] = position_ids  # placed in kwargs for further processing (see below)
 
+        # 5. slice the position ids to make them the same length as model's input_ids
+        position_ids = kwargs.get(position_ids_key)
+        if position_ids is not None:
+            if past_key_values is not None:
+                current_input_length = model_inputs[input_ids_key].shape[1]
+                position_ids = position_ids[:, -current_input_length:]
+                position_ids = position_ids.clone(memory_format=torch.contiguous_format)
+            model_inputs[position_ids_key] = position_ids
+
         # 6. Create 4D attention mask is we are using a compilable cache (important for performant compiled forward
         # pass)
         if (
@@ -107,7 +109,7 @@ class GenerationMixinCustom:
             and past_key_values.is_compileable
             and attention_mask is not None
             and attention_mask.ndim == 2
-        ):
+        ):  # true for llama3.1-8b with static cache
             batch_size, sequence_length = model_inputs[input_ids_key].shape[:2]
 
             # Create the causal mask with fixed shape in advance, to reduce recompilations. If the function to create
@@ -149,11 +151,9 @@ class GenerationMixinCustom:
                     config=self.config,
                     past_key_values=past_key_values,
                 )
+
         if attention_mask is not None:
             model_inputs[attention_mask_key] = attention_mask
-
-        if encoder_attention_mask is not None:
-            model_inputs["attention_mask"] = encoder_attention_mask
 
         # 7. Forward ALL kwargs that are uninitialized (e.g. `use_cache`).
         for key, value in kwargs.items():
@@ -189,21 +189,14 @@ class GenerationMixinCustom:
         is_encoder_decoder: bool = False,
         num_new_tokens: int = 1,
     ) -> dict[str, Any]:
-        if "past_key_values" in outputs:
-            cache_name = "past_key_values"
-            model_kwargs[cache_name] = getattr(outputs, "past_key_values")
-
-        # update token_type_ids with last value
-        if "token_type_ids" in model_kwargs:
-            token_type_ids = model_kwargs["token_type_ids"]
-            model_kwargs["token_type_ids"] = torch.cat([token_type_ids, token_type_ids[:, -1].unsqueeze(-1)], dim=-1)
+        cache_name = "past_key_values"
+        model_kwargs[cache_name] = getattr(outputs, "past_key_values")
 
         # update attention mask
-        if "attention_mask" in model_kwargs:
-            attention_mask = model_kwargs["attention_mask"]
-            model_kwargs["attention_mask"] = torch.cat(
-                [attention_mask, attention_mask.new_ones((attention_mask.shape[0], 1))], dim=-1
-            )
+        attention_mask = model_kwargs["attention_mask"]
+        model_kwargs["attention_mask"] = torch.cat(
+            [attention_mask, attention_mask.new_ones((attention_mask.shape[0], 1))], dim=-1
+        )
         model_kwargs["cache_position"] = model_kwargs["cache_position"][-1:] + num_new_tokens
         return model_kwargs
 
@@ -228,6 +221,8 @@ class GenerationMixinCustom:
 
     def _get_initial_cache_position(self, seq_length, device, model_kwargs):
         """Calculates `cache_position` for the pre-fill stage based on `input_ids` and optionally past length"""
+        if "cache_position" in model_kwargs and model_kwargs["cache_position"] is not None:
+            return model_kwargs
         # `torch.compile`-friendly `torch.arange` from a shape -- the lines below are equivalent to `torch.arange`
         cache_position = torch.ones(seq_length, dtype=torch.int64, device=device).cumsum(0) - 1
         past_length = 0

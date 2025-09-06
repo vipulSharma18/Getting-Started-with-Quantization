@@ -154,7 +154,12 @@ class StaticLayer(CacheLayerMixin):
 
         # Update the cache
         try:
-            # TODO: pick up from here. layers index error in decode stage.
+            # TODO: pick up from here.
+            # description: during the decode stage. the cache position is 9 (prompt len 8), and it's a tensor of shape [1], with only 1 value 9.
+            # but key_states is a tensor of shape (1, 8, 10, 128) when it should be like value_states, i.e., (1, 8, 1, 128).
+            # since it has 10 size at the dim=2, the index_copy_() raises an error.
+            # index_copy_(): Number of indices (1) should be equal to source.size(dim) (10)
+            # need to look into how/why is key states getting bad shape when value state is not getting corrupted.
             self.keys.index_copy_(2, cache_position, key_states)
             self.values.index_copy_(2, cache_position, value_states)
         except NotImplementedError:
