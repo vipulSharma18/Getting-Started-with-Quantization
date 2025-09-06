@@ -1,7 +1,6 @@
 import torch
 import gc
 
-
 def profile_model(model, tokenizer, past_key_values, prompt, config):
     """
     Reused model profiling code.
@@ -71,7 +70,9 @@ def profile_model(model, tokenizer, past_key_values, prompt, config):
                 cumulative_time += step_time
                 generated_token_count += config.max_new_tokens  # this is decode stage tokens only, while generated_tokens contains prefill and decode stage tokens
                 print(f"Profile step {i} included for tps calculation.")
-            past_key_values.reset()
+            # need to reset which involves inplace ops and hence need to go in inference mode otherwise error
+            with torch.inference_mode():
+                past_key_values.reset()
             del generated_tokens, generated_token_ids
             gc.collect()
             torch.cuda.empty_cache()
