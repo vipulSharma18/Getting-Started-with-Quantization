@@ -7,12 +7,12 @@
     
         {
             "name": "Python: Module",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "low_bit_inference.baseline",
             "justMyCode": true,
             // If you want to pass as separate key-value pairs
-            "args": ["configs/profile_baseline.yaml", "--tps_only=True"]
+            "args": ["configs/profile_baseline.yaml", "tps_only=True"]
         }
     ]
 }

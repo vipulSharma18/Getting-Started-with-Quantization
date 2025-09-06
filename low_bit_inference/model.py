@@ -8,7 +8,7 @@ from .optims.rms_norm_kernels.liger_rms_norm import LigerRMSNorm
 from .optims.activation_optim import ACT2FN
 from .optims.masking_optim import create_causal_mask
 from .optims.generation_optim import GenerationMixinCustom
-from .optims.cache_optim import Cache, DynamicCache
+from .optims.cache_optim import Cache
 from .optims.model_output_optim import BaseModelOutputWithPast, CausalLMOutputWithPast
 from .optims.rope_optim import ROPE_INIT_FUNCTIONS, dynamic_rope_update
 
@@ -346,7 +346,7 @@ class LlamaModel(LlamaPreTrainedModel):
             inputs_embeds: torch.Tensor = self.embed_tokens(input_ids)
 
         if use_cache and past_key_values is None:
-            past_key_values = DynamicCache(config=self.config)
+            raise ValueError("use_cache passed as true without a past_key_values cache object.")
 
         if cache_position is None:
             past_seen_tokens = past_key_values.get_seq_length() if past_key_values is not None else 0
