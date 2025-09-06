@@ -470,17 +470,11 @@ class StaticCache(Cache):
         **kwargs,
     ):
         config = config.get_text_config()
-        layer_types = getattr(config, "layer_types", None)
-        # If `layer_types` is not explicitly provided, infer if the model is fully sliding
-        if layer_types is None:
-            layer_types = ["full_attention" for _ in range(config.num_hidden_layers)]
-        # Some models have shared layers thus no cache is needed for them (e.g. Gemma3n)
-        if hasattr(config, "num_kv_shared_layers"):
-            layer_types = layer_types[: -config.num_kv_shared_layers]
-
+        layer_types = ["full_attention" for _ in range(config.num_hidden_layers)]
         layers = []
-        layer = StaticLayer(max_cache_len=max_cache_len)
-        layers.append(layer)
+        for _ in range(len(layer_types)):
+            layer = StaticLayer(max_cache_len=max_cache_len)
+            layers.append(layer)
 
         super().__init__(layers=layers, offloading=offloading, offload_only_non_sliding=offload_only_non_sliding)
 
