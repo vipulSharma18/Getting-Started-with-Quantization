@@ -96,5 +96,6 @@ def profile_model(model, tokenizer, past_key_values, prompt, config):
     try:
         if not config.tps_only and prof.profiler is not None:
             prof.export_chrome_trace(config.profiling_dir + "/trace.json")
+            print("Manually exported the trace.")
     except Exception:
         print("Trace was already saved. Exiting.")
