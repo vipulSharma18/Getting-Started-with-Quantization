@@ -1,6 +1,26 @@
 import torch
 import gc
 
+
+def none_context():
+    """
+    A no-op context manager that doesn't do anything but has a step function.
+    Useful as a drop-in replacement for torch.profiler.profile when profiling is disabled.
+    """
+    class NoneContext:
+        def __enter__(self):
+            return self
+        
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            pass
+        
+        def step(self):
+            """No-op step function that doesn't do anything."""
+            pass
+    
+    return NoneContext()
+
+
 def profile_model(model, tokenizer, past_key_values, prompt, config):
     """
     Reused model profiling code.
@@ -23,11 +43,7 @@ def profile_model(model, tokenizer, past_key_values, prompt, config):
     tokenized_prompt = tokenizer(prompt, return_tensors="pt").to(config.device)
 
     if config.tps_only:
-        activities = [torch.profiler.ProfilerActivity.CPU]
-        profiling_flag = False
-        def x(*args, **kwargs):
-            return True
-        trace_handler = x
+        prof = none_context()
     else:
         activities = [
             torch.profiler.ProfilerActivity.CPU,
@@ -35,16 +51,17 @@ def profile_model(model, tokenizer, past_key_values, prompt, config):
         ]
         profiling_flag = True
         trace_handler = torch.profiler.tensorboard_trace_handler(config.profiling_dir)
+        prof = torch.profiler.profile(
+            activities = activities,
+            schedule = profiling_schedule,
+            on_trace_ready = trace_handler,
+            record_shapes = profiling_flag,
+            profile_memory = profiling_flag,
+            with_stack = profiling_flag,  # this will add considerable overhead, set it to False for benchmarking.
+            with_flops = profiling_flag,
+        )
 
-    with torch.profiler.profile(
-        activities = activities,
-        schedule = profiling_schedule,
-        on_trace_ready = trace_handler,
-        record_shapes = profiling_flag,
-        profile_memory = profiling_flag,
-        with_stack = profiling_flag,  # this will add considerable overhead, set it to False for benchmarking.
-        with_flops = profiling_flag,
-    ) as prof:
+    with prof:
         for i in range(total_steps):
             print(f"Profiling iteration {i} out of total {total_steps}")
             torch.compiler.cudagraph_mark_step_begin() 
@@ -60,15 +77,14 @@ def profile_model(model, tokenizer, past_key_values, prompt, config):
                 end.record()
             torch.cuda.synchronize()
             step_time = start.elapsed_time(end)
-            prof.step()
             generated_tokens = tokenizer.batch_decode(generated_token_ids[0], skip_special_tokens=True)
-            curr_action = profiling_schedule(i)  # just an ENUM
+            prof.step()
+            curr_action = profiling_schedule(i)
             print(f"Generated tokens (last 5): {generated_tokens[-5:]}, len: {len(generated_tokens)}, time: {step_time/1000}s")
-            print(f"Profiling step_num: {i}, curr action taken: {curr_action}")
-            # config.skip_first + mul_factor*(config.wait + config.warmup + config.active)
+            print(f"Profiling step_num: {i}, curr action: {curr_action}, or in reality NONE if tps_only is True.")
             if curr_action in [torch.profiler.ProfilerAction.RECORD, torch.profiler.ProfilerAction.RECORD_AND_SAVE]:
                 cumulative_time += step_time
-                generated_token_count += config.max_new_tokens  # this is decode stage tokens only, while generated_tokens contains prefill and decode stage tokens
+                generated_token_count += len(generated_tokens)  # generated_tokens contains prefill and new decode stage tokens
                 print(f"Profile step {i} included for tps calculation.")
             # need to reset which involves inplace ops and hence need to go in inference mode otherwise error
             with torch.inference_mode():
