@@ -1,0 +1,423 @@
+
+<html>
+<head>
+  <meta charset="UTF-8">
+</head>
+<style>
+
+table td { vertical-align: top; }
+
+.stack-trie { white-space: nowrap; font-family: monospace; }
+.stack-trie ul { padding-left: 1ch;  }
+.stack-trie li { margin-left: 1ch; list-style-type: none;  }
+.stack-trie .marker {
+  cursor: pointer;
+}
+.stack-trie .marker.collapsed::before {
+  content: "+ ";
+}
+.stack-trie .marker:not(.collapsed)::before {
+  content: "- ";
+}
+.stack-trie a { text-decoration: none; }
+.stack-trie a:hover { text-decoration: underline; }
+.status-missing { background-color: purple; color: white; }
+.status-error { background-color: red; color: white; }
+.status-empty { background-color: white; color: black; }
+.status-ok { background-color: green; color: white; }
+.status-break { background-color: lime; color: black; }
+summary::-webkit-details-marker { color: #00ACF3; font-size: 125%; margin-right: 2px; }
+summary:focus { outline-style: none; }
+article > details > summary { font-size: 28px; margin-top: 16px; }
+details > p { margin-left: 24px; }
+        .warning-box {
+            background-color:rgb(249, 178, 178);
+            border: 1px solidrgb(251, 251, 251);
+            padding: 12px 16px;
+            margin: 16px 0;
+        }
+details details summary { font-size: 16px; }
+
+</style>
+<script>
+
+  function toggleList(toggleItem) {
+    const listItem = toggleItem.parentNode;
+    const nestedList = listItem.querySelector('ul');
+    if (nestedList) {
+      nestedList.style.display = nestedList.style.display === 'none' ? 'block' : 'none';
+
+      // Toggle the collapse/expand indicator
+      toggleItem.classList.toggle('collapsed');
+    }
+  }
+
+</script>
+<body>
+<div>
+
+<h2>Stack trie</h2>
+<p>
+The <strong>stack trie</strong> is a way of getting a quick orientation on where all the
+compilations in a model take place, esp., if you are compiling a codebase you are unfamiliar with.
+It is a tree of stack frames, for all stacks that triggered PT2 compilation.  If only a single
+stack is in the tree, you will simply see a plain list of frames (most recent call last).  With
+multiple stacks, at every point where two stacks diverge from having a common prefix, we increase
+the indentation of the list and have a separate sub-list per sub-tree.
+</p>
+<p>
+Links to particular compilation are color coded by status:
+<span class="status-ok">[Success]</span>,
+<span class="status-break">[Success with restart (e.g., graph break)]</span>,
+<span class="status-empty">[Empty graph]</span>,
+<span class="status-error">[Error]</span>,
+<span class="status-missing">[Metrics were missing]</span>
+</p>
+<details><summary>Stack</summary><div class='stack-trie'><ul><li>&lt;frozen runpy&gt;:198 in _run_module_as_main<br>&nbsp;&nbsp;&nbsp;&nbsp;</li>
+<li>&lt;frozen runpy&gt;:88 in _run_code<br>&nbsp;&nbsp;&nbsp;&nbsp;</li>
+<li>/app/low_bit_inference/torchinductor.py:37 in &lt;module&gt;<br>&nbsp;&nbsp;&nbsp;&nbsp;profile_model(model, tokenizer, past_key_values, prompt, config)</li>
+<li>/app/low_bit_inference/utils/profile_utils.py:73 in profile_model<br>&nbsp;&nbsp;&nbsp;&nbsp;generated_token_ids = model.generate(</li>
+<li>/app/low_bit_inference/optims/generation_optim.py:318 in generate<br>&nbsp;&nbsp;&nbsp;&nbsp;result = self._sample(</li>
+<li><span onclick='toggleList(this)' class='marker'></span>
+/app/low_bit_inference/optims/generation_optim.py:354 in _sample<br>&nbsp;&nbsp;&nbsp;&nbsp;outputs = self.compiled_forward_prefill(self, **model_inputs, return_dict=True)<ul>
+<li><a href='#[0/0]' class='status-ok'>[0/0]</a> <a href='#[2/0]' class='status-ok'>[2/0]</a> <a href='#[4/0]' class='status-ok'>[4/0]</a> /app/low_bit_inference/model.py:424 in forward<br>&nbsp;&nbsp;&nbsp;&nbsp;</li>
+</ul></li><li><span onclick='toggleList(this)' class='marker'></span>
+/app/low_bit_inference/optims/generation_optim.py:357 in _sample<br>&nbsp;&nbsp;&nbsp;&nbsp;outputs = self.compiled_forward_decode(self, **model_inputs, return_dict=True)<ul>
+<li><a href='#[1/0]' class='status-ok'>[1/0]</a> <a href='#[3/0]' class='status-ok'>[3/0]</a> <a href='#[5/0]' class='status-ok'>[5/0]</a> /app/low_bit_inference/model.py:424 in forward<br>&nbsp;&nbsp;&nbsp;&nbsp;</li>
+</ul></li></ul></div></details>
+</div>
+<div>
+
+<h2>IR dumps</h2>
+<p>
+The <strong>IR dumps</strong> collected dumped intermediate products from various points of the PT2
+compilation process.  The products are organized by compile id, and then sorted in chronological
+order.
+</p>
+<p>
+A <strong>compile id</strong> uniquely identifies are particular compilation inside a PT2
+program.  It is traditionally written as <code>[x/y]</code>, where the <strong>frame id</strong> x
+identifies the particular Python frame which we are compiling, and <strong>frame compile
+id</strong> y identifies how many times we've recompiled this same frame.  For example,
+<code>[0/0]</code> refers to the very first frame compiled by PT2; <code>[0/1]</code> refers to the
+first recompilation of this frame, while <code>[1/0]</code> refers to a different frame, within
+distinct code cache, which we are compiling next (perhaps because of a graph break).  Although
+Dynamo treats distinct frames as completely unrelated, a frame compilation could overlap with another
+frame; for example, if you graph break in an inlined function, Dynamo will typically try to compile
+the nested frame again on an inner frame.  You can identify the hierarchical relationship between
+frames by looking at the stack trie above.
+</p>
+<p>
+In some situations, the compile id will have an extra signifier <code>[x/y_z]</code>, where z is the
+<strong>attempt</strong> for this particular (re)compilation.  Certain conditions will cause Dynamo to
+restart analysis, when Dynamo discovers that it needs to undo a decision it previously made.  The most
+common cause of recompilation is a graph break in an inlined function call, which forces to restart
+and avoid inlining the function in the first place.
+</p>
+<p>
+When compiled autograd is enabled, the compile id will include a prefix signifier <code>[!a/x/y]</code>,
+where a is the <strong>compiled autograd id</strong>. For instance, <code>[!0/-/-]</code> refers 
+to the first graph captured by compiled autograd. It is then traced by torch.compile as <code>[!0/x/y_z]</code>.
+</p>
+<p>
+Here is a high level description of PT2's compilation phases, and the intermediate products each
+phase generates:
+</p>
+<ol>
+<li><em>Optional:</em> If compiled autograd is enabled, and we are processing a backward call, compiled autograd will trace the autograd graph from the autograd engine, and produce an FX graph <code>compiled_autograd_graph</code> that will be Dynamo traced.  Otherwise, Dynamo will directly trace user's bytecode.</li>
+<li>Dynamo symbolically evaluates the Python bytecode of a program, producing <code>dynamo_output_graph</code></li>
+<li><em>Optional:</em> If <code>optimize_ddp</code> is enabled, the DDPOptimizer will split the Dynamo output graph to improve pipelining communications.  Each split subgraph is <code>optimize_ddp_split_child_submod</code>, and the high level graph that plumbs the graphs together is <code>optimize_ddp_split_graph</code>.  If there are multiple splits, each subsequent build product will be produced multiple times, one for each split.</li>
+<li>AOTAutograd traces the (possibly split) Dynamo output graph, producing a <code>aot_joint_graph</code> if backwards is enabled.  It then partitions the graph into <code>aot_forward_graph</code> and <code>aot_backward_graph</code>.  If training is not needed, there may only be an <code>aot_inference_graph</code>.</li>
+<li>Inductor will apply some post grad FX passes, producing <code>inductor_post_grad_graph</code></li>
+<li>Inductor will perform code generation, producing the final <code>inductor_output_code</code> which will be executed at runtime.  This output is a valid Python program and can be directly run.</li>
+</ol>
+
+
+<h2> Chromium Events </h2>
+PT2 generates <a href='chromium_events.json'>Chromium Trace Events</a> in JSON on specific events during compilation.
+You can download and view them in a tool like <a href='https://ui.perfetto.dev/'>Perfetto</a>.
+
+<p>
+<a href="collectives_parity.json">Collectives Parity report</a> comparing scheduler and Inductor output code collective operations.
+</p>
+<p>
+Build products below:
+</p>
+<ul>
+
+    <li><a id="[0/0]">[0/0]</a>
+    <ul>
+        
+            <li><a href="-_0_0_0/dynamo_output_graph_0.txt">-_0_0_0/dynamo_output_graph_0.txt</a>  (0)</li>
+        
+            <li><a href="-_0_0_0/inductor_pre_grad_graph_1.txt">-_0_0_0/inductor_pre_grad_graph_1.txt</a>  (1)</li>
+        
+            <li><a href="-_0_0_0/before_recompile_pre_grad_2.txt">-_0_0_0/before_recompile_pre_grad_2.txt</a>  (2)</li>
+        
+            <li><a href="-_0_0_0/after_recompile_pre_grad_3.txt">-_0_0_0/after_recompile_pre_grad_3.txt</a>  (3)</li>
+        
+            <li><a href="-_0_0_0/aot_forward_graph_fw_metadata_4.txt">-_0_0_0/aot_forward_graph_fw_metadata_4.txt</a>  (4)</li>
+        
+            <li><a href="-_0_0_0/aot_inference_graph_5.txt">-_0_0_0/aot_inference_graph_5.txt</a>  (5)</li>
+        
+            <li><a href="-_0_0_0/torch._functorch.config_6.txt">-_0_0_0/torch._functorch.config_6.txt</a>  (6)</li>
+        
+            <li><a href="-_0_0_0/fx_graph_runnable_7.txt">-_0_0_0/fx_graph_runnable_7.txt</a>  (7)</li>
+        
+            <li><a href="-_0_0_0/before_recompile_post_grad_8.txt">-_0_0_0/before_recompile_post_grad_8.txt</a>  (8)</li>
+        
+            <li><a href="-_0_0_0/after_recompile_post_grad_9.txt">-_0_0_0/after_recompile_post_grad_9.txt</a>  (9)</li>
+        
+            <li><a href="-_0_0_0/inductor_post_grad_graph_10.txt">-_0_0_0/inductor_post_grad_graph_10.txt</a>  (10)</li>
+        
+            <li><a href="-_0_0_0/inductor_output_code_c77x53vq3nmesbhjrhv4ifqyh3vmbbud3szudkcvxascsuyw2eg5_11.html">-_0_0_0/inductor_output_code_c77x53vq3nmesbhjrhv4ifqyh3vmbbud3szudkcvxascsuyw2eg5_11.html</a>  (11)</li>
+        
+            <li><a href="-_0_0_0/fx_graph_cache_bypass_12.json">-_0_0_0/fx_graph_cache_bypass_12.json</a> ❓ (12)</li>
+        
+            <li><a href="-_0_0_0/aotautograd_cache_bypass_13.json">-_0_0_0/aotautograd_cache_bypass_13.json</a> ❓ (13)</li>
+        
+            <li><a href="-_0_0_0/dynamo_cpp_guards_str_14.txt">-_0_0_0/dynamo_cpp_guards_str_14.txt</a>  (14)</li>
+        
+            <li><a href="-_0_0_0/compilation_metrics_15.html">-_0_0_0/compilation_metrics_15.html</a>  (15)</li>
+        
+    </ul>
+    </li>
+
+    <li><a id="[-/-]">[-/-]</a>
+    <ul>
+        
+    </ul>
+    </li>
+
+    <li><a id="[1/0]">[1/0]</a>
+    <ul>
+        
+            <li><a href="-_1_0_0/dynamo_output_graph_16.txt">-_1_0_0/dynamo_output_graph_16.txt</a>  (16)</li>
+        
+            <li><a href="-_1_0_0/inductor_pre_grad_graph_17.txt">-_1_0_0/inductor_pre_grad_graph_17.txt</a>  (17)</li>
+        
+            <li><a href="-_1_0_0/before_recompile_pre_grad_18.txt">-_1_0_0/before_recompile_pre_grad_18.txt</a>  (18)</li>
+        
+            <li><a href="-_1_0_0/after_recompile_pre_grad_19.txt">-_1_0_0/after_recompile_pre_grad_19.txt</a>  (19)</li>
+        
+            <li><a href="-_1_0_0/aot_forward_graph_fw_metadata_20.txt">-_1_0_0/aot_forward_graph_fw_metadata_20.txt</a>  (20)</li>
+        
+            <li><a href="-_1_0_0/aot_inference_graph_21.txt">-_1_0_0/aot_inference_graph_21.txt</a>  (21)</li>
+        
+            <li><a href="-_1_0_0/torch._functorch.config_22.txt">-_1_0_0/torch._functorch.config_22.txt</a>  (22)</li>
+        
+            <li><a href="-_1_0_0/fx_graph_runnable_23.txt">-_1_0_0/fx_graph_runnable_23.txt</a>  (23)</li>
+        
+            <li><a href="-_1_0_0/before_recompile_post_grad_24.txt">-_1_0_0/before_recompile_post_grad_24.txt</a>  (24)</li>
+        
+            <li><a href="-_1_0_0/after_recompile_post_grad_25.txt">-_1_0_0/after_recompile_post_grad_25.txt</a>  (25)</li>
+        
+            <li><a href="-_1_0_0/inductor_post_grad_graph_26.txt">-_1_0_0/inductor_post_grad_graph_26.txt</a>  (26)</li>
+        
+            <li><a href="-_1_0_0/inductor_output_code_c5n676ntrlsog2pumv3vw63i5mfvsppfjpo67hp6m423gpcppa5j_27.html">-_1_0_0/inductor_output_code_c5n676ntrlsog2pumv3vw63i5mfvsppfjpo67hp6m423gpcppa5j_27.html</a>  (27)</li>
+        
+            <li><a href="-_1_0_0/fx_graph_cache_bypass_28.json">-_1_0_0/fx_graph_cache_bypass_28.json</a> ❓ (28)</li>
+        
+            <li><a href="-_1_0_0/aotautograd_cache_bypass_29.json">-_1_0_0/aotautograd_cache_bypass_29.json</a> ❓ (29)</li>
+        
+            <li><a href="-_1_0_0/dynamo_cpp_guards_str_30.txt">-_1_0_0/dynamo_cpp_guards_str_30.txt</a>  (30)</li>
+        
+            <li><a href="-_1_0_0/compilation_metrics_31.html">-_1_0_0/compilation_metrics_31.html</a>  (31)</li>
+        
+    </ul>
+    </li>
+
+    <li><a id="[2/0]">[2/0]</a>
+    <ul>
+        
+            <li><a href="-_2_0_0/dynamo_output_graph_32.txt">-_2_0_0/dynamo_output_graph_32.txt</a>  (32)</li>
+        
+            <li><a href="-_2_0_0/inductor_pre_grad_graph_33.txt">-_2_0_0/inductor_pre_grad_graph_33.txt</a>  (33)</li>
+        
+            <li><a href="-_2_0_0/before_recompile_pre_grad_34.txt">-_2_0_0/before_recompile_pre_grad_34.txt</a>  (34)</li>
+        
+            <li><a href="-_2_0_0/after_recompile_pre_grad_35.txt">-_2_0_0/after_recompile_pre_grad_35.txt</a>  (35)</li>
+        
+            <li><a href="-_2_0_0/aot_forward_graph_fw_metadata_36.txt">-_2_0_0/aot_forward_graph_fw_metadata_36.txt</a>  (36)</li>
+        
+            <li><a href="-_2_0_0/aot_inference_graph_37.txt">-_2_0_0/aot_inference_graph_37.txt</a>  (37)</li>
+        
+            <li><a href="-_2_0_0/torch._functorch.config_38.txt">-_2_0_0/torch._functorch.config_38.txt</a>  (38)</li>
+        
+            <li><a href="-_2_0_0/fx_graph_runnable_39.txt">-_2_0_0/fx_graph_runnable_39.txt</a>  (39)</li>
+        
+            <li><a href="-_2_0_0/before_recompile_post_grad_40.txt">-_2_0_0/before_recompile_post_grad_40.txt</a>  (40)</li>
+        
+            <li><a href="-_2_0_0/after_recompile_post_grad_41.txt">-_2_0_0/after_recompile_post_grad_41.txt</a>  (41)</li>
+        
+            <li><a href="-_2_0_0/inductor_post_grad_graph_42.txt">-_2_0_0/inductor_post_grad_graph_42.txt</a>  (42)</li>
+        
+            <li><a href="-_2_0_0/inductor_output_code_ccft7wginee5igfzfakvzhkgsknuy2j6jp6pg6t342m54zjgkjyk_43.html">-_2_0_0/inductor_output_code_ccft7wginee5igfzfakvzhkgsknuy2j6jp6pg6t342m54zjgkjyk_43.html</a>  (43)</li>
+        
+            <li><a href="-_2_0_0/fx_graph_cache_bypass_44.json">-_2_0_0/fx_graph_cache_bypass_44.json</a> ❓ (44)</li>
+        
+            <li><a href="-_2_0_0/aotautograd_cache_bypass_45.json">-_2_0_0/aotautograd_cache_bypass_45.json</a> ❓ (45)</li>
+        
+            <li><a href="-_2_0_0/dynamo_cpp_guards_str_46.txt">-_2_0_0/dynamo_cpp_guards_str_46.txt</a>  (46)</li>
+        
+            <li><a href="-_2_0_0/compilation_metrics_47.html">-_2_0_0/compilation_metrics_47.html</a>  (47)</li>
+        
+    </ul>
+    </li>
+
+    <li><a id="[3/0]">[3/0]</a>
+    <ul>
+        
+            <li><a href="-_3_0_0/dynamo_output_graph_48.txt">-_3_0_0/dynamo_output_graph_48.txt</a>  (48)</li>
+        
+            <li><a href="-_3_0_0/inductor_pre_grad_graph_49.txt">-_3_0_0/inductor_pre_grad_graph_49.txt</a>  (49)</li>
+        
+            <li><a href="-_3_0_0/before_recompile_pre_grad_50.txt">-_3_0_0/before_recompile_pre_grad_50.txt</a>  (50)</li>
+        
+            <li><a href="-_3_0_0/after_recompile_pre_grad_51.txt">-_3_0_0/after_recompile_pre_grad_51.txt</a>  (51)</li>
+        
+            <li><a href="-_3_0_0/aot_forward_graph_fw_metadata_52.txt">-_3_0_0/aot_forward_graph_fw_metadata_52.txt</a>  (52)</li>
+        
+            <li><a href="-_3_0_0/aot_inference_graph_53.txt">-_3_0_0/aot_inference_graph_53.txt</a>  (53)</li>
+        
+            <li><a href="-_3_0_0/torch._functorch.config_54.txt">-_3_0_0/torch._functorch.config_54.txt</a>  (54)</li>
+        
+            <li><a href="-_3_0_0/fx_graph_runnable_55.txt">-_3_0_0/fx_graph_runnable_55.txt</a>  (55)</li>
+        
+            <li><a href="-_3_0_0/before_recompile_post_grad_56.txt">-_3_0_0/before_recompile_post_grad_56.txt</a>  (56)</li>
+        
+            <li><a href="-_3_0_0/after_recompile_post_grad_57.txt">-_3_0_0/after_recompile_post_grad_57.txt</a>  (57)</li>
+        
+            <li><a href="-_3_0_0/inductor_post_grad_graph_58.txt">-_3_0_0/inductor_post_grad_graph_58.txt</a>  (58)</li>
+        
+            <li><a href="-_3_0_0/inductor_output_code_cjdie3w3yw7my7p5uqsd5gqbfhm5tiaddppyloo6ju5jgupwb5q3_59.html">-_3_0_0/inductor_output_code_cjdie3w3yw7my7p5uqsd5gqbfhm5tiaddppyloo6ju5jgupwb5q3_59.html</a>  (59)</li>
+        
+            <li><a href="-_3_0_0/fx_graph_cache_bypass_60.json">-_3_0_0/fx_graph_cache_bypass_60.json</a> ❓ (60)</li>
+        
+            <li><a href="-_3_0_0/aotautograd_cache_bypass_61.json">-_3_0_0/aotautograd_cache_bypass_61.json</a> ❓ (61)</li>
+        
+            <li><a href="-_3_0_0/dynamo_cpp_guards_str_62.txt">-_3_0_0/dynamo_cpp_guards_str_62.txt</a>  (62)</li>
+        
+            <li><a href="-_3_0_0/compilation_metrics_63.html">-_3_0_0/compilation_metrics_63.html</a>  (63)</li>
+        
+    </ul>
+    </li>
+
+    <li><a id="[4/0]">[4/0]</a>
+    <ul>
+        
+            <li><a href="-_4_0_0/dynamo_output_graph_64.txt">-_4_0_0/dynamo_output_graph_64.txt</a>  (64)</li>
+        
+            <li><a href="-_4_0_0/inductor_pre_grad_graph_65.txt">-_4_0_0/inductor_pre_grad_graph_65.txt</a>  (65)</li>
+        
+            <li><a href="-_4_0_0/before_recompile_pre_grad_66.txt">-_4_0_0/before_recompile_pre_grad_66.txt</a>  (66)</li>
+        
+            <li><a href="-_4_0_0/after_recompile_pre_grad_67.txt">-_4_0_0/after_recompile_pre_grad_67.txt</a>  (67)</li>
+        
+            <li><a href="-_4_0_0/aot_forward_graph_fw_metadata_68.txt">-_4_0_0/aot_forward_graph_fw_metadata_68.txt</a>  (68)</li>
+        
+            <li><a href="-_4_0_0/aot_inference_graph_69.txt">-_4_0_0/aot_inference_graph_69.txt</a>  (69)</li>
+        
+            <li><a href="-_4_0_0/torch._functorch.config_70.txt">-_4_0_0/torch._functorch.config_70.txt</a>  (70)</li>
+        
+            <li><a href="-_4_0_0/fx_graph_runnable_71.txt">-_4_0_0/fx_graph_runnable_71.txt</a>  (71)</li>
+        
+            <li><a href="-_4_0_0/before_recompile_post_grad_72.txt">-_4_0_0/before_recompile_post_grad_72.txt</a>  (72)</li>
+        
+            <li><a href="-_4_0_0/after_recompile_post_grad_73.txt">-_4_0_0/after_recompile_post_grad_73.txt</a>  (73)</li>
+        
+            <li><a href="-_4_0_0/inductor_post_grad_graph_74.txt">-_4_0_0/inductor_post_grad_graph_74.txt</a>  (74)</li>
+        
+            <li><a href="-_4_0_0/inductor_output_code_cepvq53snd6rfqc7lpd4ukugxigba6dafxruzch2ytbvkmhpfuls_75.html">-_4_0_0/inductor_output_code_cepvq53snd6rfqc7lpd4ukugxigba6dafxruzch2ytbvkmhpfuls_75.html</a>  (75)</li>
+        
+            <li><a href="-_4_0_0/fx_graph_cache_bypass_76.json">-_4_0_0/fx_graph_cache_bypass_76.json</a> ❓ (76)</li>
+        
+            <li><a href="-_4_0_0/aotautograd_cache_bypass_77.json">-_4_0_0/aotautograd_cache_bypass_77.json</a> ❓ (77)</li>
+        
+            <li><a href="-_4_0_0/dynamo_cpp_guards_str_78.txt">-_4_0_0/dynamo_cpp_guards_str_78.txt</a>  (78)</li>
+        
+            <li><a href="-_4_0_0/compilation_metrics_79.html">-_4_0_0/compilation_metrics_79.html</a>  (79)</li>
+        
+    </ul>
+    </li>
+
+    <li><a id="[5/0]">[5/0]</a>
+    <ul>
+        
+            <li><a href="-_5_0_0/dynamo_output_graph_80.txt">-_5_0_0/dynamo_output_graph_80.txt</a>  (80)</li>
+        
+            <li><a href="-_5_0_0/inductor_pre_grad_graph_81.txt">-_5_0_0/inductor_pre_grad_graph_81.txt</a>  (81)</li>
+        
+            <li><a href="-_5_0_0/before_recompile_pre_grad_82.txt">-_5_0_0/before_recompile_pre_grad_82.txt</a>  (82)</li>
+        
+            <li><a href="-_5_0_0/after_recompile_pre_grad_83.txt">-_5_0_0/after_recompile_pre_grad_83.txt</a>  (83)</li>
+        
+            <li><a href="-_5_0_0/aot_forward_graph_fw_metadata_84.txt">-_5_0_0/aot_forward_graph_fw_metadata_84.txt</a>  (84)</li>
+        
+            <li><a href="-_5_0_0/aot_inference_graph_85.txt">-_5_0_0/aot_inference_graph_85.txt</a>  (85)</li>
+        
+            <li><a href="-_5_0_0/torch._functorch.config_86.txt">-_5_0_0/torch._functorch.config_86.txt</a>  (86)</li>
+        
+            <li><a href="-_5_0_0/fx_graph_runnable_87.txt">-_5_0_0/fx_graph_runnable_87.txt</a>  (87)</li>
+        
+            <li><a href="-_5_0_0/before_recompile_post_grad_88.txt">-_5_0_0/before_recompile_post_grad_88.txt</a>  (88)</li>
+        
+            <li><a href="-_5_0_0/after_recompile_post_grad_89.txt">-_5_0_0/after_recompile_post_grad_89.txt</a>  (89)</li>
+        
+            <li><a href="-_5_0_0/inductor_post_grad_graph_90.txt">-_5_0_0/inductor_post_grad_graph_90.txt</a>  (90)</li>
+        
+            <li><a href="-_5_0_0/inductor_output_code_ckhpcl3vwx7g7hfhm2ipb3i4avna767q7woi3pn6c6clw2klq3we_91.html">-_5_0_0/inductor_output_code_ckhpcl3vwx7g7hfhm2ipb3i4avna767q7woi3pn6c6clw2klq3we_91.html</a>  (91)</li>
+        
+            <li><a href="-_5_0_0/fx_graph_cache_bypass_92.json">-_5_0_0/fx_graph_cache_bypass_92.json</a> ❓ (92)</li>
+        
+            <li><a href="-_5_0_0/aotautograd_cache_bypass_93.json">-_5_0_0/aotautograd_cache_bypass_93.json</a> ❓ (93)</li>
+        
+            <li><a href="-_5_0_0/dynamo_cpp_guards_str_94.txt">-_5_0_0/dynamo_cpp_guards_str_94.txt</a>  (94)</li>
+        
+            <li><a href="-_5_0_0/compilation_metrics_95.html">-_5_0_0/compilation_metrics_95.html</a>  (95)</li>
+        
+    </ul>
+    </li>
+
+</ul>
+</div>
+
+
+
+
+
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+        // Append the current URL's query parameters to all relative links on the page
+        const queryParams = new URLSearchParams(window.location.search);
+        if (queryParams.size === 0) return url; // No query params, return original URL
+
+        function appendQueryParams(url) {
+            const newURL = new URL((new Request(url)).url);  // new URL(<relative URL>) but it actually works
+            const newSearchParams = new URLSearchParams(newURL.searchParams);
+            console.log(newURL.searchParams);
+            console.log(newSearchParams);
+
+            // Append query parameters
+            for (const [key, value] of queryParams) {
+                newSearchParams.set(key, value);
+            }
+
+            newURL.search = newSearchParams;
+            return newURL;
+        }
+
+        // Select all relative links on the page
+        const relativeLinks = document.querySelectorAll('a[href]:not([href^="http://"]):not([href^="https://"]):not([href^="\#"])');
+
+        // Append query parameters to each relative link
+        relativeLinks.forEach((link) => {
+            link.setAttribute("href", appendQueryParams(link.getAttribute("href")))
+        });
+    });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,701 @@
+{
+  "[-/-]": {
+    "artifacts": []
+  },
+  "[0/0]": {
+    "artifacts": [
+      {
+        "name": "dynamo_output_graph_0.txt",
+        "number": 0,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_0_0_0/dynamo_output_graph_0.txt"
+      },
+      {
+        "name": "inductor_pre_grad_graph_1.txt",
+        "number": 1,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_0_0_0/inductor_pre_grad_graph_1.txt"
+      },
+      {
+        "name": "before_recompile_pre_grad_2.txt",
+        "number": 2,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_0_0_0/before_recompile_pre_grad_2.txt"
+      },
+      {
+        "name": "after_recompile_pre_grad_3.txt",
+        "number": 3,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_0_0_0/after_recompile_pre_grad_3.txt"
+      },
+      {
+        "name": "aot_forward_graph_fw_metadata_4.txt",
+        "number": 4,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_0_0_0/aot_forward_graph_fw_metadata_4.txt"
+      },
+      {
+        "name": "aot_inference_graph_5.txt",
+        "number": 5,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_0_0_0/aot_inference_graph_5.txt"
+      },
+      {
+        "name": "torch._functorch.config_6.txt",
+        "number": 6,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_0_0_0/torch._functorch.config_6.txt"
+      },
+      {
+        "name": "fx_graph_runnable_7.txt",
+        "number": 7,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_0_0_0/fx_graph_runnable_7.txt"
+      },
+      {
+        "name": "before_recompile_post_grad_8.txt",
+        "number": 8,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_0_0_0/before_recompile_post_grad_8.txt"
+      },
+      {
+        "name": "after_recompile_post_grad_9.txt",
+        "number": 9,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_0_0_0/after_recompile_post_grad_9.txt"
+      },
+      {
+        "name": "inductor_post_grad_graph_10.txt",
+        "number": 10,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_0_0_0/inductor_post_grad_graph_10.txt"
+      },
+      {
+        "name": "inductor_output_code_c77x53vq3nmesbhjrhv4ifqyh3vmbbud3szudkcvxascsuyw2eg5_11.html",
+        "number": 11,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_0_0_0/inductor_output_code_c77x53vq3nmesbhjrhv4ifqyh3vmbbud3szudkcvxascsuyw2eg5_11.html"
+      },
+      {
+        "name": "fx_graph_cache_bypass_12.json",
+        "number": 12,
+        "readable_url": null,
+        "suffix": "❓",
+        "url": "-_0_0_0/fx_graph_cache_bypass_12.json"
+      },
+      {
+        "name": "aotautograd_cache_bypass_13.json",
+        "number": 13,
+        "readable_url": null,
+        "suffix": "❓",
+        "url": "-_0_0_0/aotautograd_cache_bypass_13.json"
+      },
+      {
+        "name": "dynamo_cpp_guards_str_14.txt",
+        "number": 14,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_0_0_0/dynamo_cpp_guards_str_14.txt"
+      },
+      {
+        "name": "compilation_metrics_15.html",
+        "number": 15,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_0_0_0/compilation_metrics_15.html"
+      }
+    ]
+  },
+  "[1/0]": {
+    "artifacts": [
+      {
+        "name": "dynamo_output_graph_16.txt",
+        "number": 16,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_1_0_0/dynamo_output_graph_16.txt"
+      },
+      {
+        "name": "inductor_pre_grad_graph_17.txt",
+        "number": 17,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_1_0_0/inductor_pre_grad_graph_17.txt"
+      },
+      {
+        "name": "before_recompile_pre_grad_18.txt",
+        "number": 18,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_1_0_0/before_recompile_pre_grad_18.txt"
+      },
+      {
+        "name": "after_recompile_pre_grad_19.txt",
+        "number": 19,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_1_0_0/after_recompile_pre_grad_19.txt"
+      },
+      {
+        "name": "aot_forward_graph_fw_metadata_20.txt",
+        "number": 20,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_1_0_0/aot_forward_graph_fw_metadata_20.txt"
+      },
+      {
+        "name": "aot_inference_graph_21.txt",
+        "number": 21,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_1_0_0/aot_inference_graph_21.txt"
+      },
+      {
+        "name": "torch._functorch.config_22.txt",
+        "number": 22,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_1_0_0/torch._functorch.config_22.txt"
+      },
+      {
+        "name": "fx_graph_runnable_23.txt",
+        "number": 23,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_1_0_0/fx_graph_runnable_23.txt"
+      },
+      {
+        "name": "before_recompile_post_grad_24.txt",
+        "number": 24,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_1_0_0/before_recompile_post_grad_24.txt"
+      },
+      {
+        "name": "after_recompile_post_grad_25.txt",
+        "number": 25,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_1_0_0/after_recompile_post_grad_25.txt"
+      },
+      {
+        "name": "inductor_post_grad_graph_26.txt",
+        "number": 26,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_1_0_0/inductor_post_grad_graph_26.txt"
+      },
+      {
+        "name": "inductor_output_code_c5n676ntrlsog2pumv3vw63i5mfvsppfjpo67hp6m423gpcppa5j_27.html",
+        "number": 27,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_1_0_0/inductor_output_code_c5n676ntrlsog2pumv3vw63i5mfvsppfjpo67hp6m423gpcppa5j_27.html"
+      },
+      {
+        "name": "fx_graph_cache_bypass_28.json",
+        "number": 28,
+        "readable_url": null,
+        "suffix": "❓",
+        "url": "-_1_0_0/fx_graph_cache_bypass_28.json"
+      },
+      {
+        "name": "aotautograd_cache_bypass_29.json",
+        "number": 29,
+        "readable_url": null,
+        "suffix": "❓",
+        "url": "-_1_0_0/aotautograd_cache_bypass_29.json"
+      },
+      {
+        "name": "dynamo_cpp_guards_str_30.txt",
+        "number": 30,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_1_0_0/dynamo_cpp_guards_str_30.txt"
+      },
+      {
+        "name": "compilation_metrics_31.html",
+        "number": 31,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_1_0_0/compilation_metrics_31.html"
+      }
+    ]
+  },
+  "[2/0]": {
+    "artifacts": [
+      {
+        "name": "dynamo_output_graph_32.txt",
+        "number": 32,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_2_0_0/dynamo_output_graph_32.txt"
+      },
+      {
+        "name": "inductor_pre_grad_graph_33.txt",
+        "number": 33,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_2_0_0/inductor_pre_grad_graph_33.txt"
+      },
+      {
+        "name": "before_recompile_pre_grad_34.txt",
+        "number": 34,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_2_0_0/before_recompile_pre_grad_34.txt"
+      },
+      {
+        "name": "after_recompile_pre_grad_35.txt",
+        "number": 35,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_2_0_0/after_recompile_pre_grad_35.txt"
+      },
+      {
+        "name": "aot_forward_graph_fw_metadata_36.txt",
+        "number": 36,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_2_0_0/aot_forward_graph_fw_metadata_36.txt"
+      },
+      {
+        "name": "aot_inference_graph_37.txt",
+        "number": 37,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_2_0_0/aot_inference_graph_37.txt"
+      },
+      {
+        "name": "torch._functorch.config_38.txt",
+        "number": 38,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_2_0_0/torch._functorch.config_38.txt"
+      },
+      {
+        "name": "fx_graph_runnable_39.txt",
+        "number": 39,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_2_0_0/fx_graph_runnable_39.txt"
+      },
+      {
+        "name": "before_recompile_post_grad_40.txt",
+        "number": 40,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_2_0_0/before_recompile_post_grad_40.txt"
+      },
+      {
+        "name": "after_recompile_post_grad_41.txt",
+        "number": 41,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_2_0_0/after_recompile_post_grad_41.txt"
+      },
+      {
+        "name": "inductor_post_grad_graph_42.txt",
+        "number": 42,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_2_0_0/inductor_post_grad_graph_42.txt"
+      },
+      {
+        "name": "inductor_output_code_ccft7wginee5igfzfakvzhkgsknuy2j6jp6pg6t342m54zjgkjyk_43.html",
+        "number": 43,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_2_0_0/inductor_output_code_ccft7wginee5igfzfakvzhkgsknuy2j6jp6pg6t342m54zjgkjyk_43.html"
+      },
+      {
+        "name": "fx_graph_cache_bypass_44.json",
+        "number": 44,
+        "readable_url": null,
+        "suffix": "❓",
+        "url": "-_2_0_0/fx_graph_cache_bypass_44.json"
+      },
+      {
+        "name": "aotautograd_cache_bypass_45.json",
+        "number": 45,
+        "readable_url": null,
+        "suffix": "❓",
+        "url": "-_2_0_0/aotautograd_cache_bypass_45.json"
+      },
+      {
+        "name": "dynamo_cpp_guards_str_46.txt",
+        "number": 46,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_2_0_0/dynamo_cpp_guards_str_46.txt"
+      },
+      {
+        "name": "compilation_metrics_47.html",
+        "number": 47,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_2_0_0/compilation_metrics_47.html"
+      }
+    ]
+  },
+  "[3/0]": {
+    "artifacts": [
+      {
+        "name": "dynamo_output_graph_48.txt",
+        "number": 48,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_3_0_0/dynamo_output_graph_48.txt"
+      },
+      {
+        "name": "inductor_pre_grad_graph_49.txt",
+        "number": 49,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_3_0_0/inductor_pre_grad_graph_49.txt"
+      },
+      {
+        "name": "before_recompile_pre_grad_50.txt",
+        "number": 50,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_3_0_0/before_recompile_pre_grad_50.txt"
+      },
+      {
+        "name": "after_recompile_pre_grad_51.txt",
+        "number": 51,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_3_0_0/after_recompile_pre_grad_51.txt"
+      },
+      {
+        "name": "aot_forward_graph_fw_metadata_52.txt",
+        "number": 52,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_3_0_0/aot_forward_graph_fw_metadata_52.txt"
+      },
+      {
+        "name": "aot_inference_graph_53.txt",
+        "number": 53,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_3_0_0/aot_inference_graph_53.txt"
+      },
+      {
+        "name": "torch._functorch.config_54.txt",
+        "number": 54,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_3_0_0/torch._functorch.config_54.txt"
+      },
+      {
+        "name": "fx_graph_runnable_55.txt",
+        "number": 55,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_3_0_0/fx_graph_runnable_55.txt"
+      },
+      {
+        "name": "before_recompile_post_grad_56.txt",
+        "number": 56,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_3_0_0/before_recompile_post_grad_56.txt"
+      },
+      {
+        "name": "after_recompile_post_grad_57.txt",
+        "number": 57,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_3_0_0/after_recompile_post_grad_57.txt"
+      },
+      {
+        "name": "inductor_post_grad_graph_58.txt",
+        "number": 58,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_3_0_0/inductor_post_grad_graph_58.txt"
+      },
+      {
+        "name": "inductor_output_code_cjdie3w3yw7my7p5uqsd5gqbfhm5tiaddppyloo6ju5jgupwb5q3_59.html",
+        "number": 59,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_3_0_0/inductor_output_code_cjdie3w3yw7my7p5uqsd5gqbfhm5tiaddppyloo6ju5jgupwb5q3_59.html"
+      },
+      {
+        "name": "fx_graph_cache_bypass_60.json",
+        "number": 60,
+        "readable_url": null,
+        "suffix": "❓",
+        "url": "-_3_0_0/fx_graph_cache_bypass_60.json"
+      },
+      {
+        "name": "aotautograd_cache_bypass_61.json",
+        "number": 61,
+        "readable_url": null,
+        "suffix": "❓",
+        "url": "-_3_0_0/aotautograd_cache_bypass_61.json"
+      },
+      {
+        "name": "dynamo_cpp_guards_str_62.txt",
+        "number": 62,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_3_0_0/dynamo_cpp_guards_str_62.txt"
+      },
+      {
+        "name": "compilation_metrics_63.html",
+        "number": 63,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_3_0_0/compilation_metrics_63.html"
+      }
+    ]
+  },
+  "[4/0]": {
+    "artifacts": [
+      {
+        "name": "dynamo_output_graph_64.txt",
+        "number": 64,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_4_0_0/dynamo_output_graph_64.txt"
+      },
+      {
+        "name": "inductor_pre_grad_graph_65.txt",
+        "number": 65,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_4_0_0/inductor_pre_grad_graph_65.txt"
+      },
+      {
+        "name": "before_recompile_pre_grad_66.txt",
+        "number": 66,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_4_0_0/before_recompile_pre_grad_66.txt"
+      },
+      {
+        "name": "after_recompile_pre_grad_67.txt",
+        "number": 67,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_4_0_0/after_recompile_pre_grad_67.txt"
+      },
+      {
+        "name": "aot_forward_graph_fw_metadata_68.txt",
+        "number": 68,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_4_0_0/aot_forward_graph_fw_metadata_68.txt"
+      },
+      {
+        "name": "aot_inference_graph_69.txt",
+        "number": 69,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_4_0_0/aot_inference_graph_69.txt"
+      },
+      {
+        "name": "torch._functorch.config_70.txt",
+        "number": 70,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_4_0_0/torch._functorch.config_70.txt"
+      },
+      {
+        "name": "fx_graph_runnable_71.txt",
+        "number": 71,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_4_0_0/fx_graph_runnable_71.txt"
+      },
+      {
+        "name": "before_recompile_post_grad_72.txt",
+        "number": 72,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_4_0_0/before_recompile_post_grad_72.txt"
+      },
+      {
+        "name": "after_recompile_post_grad_73.txt",
+        "number": 73,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_4_0_0/after_recompile_post_grad_73.txt"
+      },
+      {
+        "name": "inductor_post_grad_graph_74.txt",
+        "number": 74,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_4_0_0/inductor_post_grad_graph_74.txt"
+      },
+      {
+        "name": "inductor_output_code_cepvq53snd6rfqc7lpd4ukugxigba6dafxruzch2ytbvkmhpfuls_75.html",
+        "number": 75,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_4_0_0/inductor_output_code_cepvq53snd6rfqc7lpd4ukugxigba6dafxruzch2ytbvkmhpfuls_75.html"
+      },
+      {
+        "name": "fx_graph_cache_bypass_76.json",
+        "number": 76,
+        "readable_url": null,
+        "suffix": "❓",
+        "url": "-_4_0_0/fx_graph_cache_bypass_76.json"
+      },
+      {
+        "name": "aotautograd_cache_bypass_77.json",
+        "number": 77,
+        "readable_url": null,
+        "suffix": "❓",
+        "url": "-_4_0_0/aotautograd_cache_bypass_77.json"
+      },
+      {
+        "name": "dynamo_cpp_guards_str_78.txt",
+        "number": 78,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_4_0_0/dynamo_cpp_guards_str_78.txt"
+      },
+      {
+        "name": "compilation_metrics_79.html",
+        "number": 79,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_4_0_0/compilation_metrics_79.html"
+      }
+    ]
+  },
+  "[5/0]": {
+    "artifacts": [
+      {
+        "name": "dynamo_output_graph_80.txt",
+        "number": 80,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_5_0_0/dynamo_output_graph_80.txt"
+      },
+      {
+        "name": "inductor_pre_grad_graph_81.txt",
+        "number": 81,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_5_0_0/inductor_pre_grad_graph_81.txt"
+      },
+      {
+        "name": "before_recompile_pre_grad_82.txt",
+        "number": 82,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_5_0_0/before_recompile_pre_grad_82.txt"
+      },
+      {
+        "name": "after_recompile_pre_grad_83.txt",
+        "number": 83,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_5_0_0/after_recompile_pre_grad_83.txt"
+      },
+      {
+        "name": "aot_forward_graph_fw_metadata_84.txt",
+        "number": 84,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_5_0_0/aot_forward_graph_fw_metadata_84.txt"
+      },
+      {
+        "name": "aot_inference_graph_85.txt",
+        "number": 85,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_5_0_0/aot_inference_graph_85.txt"
+      },
+      {
+        "name": "torch._functorch.config_86.txt",
+        "number": 86,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_5_0_0/torch._functorch.config_86.txt"
+      },
+      {
+        "name": "fx_graph_runnable_87.txt",
+        "number": 87,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_5_0_0/fx_graph_runnable_87.txt"
+      },
+      {
+        "name": "before_recompile_post_grad_88.txt",
+        "number": 88,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_5_0_0/before_recompile_post_grad_88.txt"
+      },
+      {
+        "name": "after_recompile_post_grad_89.txt",
+        "number": 89,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_5_0_0/after_recompile_post_grad_89.txt"
+      },
+      {
+        "name": "inductor_post_grad_graph_90.txt",
+        "number": 90,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_5_0_0/inductor_post_grad_graph_90.txt"
+      },
+      {
+        "name": "inductor_output_code_ckhpcl3vwx7g7hfhm2ipb3i4avna767q7woi3pn6c6clw2klq3we_91.html",
+        "number": 91,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_5_0_0/inductor_output_code_ckhpcl3vwx7g7hfhm2ipb3i4avna767q7woi3pn6c6clw2klq3we_91.html"
+      },
+      {
+        "name": "fx_graph_cache_bypass_92.json",
+        "number": 92,
+        "readable_url": null,
+        "suffix": "❓",
+        "url": "-_5_0_0/fx_graph_cache_bypass_92.json"
+      },
+      {
+        "name": "aotautograd_cache_bypass_93.json",
+        "number": 93,
+        "readable_url": null,
+        "suffix": "❓",
+        "url": "-_5_0_0/aotautograd_cache_bypass_93.json"
+      },
+      {
+        "name": "dynamo_cpp_guards_str_94.txt",
+        "number": 94,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_5_0_0/dynamo_cpp_guards_str_94.txt"
+      },
+      {
+        "name": "compilation_metrics_95.html",
+        "number": 95,
+        "readable_url": null,
+        "suffix": "",
+        "url": "-_5_0_0/compilation_metrics_95.html"
+      }
+    ]
+  }
+}
