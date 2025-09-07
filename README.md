@@ -32,7 +32,7 @@ where, some useful options are: dynamic,guards,recompiles,perf_hints,fusion
 ,or,
 ```
 TORCH_TRACE="/log/compile" python -m low_bit_inference.torchinductor configs/profile_inductor.yaml tps_only=True skip_first=1 wait=1 warmup=0 active=1
-tlparse /log/compile
+tlparse /log/compile --overwrite
 ```
 
 ## Run benchmark:
