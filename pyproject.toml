@@ -21,6 +21,7 @@ dependencies = [
     "tensorboard-data-server",
     "torch-tb-profiler",
     "omegaconf",
+    "tlparse",
 ]
 
 [dependency-groups]
