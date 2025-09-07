@@ -32,8 +32,8 @@ torch._inductor.config.triton.cudagraphs = True
 torch._inductor.config.benchmark_fusion = True
 torch._inductor.config.freezing = True
 
-model = torch.autoquant(model, set_inductor_config=False)
-past_key_values = torch.autoquant(past_key_values, set_inductor_config=False)
+model = torchao.autoquant(model, set_inductor_config=False)
+past_key_values = torchao.autoquant(past_key_values, set_inductor_config=False)
 model = model.to(config.device)
 print("Model moved to GPU, starting profiling.")
 

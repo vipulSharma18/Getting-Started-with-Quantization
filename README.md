@@ -21,6 +21,20 @@ model, tokenizer, prompt, past_key_values = load_model_tokenizer_prompt_cache(co
 tokenized_prompt = tokenizer([config.prompt], return_tensors="pt").to(config.device)
 ```
 
+Dynamo debugging:
+-----------------
+Either:
+```
+TORCH_LOGS="<option1>,<option2>" python -m low_bit_inference.torchinductor configs/profile_inductor.yaml tps_only=True skip_first=1 wait=1 warmup=0 active=1
+```
+where, some useful options are: dynamic,guards,recompiles,perf_hints,fusion
+
+,or,
+```
+TORCH_TRACE="/log/compile" python -m low_bit_inference.torchinductor configs/profile_inductor.yaml tps_only=True skip_first=1 wait=1 warmup=0 active=1
+tlparse /log/compile
+```
+
 ## Run benchmark:
 > Note: Run without tps_only=True to get trace of CPU and GPU kernels.
 
