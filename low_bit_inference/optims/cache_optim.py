@@ -116,13 +116,6 @@ class StaticLayer(CacheLayerMixin):
             dtype=self.dtype,
             device=self.device,
         )
-        # Note: `mark_static_address` is used to tag the cache as a fixed data pointer, preventing compiled graph
-        # breaks when updating the cache. However, it is not supported when tracing the graph, so we skip it in this case.
-        # As prefill should never be compiled, this is not an issue and it will still be run (except when users compile
-        # prefill explicitly, but this should be avoided!)
-        if not torch.compiler.is_compiling():
-            torch._dynamo.mark_static_address(self.keys)
-            torch._dynamo.mark_static_address(self.values)
 
     def update(
         self,
@@ -347,6 +340,8 @@ class Cache:
         """Recursively reset all layers tensors"""
         for layer_idx in range(len(self.layers)):
             self.layers[layer_idx].reset()
+            self.layers[layer_idx].keys = torch.clone(self.layers[layer_idx].keys).to(self.layers[layer_idx].keys.device)
+            self.layers[layer_idx].values = torch.clone(self.layers[layer_idx].values).to(self.layers[layer_idx].values.device)
 
     def reorder_cache(self, beam_idx: torch.LongTensor):
         """Reorder the cache for beam search"""
