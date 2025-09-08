@@ -114,6 +114,8 @@ python -m low_bit_inference.torchinductor_fp8 configs/profile_inductor.yaml tps_
 [1] A. Hoque, L. Wright, C.-C. Yang, M. Srivatsa, and R. Ganti, “Accelerating a Triton Fused Kernel for W4A16 Quantized Inference with SplitK work decomposition,” Feb. 22, 2024, arXiv: arXiv:2402.00025. doi: 10.48550/arXiv.2402.00025.    
 [2] “Accelerating LLM Inference with GemLite, TorchAO and SGLang – PyTorch.” Accessed: Aug. 19, 2025. [Online]. Available: https://pytorch.org/blog/accelerating-llm-inference/    
 [3] M. Dehghankar, M. Erfanian, and A. Asudeh, “An Efficient Matrix Multiplication Algorithm for Accelerating Inference in Binary and Ternary Neural Networks,” May 02, 2025, arXiv: arXiv:2411.06360. doi: 10.48550/arXiv.2411.06360.    
-[4] S. Bekman, stas00/ml-engineering. (Aug. 20, 2025). Python. Accessed: Aug. 20, 2025. [Online]. Available: https://github.com/stas00/ml-engineering    
-[5] https://github.com/meta-pytorch/gpt-fast
-[6] https://pytorch.org/blog/accelerating-generative-ai-2/
+[4] S. Bekman, stas00/ml-engineering. (Aug. 20, 2025). Python. Accessed: Aug. 20, 2025. [Online]. Available: https://github.com/stas00/ml-engineering          
+[5] https://github.com/meta-pytorch/gpt-fast                    
+[6] https://pytorch.org/blog/accelerating-generative-ai-2/                 
+[7] https://huggingface.co/blog/kv-cache      
+[8] https://github.com/pytorch/pytorch/issues/157950
