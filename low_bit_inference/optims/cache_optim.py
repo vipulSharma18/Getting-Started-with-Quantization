@@ -59,8 +59,8 @@ class CacheLayerMixin(ABC):
     def reset(self) -> None:
         """Resets the cache values while preserving the objects"""
         if self.keys is not None:
-            self.keys.zero_()
-            self.values.zero_()
+            self.keys = torch.zeros_like(self.keys)
+            self.values = torch.zeros_like(self.values)
         # This attribute is set on several Layers
         if hasattr(self, "cumulative_length"):
             self.cumulative_length = 0
@@ -145,14 +145,8 @@ class StaticLayer(CacheLayerMixin):
             cache_position if cache_position is not None else torch.arange(key_states.shape[-2], device=self.device)
         )
 
-        # Update the cache
-        try:
-            self.keys.index_copy_(2, cache_position, key_states)
-            self.values.index_copy_(2, cache_position, value_states)
-        except NotImplementedError:
-            # Fallback for devices like MPS where index_copy_ might not be supported.
-            self.keys[:, :, cache_position] = key_states
-            self.values[:, :, cache_position] = value_states
+        self.keys[:, :, cache_position] = key_states
+        self.values[:, :, cache_position] = value_states
         return self.keys, self.values
 
     def get_mask_sizes(self, cache_position: torch.Tensor) -> tuple[int, int]:
