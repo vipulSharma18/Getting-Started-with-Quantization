@@ -126,6 +126,7 @@ class StaticLayer(CacheLayerMixin):
             device=self.device,
         )
 
+    @torch.compile(mode="max-autotune", fullgraph=True)
     def update(
         self,
         key_states: torch.Tensor,
@@ -251,6 +252,7 @@ class Cache:
         if not (only_non_sliding and self.is_sliding[layer_idx]):
             self.layers[layer_idx].offload()
 
+    @torch.compile(mode="max-autotune", fullgraph=True)
     def update(
         self,
         key_states: torch.Tensor,
@@ -474,6 +476,13 @@ class StaticCache(Cache):
             layers.append(layer)
 
         super().__init__(layers=layers, offloading=offloading, offload_only_non_sliding=offload_only_non_sliding)
+        self.early_initialization(
+            batch_size=1,
+            num_heads=config.num_key_value_heads,
+            head_dim=config.head_dim,
+            dtype=kwargs["dtype"],
+            device=kwargs["device"],
+        )
 
 
 def setup_cache(cache_size, model_config, profile_config):
@@ -484,10 +493,4 @@ def setup_cache(cache_size, model_config, profile_config):
         device=profile_config.device,
         dtype=to_torch_dtype(profile_config.compute_dtype)
     )
-    past_key_values.early_initialization(
-        batch_size=1,
-        num_heads=model_config.num_key_value_heads,
-        head_dim=model_config.head_dim,
-        dtype=to_torch_dtype(profile_config.compute_dtype),
-        device=profile_config.device)
     return past_key_values
