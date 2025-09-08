@@ -302,6 +302,8 @@ class Cache:
         # Note that the initialization needs all dimensions (except -2), as well as device and dtype, so we use
         # this fake tensor approach. It has size 0 on the -2 dimension, so it does not allocate any data (it only
         # creates an empty tensor with correct shape, dtype and device), which is very efficient and practical
+        
+        # note: len passed here is 0, but during init it will use max cache len attribute of class and set it to constant size
         fake_keys_tensor = torch.zeros((batch_size, num_heads, 0, head_dim), dtype=dtype, device=device)
         # Init all layers
         for layer in self.layers:
