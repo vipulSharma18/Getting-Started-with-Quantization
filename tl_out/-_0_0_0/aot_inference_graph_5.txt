@@ -136,11 +136,11 @@ class <lambda>(torch.nn.Module):
         full_1: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.full.default([1, 8, arg12_1, 128], 0, dtype = torch.float16, layout = torch.strided, device = device(type='cuda', index=0), pin_memory = False);  arg12_1 = None
         alias_8: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(full_1);  full_1 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_7, [None, None, arg3_1], add_159);  alias_7 = add_159 = None
         alias_9: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put)
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_1: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_8, [None, None, arg3_1], permute_6);  alias_8 = permute_6 = None
         alias_10: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_1)
         
@@ -331,11 +331,11 @@ class <lambda>(torch.nn.Module):
         full_3: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.full.default([1, 8, arg22_1, 128], 0, dtype = torch.float16, layout = torch.strided, device = device(type='cuda', index=0), pin_memory = False);  arg22_1 = None
         alias_27: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(full_3);  full_3 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_2: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_26, [None, None, arg3_1], add_488);  alias_26 = add_488 = None
         alias_28: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_2)
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_3: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_27, [None, None, arg3_1], permute_17);  alias_27 = permute_17 = None
         alias_29: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_3)
         
@@ -526,11 +526,11 @@ class <lambda>(torch.nn.Module):
         full_5: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.full.default([1, 8, arg32_1, 128], 0, dtype = torch.float16, layout = torch.strided, device = device(type='cuda', index=0), pin_memory = False);  arg32_1 = None
         alias_46: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(full_5);  full_5 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_4: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_45, [None, None, arg3_1], add_817);  alias_45 = add_817 = None
         alias_47: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_4)
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_5: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_46, [None, None, arg3_1], permute_28);  alias_46 = permute_28 = None
         alias_48: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_5)
         
@@ -721,11 +721,11 @@ class <lambda>(torch.nn.Module):
         full_7: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.full.default([1, 8, arg42_1, 128], 0, dtype = torch.float16, layout = torch.strided, device = device(type='cuda', index=0), pin_memory = False);  arg42_1 = None
         alias_65: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(full_7);  full_7 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_6: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_64, [None, None, arg3_1], add_1146);  alias_64 = add_1146 = None
         alias_66: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_6)
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_7: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_65, [None, None, arg3_1], permute_39);  alias_65 = permute_39 = None
         alias_67: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_7)
         
@@ -916,11 +916,11 @@ class <lambda>(torch.nn.Module):
         full_9: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.full.default([1, 8, arg52_1, 128], 0, dtype = torch.float16, layout = torch.strided, device = device(type='cuda', index=0), pin_memory = False);  arg52_1 = None
         alias_84: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(full_9);  full_9 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_8: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_83, [None, None, arg3_1], add_1475);  alias_83 = add_1475 = None
         alias_85: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_8)
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_9: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_84, [None, None, arg3_1], permute_50);  alias_84 = permute_50 = None
         alias_86: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_9)
         
@@ -1111,11 +1111,11 @@ class <lambda>(torch.nn.Module):
         full_11: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.full.default([1, 8, arg62_1, 128], 0, dtype = torch.float16, layout = torch.strided, device = device(type='cuda', index=0), pin_memory = False);  arg62_1 = None
         alias_103: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(full_11);  full_11 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_10: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_102, [None, None, arg3_1], add_1804);  alias_102 = add_1804 = None
         alias_104: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_10)
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_11: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_103, [None, None, arg3_1], permute_61);  alias_103 = permute_61 = None
         alias_105: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_11)
         
@@ -1306,11 +1306,11 @@ class <lambda>(torch.nn.Module):
         full_13: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.full.default([1, 8, arg72_1, 128], 0, dtype = torch.float16, layout = torch.strided, device = device(type='cuda', index=0), pin_memory = False);  arg72_1 = None
         alias_122: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(full_13);  full_13 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_12: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_121, [None, None, arg3_1], add_2133);  alias_121 = add_2133 = None
         alias_123: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_12)
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_13: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_122, [None, None, arg3_1], permute_72);  alias_122 = permute_72 = None
         alias_124: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_13)
         
@@ -1501,11 +1501,11 @@ class <lambda>(torch.nn.Module):
         full_15: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.full.default([1, 8, arg82_1, 128], 0, dtype = torch.float16, layout = torch.strided, device = device(type='cuda', index=0), pin_memory = False);  arg82_1 = None
         alias_141: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(full_15);  full_15 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_14: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_140, [None, None, arg3_1], add_2462);  alias_140 = add_2462 = None
         alias_142: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_14)
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_15: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_141, [None, None, arg3_1], permute_83);  alias_141 = permute_83 = None
         alias_143: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_15)
         
@@ -1696,11 +1696,11 @@ class <lambda>(torch.nn.Module):
         full_17: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.full.default([1, 8, arg92_1, 128], 0, dtype = torch.float16, layout = torch.strided, device = device(type='cuda', index=0), pin_memory = False);  arg92_1 = None
         alias_160: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(full_17);  full_17 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_16: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_159, [None, None, arg3_1], add_2791);  alias_159 = add_2791 = None
         alias_161: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_16)
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_17: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_160, [None, None, arg3_1], permute_94);  alias_160 = permute_94 = None
         alias_162: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_17)
         
@@ -1891,11 +1891,11 @@ class <lambda>(torch.nn.Module):
         full_19: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.full.default([1, 8, arg102_1, 128], 0, dtype = torch.float16, layout = torch.strided, device = device(type='cuda', index=0), pin_memory = False);  arg102_1 = None
         alias_179: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(full_19);  full_19 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_18: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_178, [None, None, arg3_1], add_3120);  alias_178 = add_3120 = None
         alias_180: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_18)
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_19: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_179, [None, None, arg3_1], permute_105);  alias_179 = permute_105 = None
         alias_181: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_19)
         
@@ -2086,11 +2086,11 @@ class <lambda>(torch.nn.Module):
         full_21: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.full.default([1, 8, arg112_1, 128], 0, dtype = torch.float16, layout = torch.strided, device = device(type='cuda', index=0), pin_memory = False);  arg112_1 = None
         alias_198: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(full_21);  full_21 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_20: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_197, [None, None, arg3_1], add_3449);  alias_197 = add_3449 = None
         alias_199: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_20)
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_21: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_198, [None, None, arg3_1], permute_116);  alias_198 = permute_116 = None
         alias_200: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_21)
         
@@ -2281,11 +2281,11 @@ class <lambda>(torch.nn.Module):
         full_23: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.full.default([1, 8, arg122_1, 128], 0, dtype = torch.float16, layout = torch.strided, device = device(type='cuda', index=0), pin_memory = False);  arg122_1 = None
         alias_217: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(full_23);  full_23 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_22: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_216, [None, None, arg3_1], add_3778);  alias_216 = add_3778 = None
         alias_218: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_22)
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_23: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_217, [None, None, arg3_1], permute_127);  alias_217 = permute_127 = None
         alias_219: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_23)
         
@@ -2476,11 +2476,11 @@ class <lambda>(torch.nn.Module):
         full_25: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.full.default([1, 8, arg132_1, 128], 0, dtype = torch.float16, layout = torch.strided, device = device(type='cuda', index=0), pin_memory = False);  arg132_1 = None
         alias_236: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(full_25);  full_25 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_24: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_235, [None, None, arg3_1], add_4107);  alias_235 = add_4107 = None
         alias_237: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_24)
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_25: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_236, [None, None, arg3_1], permute_138);  alias_236 = permute_138 = None
         alias_238: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_25)
         
@@ -2671,11 +2671,11 @@ class <lambda>(torch.nn.Module):
         full_27: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.full.default([1, 8, arg142_1, 128], 0, dtype = torch.float16, layout = torch.strided, device = device(type='cuda', index=0), pin_memory = False);  arg142_1 = None
         alias_255: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(full_27);  full_27 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_26: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_254, [None, None, arg3_1], add_4436);  alias_254 = add_4436 = None
         alias_256: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_26)
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_27: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_255, [None, None, arg3_1], permute_149);  alias_255 = permute_149 = None
         alias_257: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_27)
         
@@ -2866,11 +2866,11 @@ class <lambda>(torch.nn.Module):
         full_29: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.full.default([1, 8, arg152_1, 128], 0, dtype = torch.float16, layout = torch.strided, device = device(type='cuda', index=0), pin_memory = False);  arg152_1 = None
         alias_274: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(full_29);  full_29 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_28: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_273, [None, None, arg3_1], add_4765);  alias_273 = add_4765 = None
         alias_275: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_28)
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_29: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_274, [None, None, arg3_1], permute_160);  alias_274 = permute_160 = None
         alias_276: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_29)
         
@@ -3061,11 +3061,11 @@ class <lambda>(torch.nn.Module):
         full_31: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.full.default([1, 8, arg162_1, 128], 0, dtype = torch.float16, layout = torch.strided, device = device(type='cuda', index=0), pin_memory = False);  arg162_1 = None
         alias_293: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(full_31);  full_31 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_30: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_292, [None, None, arg3_1], add_5094);  alias_292 = add_5094 = None
         alias_294: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_30)
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_31: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_293, [None, None, arg3_1], permute_171);  alias_293 = permute_171 = None
         alias_295: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_31)
         
@@ -3256,11 +3256,11 @@ class <lambda>(torch.nn.Module):
         full_33: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.full.default([1, 8, arg172_1, 128], 0, dtype = torch.float16, layout = torch.strided, device = device(type='cuda', index=0), pin_memory = False);  arg172_1 = None
         alias_312: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(full_33);  full_33 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_32: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_311, [None, None, arg3_1], add_5423);  alias_311 = add_5423 = None
         alias_313: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_32)
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_33: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_312, [None, None, arg3_1], permute_182);  alias_312 = permute_182 = None
         alias_314: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_33)
         
@@ -3451,11 +3451,11 @@ class <lambda>(torch.nn.Module):
         full_35: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.full.default([1, 8, arg182_1, 128], 0, dtype = torch.float16, layout = torch.strided, device = device(type='cuda', index=0), pin_memory = False);  arg182_1 = None
         alias_331: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(full_35);  full_35 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_34: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_330, [None, None, arg3_1], add_5752);  alias_330 = add_5752 = None
         alias_332: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_34)
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_35: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_331, [None, None, arg3_1], permute_193);  alias_331 = permute_193 = None
         alias_333: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_35)
         
@@ -3646,11 +3646,11 @@ class <lambda>(torch.nn.Module):
         full_37: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.full.default([1, 8, arg192_1, 128], 0, dtype = torch.float16, layout = torch.strided, device = device(type='cuda', index=0), pin_memory = False);  arg192_1 = None
         alias_350: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(full_37);  full_37 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_36: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_349, [None, None, arg3_1], add_6081);  alias_349 = add_6081 = None
         alias_351: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_36)
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_37: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_350, [None, None, arg3_1], permute_204);  alias_350 = permute_204 = None
         alias_352: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_37)
         
@@ -3841,11 +3841,11 @@ class <lambda>(torch.nn.Module):
         full_39: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.full.default([1, 8, arg202_1, 128], 0, dtype = torch.float16, layout = torch.strided, device = device(type='cuda', index=0), pin_memory = False);  arg202_1 = None
         alias_369: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(full_39);  full_39 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_38: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_368, [None, None, arg3_1], add_6410);  alias_368 = add_6410 = None
         alias_370: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_38)
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_39: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_369, [None, None, arg3_1], permute_215);  alias_369 = permute_215 = None
         alias_371: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_39)
         
@@ -4036,11 +4036,11 @@ class <lambda>(torch.nn.Module):
         full_41: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.full.default([1, 8, arg212_1, 128], 0, dtype = torch.float16, layout = torch.strided, device = device(type='cuda', index=0), pin_memory = False);  arg212_1 = None
         alias_388: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(full_41);  full_41 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_40: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_387, [None, None, arg3_1], add_6739);  alias_387 = add_6739 = None
         alias_389: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_40)
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_41: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_388, [None, None, arg3_1], permute_226);  alias_388 = permute_226 = None
         alias_390: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_41)
         
@@ -4231,11 +4231,11 @@ class <lambda>(torch.nn.Module):
         full_43: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.full.default([1, 8, arg222_1, 128], 0, dtype = torch.float16, layout = torch.strided, device = device(type='cuda', index=0), pin_memory = False);  arg222_1 = None
         alias_407: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(full_43);  full_43 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_42: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_406, [None, None, arg3_1], add_7068);  alias_406 = add_7068 = None
         alias_408: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_42)
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_43: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_407, [None, None, arg3_1], permute_237);  alias_407 = permute_237 = None
         alias_409: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_43)
         
@@ -4426,11 +4426,11 @@ class <lambda>(torch.nn.Module):
         full_45: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.full.default([1, 8, arg232_1, 128], 0, dtype = torch.float16, layout = torch.strided, device = device(type='cuda', index=0), pin_memory = False);  arg232_1 = None
         alias_426: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(full_45);  full_45 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_44: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_425, [None, None, arg3_1], add_7397);  alias_425 = add_7397 = None
         alias_427: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_44)
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_45: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_426, [None, None, arg3_1], permute_248);  alias_426 = permute_248 = None
         alias_428: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_45)
         
@@ -4621,11 +4621,11 @@ class <lambda>(torch.nn.Module):
         full_47: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.full.default([1, 8, arg242_1, 128], 0, dtype = torch.float16, layout = torch.strided, device = device(type='cuda', index=0), pin_memory = False);  arg242_1 = None
         alias_445: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(full_47);  full_47 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_46: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_444, [None, None, arg3_1], add_7726);  alias_444 = add_7726 = None
         alias_446: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_46)
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_47: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_445, [None, None, arg3_1], permute_259);  alias_445 = permute_259 = None
         alias_447: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_47)
         
@@ -4816,11 +4816,11 @@ class <lambda>(torch.nn.Module):
         full_49: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.full.default([1, 8, arg252_1, 128], 0, dtype = torch.float16, layout = torch.strided, device = device(type='cuda', index=0), pin_memory = False);  arg252_1 = None
         alias_464: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(full_49);  full_49 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_48: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_463, [None, None, arg3_1], add_8055);  alias_463 = add_8055 = None
         alias_465: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_48)
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_49: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_464, [None, None, arg3_1], permute_270);  alias_464 = permute_270 = None
         alias_466: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_49)
         
@@ -5011,11 +5011,11 @@ class <lambda>(torch.nn.Module):
         full_51: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.full.default([1, 8, arg262_1, 128], 0, dtype = torch.float16, layout = torch.strided, device = device(type='cuda', index=0), pin_memory = False);  arg262_1 = None
         alias_483: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(full_51);  full_51 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_50: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_482, [None, None, arg3_1], add_8384);  alias_482 = add_8384 = None
         alias_484: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_50)
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_51: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_483, [None, None, arg3_1], permute_281);  alias_483 = permute_281 = None
         alias_485: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_51)
         
@@ -5206,11 +5206,11 @@ class <lambda>(torch.nn.Module):
         full_53: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.full.default([1, 8, arg272_1, 128], 0, dtype = torch.float16, layout = torch.strided, device = device(type='cuda', index=0), pin_memory = False);  arg272_1 = None
         alias_502: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(full_53);  full_53 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_52: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_501, [None, None, arg3_1], add_8713);  alias_501 = add_8713 = None
         alias_503: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_52)
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_53: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_502, [None, None, arg3_1], permute_292);  alias_502 = permute_292 = None
         alias_504: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_53)
         
@@ -5401,11 +5401,11 @@ class <lambda>(torch.nn.Module):
         full_55: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.full.default([1, 8, arg282_1, 128], 0, dtype = torch.float16, layout = torch.strided, device = device(type='cuda', index=0), pin_memory = False);  arg282_1 = None
         alias_521: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(full_55);  full_55 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_54: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_520, [None, None, arg3_1], add_9042);  alias_520 = add_9042 = None
         alias_522: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_54)
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_55: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_521, [None, None, arg3_1], permute_303);  alias_521 = permute_303 = None
         alias_523: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_55)
         
@@ -5596,11 +5596,11 @@ class <lambda>(torch.nn.Module):
         full_57: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.full.default([1, 8, arg292_1, 128], 0, dtype = torch.float16, layout = torch.strided, device = device(type='cuda', index=0), pin_memory = False);  arg292_1 = None
         alias_540: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(full_57);  full_57 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_56: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_539, [None, None, arg3_1], add_9371);  alias_539 = add_9371 = None
         alias_541: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_56)
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_57: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_540, [None, None, arg3_1], permute_314);  alias_540 = permute_314 = None
         alias_542: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_57)
         
@@ -5791,11 +5791,11 @@ class <lambda>(torch.nn.Module):
         full_59: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.full.default([1, 8, arg302_1, 128], 0, dtype = torch.float16, layout = torch.strided, device = device(type='cuda', index=0), pin_memory = False);  arg302_1 = None
         alias_559: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(full_59);  full_59 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_58: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_558, [None, None, arg3_1], add_9700);  alias_558 = add_9700 = None
         alias_560: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_58)
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_59: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_559, [None, None, arg3_1], permute_325);  alias_559 = permute_325 = None
         alias_561: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_59)
         
@@ -5986,11 +5986,11 @@ class <lambda>(torch.nn.Module):
         full_61: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.full.default([1, 8, arg312_1, 128], 0, dtype = torch.float16, layout = torch.strided, device = device(type='cuda', index=0), pin_memory = False);  arg312_1 = None
         alias_578: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(full_61);  full_61 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_60: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_577, [None, None, arg3_1], add_10029);  alias_577 = add_10029 = None
         alias_579: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_60)
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_61: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_578, [None, None, arg3_1], permute_336);  alias_578 = permute_336 = None
         alias_580: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_61)
         
@@ -6181,11 +6181,11 @@ class <lambda>(torch.nn.Module):
         full_63: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.full.default([1, 8, arg322_1, 128], 0, dtype = torch.float16, layout = torch.strided, device = device(type='cuda', index=0), pin_memory = False);  arg322_1 = None
         alias_597: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(full_63);  full_63 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_62: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_596, [None, None, arg3_1], add_10358);  alias_596 = add_10358 = None
         alias_598: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_62)
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_63: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put.default(alias_597, [None, None, arg3_1], permute_347);  alias_597 = arg3_1 = permute_347 = None
         alias_599: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.alias.default(index_put_63)
         
@@ -6298,7 +6298,7 @@ class <lambda>(torch.nn.Module):
         triton_kernel_wrapper_functional_proxy_64 = torch.ops.higher_order.triton_kernel_wrapper_functional(kernel_idx = 65, constant_args_idx = 64, grid = [(arg0_1, 1, 1)], tma_descriptor_metadata = {}, kwargs = {'Y_ptr': alias_608, 'X_ptr': view_1092, 'W_ptr': arg328_1, 'RSTD_ptr': alias_609}, tensors_to_clone = ['Y_ptr', 'RSTD_ptr']);  alias_608 = view_1092 = arg328_1 = alias_609 = None
         getitem_256: "f16[s0, 4096][4096, 1]cuda:0" = triton_kernel_wrapper_functional_proxy_64['Y_ptr'];  triton_kernel_wrapper_functional_proxy_64 = None
         
-         # File: /app/low_bit_inference/model.py:451 in forward, code: logits = self.lm_head(hidden_states[:, slice_indices, :])
+         # File: /app/low_bit_inference/model.py:453 in forward, code: logits = self.lm_head(hidden_states[:, slice_indices, :])
         permute_353: "f16[4096, 128256][1, 4096]cuda:0" = torch.ops.aten.permute.default(arg330_1, [1, 0]);  arg330_1 = None
         alias_612: "f16[s0, 4096][4096, 1]cuda:0" = torch.ops.aten.alias.default(getitem_256);  getitem_256 = None
         view_1095: "f16[1, s0, 4096][4096*s0, 4096, 1]cuda:0" = torch.ops.aten.view.default(alias_612, [1, arg0_1, 4096]);  alias_612 = arg0_1 = None

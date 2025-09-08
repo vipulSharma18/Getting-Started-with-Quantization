@@ -456,10 +456,10 @@ class GraphModule(torch.nn.Module):
          # File: /app/low_bit_inference/optims/cache_optim.py:114 in lazy_initialization, code: self.values = torch.zeros(
         values: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.zeros((1, 8, l_past_key_values_layers_0_max_cache_len, 128), dtype = torch.float16, device = device(type='cuda', index=0));  l_past_key_values_layers_0_max_cache_len = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_copy_: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = keys.index_copy_(2, l_cache_position_, k_embed);  k_embed = index_copy_ = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_copy__1: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = values.index_copy_(2, l_cache_position_, value_states);  value_states = index_copy__1 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:14 in repeat_kv, code: hidden_states = hidden_states[:, :, None, :, :].expand(batch, num_key_value_heads, n_rep, slen, head_dim)
@@ -620,10 +620,10 @@ class GraphModule(torch.nn.Module):
          # File: /app/low_bit_inference/optims/cache_optim.py:114 in lazy_initialization, code: self.values = torch.zeros(
         values_1: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.zeros((1, 8, l_past_key_values_layers_1_max_cache_len, 128), dtype = torch.float16, device = device(type='cuda', index=0));  l_past_key_values_layers_1_max_cache_len = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_copy__2: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = keys_1.index_copy_(2, l_cache_position_, k_embed_1);  k_embed_1 = index_copy__2 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_copy__3: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = values_1.index_copy_(2, l_cache_position_, value_states_1);  value_states_1 = index_copy__3 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:14 in repeat_kv, code: hidden_states = hidden_states[:, :, None, :, :].expand(batch, num_key_value_heads, n_rep, slen, head_dim)
@@ -784,10 +784,10 @@ class GraphModule(torch.nn.Module):
          # File: /app/low_bit_inference/optims/cache_optim.py:114 in lazy_initialization, code: self.values = torch.zeros(
         values_2: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.zeros((1, 8, l_past_key_values_layers_2_max_cache_len, 128), dtype = torch.float16, device = device(type='cuda', index=0));  l_past_key_values_layers_2_max_cache_len = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_copy__4: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = keys_2.index_copy_(2, l_cache_position_, k_embed_2);  k_embed_2 = index_copy__4 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_copy__5: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = values_2.index_copy_(2, l_cache_position_, value_states_2);  value_states_2 = index_copy__5 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:14 in repeat_kv, code: hidden_states = hidden_states[:, :, None, :, :].expand(batch, num_key_value_heads, n_rep, slen, head_dim)
@@ -948,10 +948,10 @@ class GraphModule(torch.nn.Module):
          # File: /app/low_bit_inference/optims/cache_optim.py:114 in lazy_initialization, code: self.values = torch.zeros(
         values_3: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.zeros((1, 8, l_past_key_values_layers_3_max_cache_len, 128), dtype = torch.float16, device = device(type='cuda', index=0));  l_past_key_values_layers_3_max_cache_len = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_copy__6: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = keys_3.index_copy_(2, l_cache_position_, k_embed_3);  k_embed_3 = index_copy__6 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_copy__7: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = values_3.index_copy_(2, l_cache_position_, value_states_3);  value_states_3 = index_copy__7 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:14 in repeat_kv, code: hidden_states = hidden_states[:, :, None, :, :].expand(batch, num_key_value_heads, n_rep, slen, head_dim)
@@ -1112,10 +1112,10 @@ class GraphModule(torch.nn.Module):
          # File: /app/low_bit_inference/optims/cache_optim.py:114 in lazy_initialization, code: self.values = torch.zeros(
         values_4: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.zeros((1, 8, l_past_key_values_layers_4_max_cache_len, 128), dtype = torch.float16, device = device(type='cuda', index=0));  l_past_key_values_layers_4_max_cache_len = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_copy__8: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = keys_4.index_copy_(2, l_cache_position_, k_embed_4);  k_embed_4 = index_copy__8 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_copy__9: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = values_4.index_copy_(2, l_cache_position_, value_states_4);  value_states_4 = index_copy__9 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:14 in repeat_kv, code: hidden_states = hidden_states[:, :, None, :, :].expand(batch, num_key_value_heads, n_rep, slen, head_dim)
@@ -1276,10 +1276,10 @@ class GraphModule(torch.nn.Module):
          # File: /app/low_bit_inference/optims/cache_optim.py:114 in lazy_initialization, code: self.values = torch.zeros(
         values_5: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.zeros((1, 8, l_past_key_values_layers_5_max_cache_len, 128), dtype = torch.float16, device = device(type='cuda', index=0));  l_past_key_values_layers_5_max_cache_len = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_copy__10: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = keys_5.index_copy_(2, l_cache_position_, k_embed_5);  k_embed_5 = index_copy__10 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_copy__11: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = values_5.index_copy_(2, l_cache_position_, value_states_5);  value_states_5 = index_copy__11 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:14 in repeat_kv, code: hidden_states = hidden_states[:, :, None, :, :].expand(batch, num_key_value_heads, n_rep, slen, head_dim)
@@ -1440,10 +1440,10 @@ class GraphModule(torch.nn.Module):
          # File: /app/low_bit_inference/optims/cache_optim.py:114 in lazy_initialization, code: self.values = torch.zeros(
         values_6: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.zeros((1, 8, l_past_key_values_layers_6_max_cache_len, 128), dtype = torch.float16, device = device(type='cuda', index=0));  l_past_key_values_layers_6_max_cache_len = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_copy__12: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = keys_6.index_copy_(2, l_cache_position_, k_embed_6);  k_embed_6 = index_copy__12 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_copy__13: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = values_6.index_copy_(2, l_cache_position_, value_states_6);  value_states_6 = index_copy__13 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:14 in repeat_kv, code: hidden_states = hidden_states[:, :, None, :, :].expand(batch, num_key_value_heads, n_rep, slen, head_dim)
@@ -1604,10 +1604,10 @@ class GraphModule(torch.nn.Module):
          # File: /app/low_bit_inference/optims/cache_optim.py:114 in lazy_initialization, code: self.values = torch.zeros(
         values_7: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.zeros((1, 8, l_past_key_values_layers_7_max_cache_len, 128), dtype = torch.float16, device = device(type='cuda', index=0));  l_past_key_values_layers_7_max_cache_len = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_copy__14: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = keys_7.index_copy_(2, l_cache_position_, k_embed_7);  k_embed_7 = index_copy__14 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_copy__15: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = values_7.index_copy_(2, l_cache_position_, value_states_7);  value_states_7 = index_copy__15 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:14 in repeat_kv, code: hidden_states = hidden_states[:, :, None, :, :].expand(batch, num_key_value_heads, n_rep, slen, head_dim)
@@ -1768,10 +1768,10 @@ class GraphModule(torch.nn.Module):
          # File: /app/low_bit_inference/optims/cache_optim.py:114 in lazy_initialization, code: self.values = torch.zeros(
         values_8: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.zeros((1, 8, l_past_key_values_layers_8_max_cache_len, 128), dtype = torch.float16, device = device(type='cuda', index=0));  l_past_key_values_layers_8_max_cache_len = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_copy__16: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = keys_8.index_copy_(2, l_cache_position_, k_embed_8);  k_embed_8 = index_copy__16 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_copy__17: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = values_8.index_copy_(2, l_cache_position_, value_states_8);  value_states_8 = index_copy__17 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:14 in repeat_kv, code: hidden_states = hidden_states[:, :, None, :, :].expand(batch, num_key_value_heads, n_rep, slen, head_dim)
@@ -1932,10 +1932,10 @@ class GraphModule(torch.nn.Module):
          # File: /app/low_bit_inference/optims/cache_optim.py:114 in lazy_initialization, code: self.values = torch.zeros(
         values_9: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.zeros((1, 8, l_past_key_values_layers_9_max_cache_len, 128), dtype = torch.float16, device = device(type='cuda', index=0));  l_past_key_values_layers_9_max_cache_len = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_copy__18: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = keys_9.index_copy_(2, l_cache_position_, k_embed_9);  k_embed_9 = index_copy__18 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_copy__19: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = values_9.index_copy_(2, l_cache_position_, value_states_9);  value_states_9 = index_copy__19 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:14 in repeat_kv, code: hidden_states = hidden_states[:, :, None, :, :].expand(batch, num_key_value_heads, n_rep, slen, head_dim)
@@ -2096,10 +2096,10 @@ class GraphModule(torch.nn.Module):
          # File: /app/low_bit_inference/optims/cache_optim.py:114 in lazy_initialization, code: self.values = torch.zeros(
         values_10: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.zeros((1, 8, l_past_key_values_layers_10_max_cache_len, 128), dtype = torch.float16, device = device(type='cuda', index=0));  l_past_key_values_layers_10_max_cache_len = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_copy__20: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = keys_10.index_copy_(2, l_cache_position_, k_embed_10);  k_embed_10 = index_copy__20 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_copy__21: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = values_10.index_copy_(2, l_cache_position_, value_states_10);  value_states_10 = index_copy__21 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:14 in repeat_kv, code: hidden_states = hidden_states[:, :, None, :, :].expand(batch, num_key_value_heads, n_rep, slen, head_dim)
@@ -2260,10 +2260,10 @@ class GraphModule(torch.nn.Module):
          # File: /app/low_bit_inference/optims/cache_optim.py:114 in lazy_initialization, code: self.values = torch.zeros(
         values_11: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.zeros((1, 8, l_past_key_values_layers_11_max_cache_len, 128), dtype = torch.float16, device = device(type='cuda', index=0));  l_past_key_values_layers_11_max_cache_len = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_copy__22: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = keys_11.index_copy_(2, l_cache_position_, k_embed_11);  k_embed_11 = index_copy__22 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_copy__23: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = values_11.index_copy_(2, l_cache_position_, value_states_11);  value_states_11 = index_copy__23 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:14 in repeat_kv, code: hidden_states = hidden_states[:, :, None, :, :].expand(batch, num_key_value_heads, n_rep, slen, head_dim)
@@ -2424,10 +2424,10 @@ class GraphModule(torch.nn.Module):
          # File: /app/low_bit_inference/optims/cache_optim.py:114 in lazy_initialization, code: self.values = torch.zeros(
         values_12: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.zeros((1, 8, l_past_key_values_layers_12_max_cache_len, 128), dtype = torch.float16, device = device(type='cuda', index=0));  l_past_key_values_layers_12_max_cache_len = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_copy__24: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = keys_12.index_copy_(2, l_cache_position_, k_embed_12);  k_embed_12 = index_copy__24 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_copy__25: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = values_12.index_copy_(2, l_cache_position_, value_states_12);  value_states_12 = index_copy__25 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:14 in repeat_kv, code: hidden_states = hidden_states[:, :, None, :, :].expand(batch, num_key_value_heads, n_rep, slen, head_dim)
@@ -2588,10 +2588,10 @@ class GraphModule(torch.nn.Module):
          # File: /app/low_bit_inference/optims/cache_optim.py:114 in lazy_initialization, code: self.values = torch.zeros(
         values_13: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.zeros((1, 8, l_past_key_values_layers_13_max_cache_len, 128), dtype = torch.float16, device = device(type='cuda', index=0));  l_past_key_values_layers_13_max_cache_len = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_copy__26: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = keys_13.index_copy_(2, l_cache_position_, k_embed_13);  k_embed_13 = index_copy__26 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_copy__27: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = values_13.index_copy_(2, l_cache_position_, value_states_13);  value_states_13 = index_copy__27 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:14 in repeat_kv, code: hidden_states = hidden_states[:, :, None, :, :].expand(batch, num_key_value_heads, n_rep, slen, head_dim)
@@ -2752,10 +2752,10 @@ class GraphModule(torch.nn.Module):
          # File: /app/low_bit_inference/optims/cache_optim.py:114 in lazy_initialization, code: self.values = torch.zeros(
         values_14: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.zeros((1, 8, l_past_key_values_layers_14_max_cache_len, 128), dtype = torch.float16, device = device(type='cuda', index=0));  l_past_key_values_layers_14_max_cache_len = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_copy__28: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = keys_14.index_copy_(2, l_cache_position_, k_embed_14);  k_embed_14 = index_copy__28 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_copy__29: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = values_14.index_copy_(2, l_cache_position_, value_states_14);  value_states_14 = index_copy__29 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:14 in repeat_kv, code: hidden_states = hidden_states[:, :, None, :, :].expand(batch, num_key_value_heads, n_rep, slen, head_dim)
@@ -2916,10 +2916,10 @@ class GraphModule(torch.nn.Module):
          # File: /app/low_bit_inference/optims/cache_optim.py:114 in lazy_initialization, code: self.values = torch.zeros(
         values_15: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.zeros((1, 8, l_past_key_values_layers_15_max_cache_len, 128), dtype = torch.float16, device = device(type='cuda', index=0));  l_past_key_values_layers_15_max_cache_len = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_copy__30: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = keys_15.index_copy_(2, l_cache_position_, k_embed_15);  k_embed_15 = index_copy__30 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_copy__31: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = values_15.index_copy_(2, l_cache_position_, value_states_15);  value_states_15 = index_copy__31 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:14 in repeat_kv, code: hidden_states = hidden_states[:, :, None, :, :].expand(batch, num_key_value_heads, n_rep, slen, head_dim)
@@ -3080,10 +3080,10 @@ class GraphModule(torch.nn.Module):
          # File: /app/low_bit_inference/optims/cache_optim.py:114 in lazy_initialization, code: self.values = torch.zeros(
         values_16: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.zeros((1, 8, l_past_key_values_layers_16_max_cache_len, 128), dtype = torch.float16, device = device(type='cuda', index=0));  l_past_key_values_layers_16_max_cache_len = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_copy__32: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = keys_16.index_copy_(2, l_cache_position_, k_embed_16);  k_embed_16 = index_copy__32 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_copy__33: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = values_16.index_copy_(2, l_cache_position_, value_states_16);  value_states_16 = index_copy__33 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:14 in repeat_kv, code: hidden_states = hidden_states[:, :, None, :, :].expand(batch, num_key_value_heads, n_rep, slen, head_dim)
@@ -3244,10 +3244,10 @@ class GraphModule(torch.nn.Module):
          # File: /app/low_bit_inference/optims/cache_optim.py:114 in lazy_initialization, code: self.values = torch.zeros(
         values_17: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.zeros((1, 8, l_past_key_values_layers_17_max_cache_len, 128), dtype = torch.float16, device = device(type='cuda', index=0));  l_past_key_values_layers_17_max_cache_len = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_copy__34: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = keys_17.index_copy_(2, l_cache_position_, k_embed_17);  k_embed_17 = index_copy__34 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_copy__35: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = values_17.index_copy_(2, l_cache_position_, value_states_17);  value_states_17 = index_copy__35 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:14 in repeat_kv, code: hidden_states = hidden_states[:, :, None, :, :].expand(batch, num_key_value_heads, n_rep, slen, head_dim)
@@ -3408,10 +3408,10 @@ class GraphModule(torch.nn.Module):
          # File: /app/low_bit_inference/optims/cache_optim.py:114 in lazy_initialization, code: self.values = torch.zeros(
         values_18: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.zeros((1, 8, l_past_key_values_layers_18_max_cache_len, 128), dtype = torch.float16, device = device(type='cuda', index=0));  l_past_key_values_layers_18_max_cache_len = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_copy__36: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = keys_18.index_copy_(2, l_cache_position_, k_embed_18);  k_embed_18 = index_copy__36 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_copy__37: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = values_18.index_copy_(2, l_cache_position_, value_states_18);  value_states_18 = index_copy__37 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:14 in repeat_kv, code: hidden_states = hidden_states[:, :, None, :, :].expand(batch, num_key_value_heads, n_rep, slen, head_dim)
@@ -3572,10 +3572,10 @@ class GraphModule(torch.nn.Module):
          # File: /app/low_bit_inference/optims/cache_optim.py:114 in lazy_initialization, code: self.values = torch.zeros(
         values_19: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.zeros((1, 8, l_past_key_values_layers_19_max_cache_len, 128), dtype = torch.float16, device = device(type='cuda', index=0));  l_past_key_values_layers_19_max_cache_len = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_copy__38: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = keys_19.index_copy_(2, l_cache_position_, k_embed_19);  k_embed_19 = index_copy__38 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_copy__39: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = values_19.index_copy_(2, l_cache_position_, value_states_19);  value_states_19 = index_copy__39 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:14 in repeat_kv, code: hidden_states = hidden_states[:, :, None, :, :].expand(batch, num_key_value_heads, n_rep, slen, head_dim)
@@ -3736,10 +3736,10 @@ class GraphModule(torch.nn.Module):
          # File: /app/low_bit_inference/optims/cache_optim.py:114 in lazy_initialization, code: self.values = torch.zeros(
         values_20: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.zeros((1, 8, l_past_key_values_layers_20_max_cache_len, 128), dtype = torch.float16, device = device(type='cuda', index=0));  l_past_key_values_layers_20_max_cache_len = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_copy__40: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = keys_20.index_copy_(2, l_cache_position_, k_embed_20);  k_embed_20 = index_copy__40 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_copy__41: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = values_20.index_copy_(2, l_cache_position_, value_states_20);  value_states_20 = index_copy__41 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:14 in repeat_kv, code: hidden_states = hidden_states[:, :, None, :, :].expand(batch, num_key_value_heads, n_rep, slen, head_dim)
@@ -3900,10 +3900,10 @@ class GraphModule(torch.nn.Module):
          # File: /app/low_bit_inference/optims/cache_optim.py:114 in lazy_initialization, code: self.values = torch.zeros(
         values_21: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.zeros((1, 8, l_past_key_values_layers_21_max_cache_len, 128), dtype = torch.float16, device = device(type='cuda', index=0));  l_past_key_values_layers_21_max_cache_len = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_copy__42: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = keys_21.index_copy_(2, l_cache_position_, k_embed_21);  k_embed_21 = index_copy__42 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_copy__43: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = values_21.index_copy_(2, l_cache_position_, value_states_21);  value_states_21 = index_copy__43 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:14 in repeat_kv, code: hidden_states = hidden_states[:, :, None, :, :].expand(batch, num_key_value_heads, n_rep, slen, head_dim)
@@ -4064,10 +4064,10 @@ class GraphModule(torch.nn.Module):
          # File: /app/low_bit_inference/optims/cache_optim.py:114 in lazy_initialization, code: self.values = torch.zeros(
         values_22: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.zeros((1, 8, l_past_key_values_layers_22_max_cache_len, 128), dtype = torch.float16, device = device(type='cuda', index=0));  l_past_key_values_layers_22_max_cache_len = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_copy__44: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = keys_22.index_copy_(2, l_cache_position_, k_embed_22);  k_embed_22 = index_copy__44 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_copy__45: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = values_22.index_copy_(2, l_cache_position_, value_states_22);  value_states_22 = index_copy__45 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:14 in repeat_kv, code: hidden_states = hidden_states[:, :, None, :, :].expand(batch, num_key_value_heads, n_rep, slen, head_dim)
@@ -4228,10 +4228,10 @@ class GraphModule(torch.nn.Module):
          # File: /app/low_bit_inference/optims/cache_optim.py:114 in lazy_initialization, code: self.values = torch.zeros(
         values_23: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.zeros((1, 8, l_past_key_values_layers_23_max_cache_len, 128), dtype = torch.float16, device = device(type='cuda', index=0));  l_past_key_values_layers_23_max_cache_len = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_copy__46: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = keys_23.index_copy_(2, l_cache_position_, k_embed_23);  k_embed_23 = index_copy__46 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_copy__47: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = values_23.index_copy_(2, l_cache_position_, value_states_23);  value_states_23 = index_copy__47 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:14 in repeat_kv, code: hidden_states = hidden_states[:, :, None, :, :].expand(batch, num_key_value_heads, n_rep, slen, head_dim)
@@ -4392,10 +4392,10 @@ class GraphModule(torch.nn.Module):
          # File: /app/low_bit_inference/optims/cache_optim.py:114 in lazy_initialization, code: self.values = torch.zeros(
         values_24: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.zeros((1, 8, l_past_key_values_layers_24_max_cache_len, 128), dtype = torch.float16, device = device(type='cuda', index=0));  l_past_key_values_layers_24_max_cache_len = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_copy__48: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = keys_24.index_copy_(2, l_cache_position_, k_embed_24);  k_embed_24 = index_copy__48 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_copy__49: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = values_24.index_copy_(2, l_cache_position_, value_states_24);  value_states_24 = index_copy__49 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:14 in repeat_kv, code: hidden_states = hidden_states[:, :, None, :, :].expand(batch, num_key_value_heads, n_rep, slen, head_dim)
@@ -4556,10 +4556,10 @@ class GraphModule(torch.nn.Module):
          # File: /app/low_bit_inference/optims/cache_optim.py:114 in lazy_initialization, code: self.values = torch.zeros(
         values_25: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.zeros((1, 8, l_past_key_values_layers_25_max_cache_len, 128), dtype = torch.float16, device = device(type='cuda', index=0));  l_past_key_values_layers_25_max_cache_len = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_copy__50: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = keys_25.index_copy_(2, l_cache_position_, k_embed_25);  k_embed_25 = index_copy__50 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_copy__51: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = values_25.index_copy_(2, l_cache_position_, value_states_25);  value_states_25 = index_copy__51 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:14 in repeat_kv, code: hidden_states = hidden_states[:, :, None, :, :].expand(batch, num_key_value_heads, n_rep, slen, head_dim)
@@ -4720,10 +4720,10 @@ class GraphModule(torch.nn.Module):
          # File: /app/low_bit_inference/optims/cache_optim.py:114 in lazy_initialization, code: self.values = torch.zeros(
         values_26: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.zeros((1, 8, l_past_key_values_layers_26_max_cache_len, 128), dtype = torch.float16, device = device(type='cuda', index=0));  l_past_key_values_layers_26_max_cache_len = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_copy__52: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = keys_26.index_copy_(2, l_cache_position_, k_embed_26);  k_embed_26 = index_copy__52 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_copy__53: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = values_26.index_copy_(2, l_cache_position_, value_states_26);  value_states_26 = index_copy__53 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:14 in repeat_kv, code: hidden_states = hidden_states[:, :, None, :, :].expand(batch, num_key_value_heads, n_rep, slen, head_dim)
@@ -4884,10 +4884,10 @@ class GraphModule(torch.nn.Module):
          # File: /app/low_bit_inference/optims/cache_optim.py:114 in lazy_initialization, code: self.values = torch.zeros(
         values_27: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.zeros((1, 8, l_past_key_values_layers_27_max_cache_len, 128), dtype = torch.float16, device = device(type='cuda', index=0));  l_past_key_values_layers_27_max_cache_len = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_copy__54: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = keys_27.index_copy_(2, l_cache_position_, k_embed_27);  k_embed_27 = index_copy__54 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_copy__55: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = values_27.index_copy_(2, l_cache_position_, value_states_27);  value_states_27 = index_copy__55 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:14 in repeat_kv, code: hidden_states = hidden_states[:, :, None, :, :].expand(batch, num_key_value_heads, n_rep, slen, head_dim)
@@ -5048,10 +5048,10 @@ class GraphModule(torch.nn.Module):
          # File: /app/low_bit_inference/optims/cache_optim.py:114 in lazy_initialization, code: self.values = torch.zeros(
         values_28: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.zeros((1, 8, l_past_key_values_layers_28_max_cache_len, 128), dtype = torch.float16, device = device(type='cuda', index=0));  l_past_key_values_layers_28_max_cache_len = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_copy__56: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = keys_28.index_copy_(2, l_cache_position_, k_embed_28);  k_embed_28 = index_copy__56 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_copy__57: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = values_28.index_copy_(2, l_cache_position_, value_states_28);  value_states_28 = index_copy__57 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:14 in repeat_kv, code: hidden_states = hidden_states[:, :, None, :, :].expand(batch, num_key_value_heads, n_rep, slen, head_dim)
@@ -5212,10 +5212,10 @@ class GraphModule(torch.nn.Module):
          # File: /app/low_bit_inference/optims/cache_optim.py:114 in lazy_initialization, code: self.values = torch.zeros(
         values_29: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.zeros((1, 8, l_past_key_values_layers_29_max_cache_len, 128), dtype = torch.float16, device = device(type='cuda', index=0));  l_past_key_values_layers_29_max_cache_len = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_copy__58: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = keys_29.index_copy_(2, l_cache_position_, k_embed_29);  k_embed_29 = index_copy__58 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_copy__59: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = values_29.index_copy_(2, l_cache_position_, value_states_29);  value_states_29 = index_copy__59 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:14 in repeat_kv, code: hidden_states = hidden_states[:, :, None, :, :].expand(batch, num_key_value_heads, n_rep, slen, head_dim)
@@ -5376,10 +5376,10 @@ class GraphModule(torch.nn.Module):
          # File: /app/low_bit_inference/optims/cache_optim.py:114 in lazy_initialization, code: self.values = torch.zeros(
         values_30: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.zeros((1, 8, l_past_key_values_layers_30_max_cache_len, 128), dtype = torch.float16, device = device(type='cuda', index=0));  l_past_key_values_layers_30_max_cache_len = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_copy__60: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = keys_30.index_copy_(2, l_cache_position_, k_embed_30);  k_embed_30 = index_copy__60 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_copy__61: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = values_30.index_copy_(2, l_cache_position_, value_states_30);  value_states_30 = index_copy__61 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:14 in repeat_kv, code: hidden_states = hidden_states[:, :, None, :, :].expand(batch, num_key_value_heads, n_rep, slen, head_dim)
@@ -5540,10 +5540,10 @@ class GraphModule(torch.nn.Module):
          # File: /app/low_bit_inference/optims/cache_optim.py:114 in lazy_initialization, code: self.values = torch.zeros(
         values_31: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.zeros((1, 8, l_past_key_values_layers_31_max_cache_len, 128), dtype = torch.float16, device = device(type='cuda', index=0));  l_past_key_values_layers_31_max_cache_len = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_copy__62: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = keys_31.index_copy_(2, l_cache_position_, k_embed_31);  k_embed_31 = index_copy__62 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_copy__63: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = values_31.index_copy_(2, l_cache_position_, value_states_31);  l_cache_position_ = value_states_31 = index_copy__63 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:14 in repeat_kv, code: hidden_states = hidden_states[:, :, None, :, :].expand(batch, num_key_value_heads, n_rep, slen, head_dim)
@@ -5643,13 +5643,13 @@ class GraphModule(torch.nn.Module):
          # File: /app/low_bit_inference/optims/rms_norm_kernels/liger_rms_norm.py:499 in rms_norm_forward, code: return Y.view(*shape), X, RSTD, BLOCK_SIZE, num_warps, casting_mode
         Y_129: "f16[1, s0, 4096][4096*s0, 4096, 1]cuda:0" = Y_128.view(1, s0, 4096);  Y_128 = s0 = None
         
-         # File: /app/low_bit_inference/model.py:450 in forward, code: slice_indices = slice(-logits_to_keep, None) if isinstance(logits_to_keep, int) else logits_to_keep
+         # File: /app/low_bit_inference/model.py:452 in forward, code: slice_indices = slice(-logits_to_keep, None) if isinstance(logits_to_keep, int) else logits_to_keep
         neg_64: "Sym(-1)" = -l_logits_to_keep_;  l_logits_to_keep_ = None
         
-         # File: /app/low_bit_inference/model.py:451 in forward, code: logits = self.lm_head(hidden_states[:, slice_indices, :])
+         # File: /app/low_bit_inference/model.py:453 in forward, code: logits = self.lm_head(hidden_states[:, slice_indices, :])
         getitem_1935: "f16[1, 1, 4096][4096*s0, 4096, 1]cuda:0" = Y_129[(slice(None, None, None), slice(neg_64, None, None), slice(None, None, None))];  Y_129 = neg_64 = None
         logits: "f16[1, 1, 128256][128256, 128256, 1]cuda:0" = torch._C._nn.linear(getitem_1935, l_self_modules_lm_head_parameters_weight_, None);  getitem_1935 = l_self_modules_lm_head_parameters_weight_ = None
         return (values, keys, values_1, keys_1, values_2, keys_2, values_3, keys_3, values_4, keys_4, values_5, keys_5, values_6, keys_6, values_7, keys_7, values_8, keys_8, values_9, keys_9, values_10, keys_10, values_11, keys_11, values_12, keys_12, values_13, keys_13, values_14, keys_14, values_15, keys_15, values_16, keys_16, values_17, keys_17, values_18, keys_18, values_19, keys_19, values_20, keys_20, values_21, keys_21, values_22, keys_22, values_23, keys_23, values_24, keys_24, values_25, keys_25, values_26, keys_26, values_27, keys_27, values_28, keys_28, values_29, keys_29, values_30, keys_30, values_31, keys_31, logits)
         
 
- # graph id: 124486911992240
+ # graph id: 131210873792288

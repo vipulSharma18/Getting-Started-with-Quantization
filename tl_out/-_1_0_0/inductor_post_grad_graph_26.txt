@@ -125,7 +125,7 @@ class <lambda>(torch.nn.Module):
         mul_9: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.mul.Tensor(cat_1, unsqueeze_13);  cat_1 = unsqueeze_13 = None
         add_1: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.add.Tensor(mul_8, mul_9);  mul_8 = mul_9 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put: "f16[1, 8, 2048, 128][2097152, 262144, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg10_1, [None, None, arg2_1], add_1);  arg10_1 = add_1 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -147,7 +147,7 @@ class <lambda>(torch.nn.Module):
         view_20: "f16[1, 1, 8, 128][1024, 1024, 128, 1]cuda:0" = torch.ops.aten.reshape.default(view_19, [1, 1, -1, 128]);  view_19 = None
         permute_6: "f16[1, 8, 1, 128][1024, 128, 1024, 1]cuda:0" = torch.ops.aten.permute.default(view_20, [0, 2, 1, 3]);  view_20 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_1: "f16[1, 8, s1, 128][1024*s1, 128*s1, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg12_1, [None, None, arg2_1], permute_6);  arg12_1 = permute_6 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -317,7 +317,7 @@ class <lambda>(torch.nn.Module):
         mul_90: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.mul.Tensor(cat_3, unsqueeze_33);  cat_3 = unsqueeze_33 = None
         add_50: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.add.Tensor(mul_89, mul_90);  mul_89 = mul_90 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_2: "f16[1, 8, 2048, 128][2097152, 262144, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg22_1, [None, None, arg2_1], add_50);  arg22_1 = add_50 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -339,7 +339,7 @@ class <lambda>(torch.nn.Module):
         view_54: "f16[1, 1, 8, 128][1024, 1024, 128, 1]cuda:0" = torch.ops.aten.reshape.default(view_53, [1, 1, -1, 128]);  view_53 = None
         permute_17: "f16[1, 8, 1, 128][1024, 128, 1024, 1]cuda:0" = torch.ops.aten.permute.default(view_54, [0, 2, 1, 3]);  view_54 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_3: "f16[1, 8, s3, 128][1024*s3, 128*s3, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg24_1, [None, None, arg2_1], permute_17);  arg24_1 = permute_17 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -509,7 +509,7 @@ class <lambda>(torch.nn.Module):
         mul_171: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.mul.Tensor(cat_5, unsqueeze_53);  cat_5 = unsqueeze_53 = None
         add_99: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.add.Tensor(mul_170, mul_171);  mul_170 = mul_171 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_4: "f16[1, 8, 2048, 128][2097152, 262144, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg34_1, [None, None, arg2_1], add_99);  arg34_1 = add_99 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -531,7 +531,7 @@ class <lambda>(torch.nn.Module):
         view_88: "f16[1, 1, 8, 128][1024, 1024, 128, 1]cuda:0" = torch.ops.aten.reshape.default(view_87, [1, 1, -1, 128]);  view_87 = None
         permute_28: "f16[1, 8, 1, 128][1024, 128, 1024, 1]cuda:0" = torch.ops.aten.permute.default(view_88, [0, 2, 1, 3]);  view_88 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_5: "f16[1, 8, s5, 128][1024*s5, 128*s5, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg36_1, [None, None, arg2_1], permute_28);  arg36_1 = permute_28 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -701,7 +701,7 @@ class <lambda>(torch.nn.Module):
         mul_252: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.mul.Tensor(cat_7, unsqueeze_73);  cat_7 = unsqueeze_73 = None
         add_148: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.add.Tensor(mul_251, mul_252);  mul_251 = mul_252 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_6: "f16[1, 8, 2048, 128][2097152, 262144, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg46_1, [None, None, arg2_1], add_148);  arg46_1 = add_148 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -723,7 +723,7 @@ class <lambda>(torch.nn.Module):
         view_122: "f16[1, 1, 8, 128][1024, 1024, 128, 1]cuda:0" = torch.ops.aten.reshape.default(view_121, [1, 1, -1, 128]);  view_121 = None
         permute_39: "f16[1, 8, 1, 128][1024, 128, 1024, 1]cuda:0" = torch.ops.aten.permute.default(view_122, [0, 2, 1, 3]);  view_122 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_7: "f16[1, 8, s7, 128][1024*s7, 128*s7, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg48_1, [None, None, arg2_1], permute_39);  arg48_1 = permute_39 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -893,7 +893,7 @@ class <lambda>(torch.nn.Module):
         mul_333: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.mul.Tensor(cat_9, unsqueeze_93);  cat_9 = unsqueeze_93 = None
         add_197: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.add.Tensor(mul_332, mul_333);  mul_332 = mul_333 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_8: "f16[1, 8, 2048, 128][2097152, 262144, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg58_1, [None, None, arg2_1], add_197);  arg58_1 = add_197 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -915,7 +915,7 @@ class <lambda>(torch.nn.Module):
         view_156: "f16[1, 1, 8, 128][1024, 1024, 128, 1]cuda:0" = torch.ops.aten.reshape.default(view_155, [1, 1, -1, 128]);  view_155 = None
         permute_50: "f16[1, 8, 1, 128][1024, 128, 1024, 1]cuda:0" = torch.ops.aten.permute.default(view_156, [0, 2, 1, 3]);  view_156 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_9: "f16[1, 8, s9, 128][1024*s9, 128*s9, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg60_1, [None, None, arg2_1], permute_50);  arg60_1 = permute_50 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -1085,7 +1085,7 @@ class <lambda>(torch.nn.Module):
         mul_414: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.mul.Tensor(cat_11, unsqueeze_113);  cat_11 = unsqueeze_113 = None
         add_246: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.add.Tensor(mul_413, mul_414);  mul_413 = mul_414 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_10: "f16[1, 8, 2048, 128][2097152, 262144, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg70_1, [None, None, arg2_1], add_246);  arg70_1 = add_246 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -1107,7 +1107,7 @@ class <lambda>(torch.nn.Module):
         view_190: "f16[1, 1, 8, 128][1024, 1024, 128, 1]cuda:0" = torch.ops.aten.reshape.default(view_189, [1, 1, -1, 128]);  view_189 = None
         permute_61: "f16[1, 8, 1, 128][1024, 128, 1024, 1]cuda:0" = torch.ops.aten.permute.default(view_190, [0, 2, 1, 3]);  view_190 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_11: "f16[1, 8, s11, 128][1024*s11, 128*s11, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg72_1, [None, None, arg2_1], permute_61);  arg72_1 = permute_61 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -1277,7 +1277,7 @@ class <lambda>(torch.nn.Module):
         mul_495: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.mul.Tensor(cat_13, unsqueeze_133);  cat_13 = unsqueeze_133 = None
         add_295: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.add.Tensor(mul_494, mul_495);  mul_494 = mul_495 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_12: "f16[1, 8, 2048, 128][2097152, 262144, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg82_1, [None, None, arg2_1], add_295);  arg82_1 = add_295 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -1299,7 +1299,7 @@ class <lambda>(torch.nn.Module):
         view_224: "f16[1, 1, 8, 128][1024, 1024, 128, 1]cuda:0" = torch.ops.aten.reshape.default(view_223, [1, 1, -1, 128]);  view_223 = None
         permute_72: "f16[1, 8, 1, 128][1024, 128, 1024, 1]cuda:0" = torch.ops.aten.permute.default(view_224, [0, 2, 1, 3]);  view_224 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_13: "f16[1, 8, s13, 128][1024*s13, 128*s13, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg84_1, [None, None, arg2_1], permute_72);  arg84_1 = permute_72 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -1469,7 +1469,7 @@ class <lambda>(torch.nn.Module):
         mul_576: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.mul.Tensor(cat_15, unsqueeze_153);  cat_15 = unsqueeze_153 = None
         add_344: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.add.Tensor(mul_575, mul_576);  mul_575 = mul_576 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_14: "f16[1, 8, 2048, 128][2097152, 262144, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg94_1, [None, None, arg2_1], add_344);  arg94_1 = add_344 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -1491,7 +1491,7 @@ class <lambda>(torch.nn.Module):
         view_258: "f16[1, 1, 8, 128][1024, 1024, 128, 1]cuda:0" = torch.ops.aten.reshape.default(view_257, [1, 1, -1, 128]);  view_257 = None
         permute_83: "f16[1, 8, 1, 128][1024, 128, 1024, 1]cuda:0" = torch.ops.aten.permute.default(view_258, [0, 2, 1, 3]);  view_258 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_15: "f16[1, 8, s15, 128][1024*s15, 128*s15, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg96_1, [None, None, arg2_1], permute_83);  arg96_1 = permute_83 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -1661,7 +1661,7 @@ class <lambda>(torch.nn.Module):
         mul_657: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.mul.Tensor(cat_17, unsqueeze_173);  cat_17 = unsqueeze_173 = None
         add_393: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.add.Tensor(mul_656, mul_657);  mul_656 = mul_657 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_16: "f16[1, 8, 2048, 128][2097152, 262144, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg106_1, [None, None, arg2_1], add_393);  arg106_1 = add_393 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -1683,7 +1683,7 @@ class <lambda>(torch.nn.Module):
         view_292: "f16[1, 1, 8, 128][1024, 1024, 128, 1]cuda:0" = torch.ops.aten.reshape.default(view_291, [1, 1, -1, 128]);  view_291 = None
         permute_94: "f16[1, 8, 1, 128][1024, 128, 1024, 1]cuda:0" = torch.ops.aten.permute.default(view_292, [0, 2, 1, 3]);  view_292 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_17: "f16[1, 8, s17, 128][1024*s17, 128*s17, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg108_1, [None, None, arg2_1], permute_94);  arg108_1 = permute_94 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -1853,7 +1853,7 @@ class <lambda>(torch.nn.Module):
         mul_738: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.mul.Tensor(cat_19, unsqueeze_193);  cat_19 = unsqueeze_193 = None
         add_442: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.add.Tensor(mul_737, mul_738);  mul_737 = mul_738 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_18: "f16[1, 8, 2048, 128][2097152, 262144, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg118_1, [None, None, arg2_1], add_442);  arg118_1 = add_442 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -1875,7 +1875,7 @@ class <lambda>(torch.nn.Module):
         view_326: "f16[1, 1, 8, 128][1024, 1024, 128, 1]cuda:0" = torch.ops.aten.reshape.default(view_325, [1, 1, -1, 128]);  view_325 = None
         permute_105: "f16[1, 8, 1, 128][1024, 128, 1024, 1]cuda:0" = torch.ops.aten.permute.default(view_326, [0, 2, 1, 3]);  view_326 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_19: "f16[1, 8, s19, 128][1024*s19, 128*s19, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg120_1, [None, None, arg2_1], permute_105);  arg120_1 = permute_105 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -2045,7 +2045,7 @@ class <lambda>(torch.nn.Module):
         mul_819: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.mul.Tensor(cat_21, unsqueeze_213);  cat_21 = unsqueeze_213 = None
         add_491: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.add.Tensor(mul_818, mul_819);  mul_818 = mul_819 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_20: "f16[1, 8, 2048, 128][2097152, 262144, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg130_1, [None, None, arg2_1], add_491);  arg130_1 = add_491 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -2067,7 +2067,7 @@ class <lambda>(torch.nn.Module):
         view_360: "f16[1, 1, 8, 128][1024, 1024, 128, 1]cuda:0" = torch.ops.aten.reshape.default(view_359, [1, 1, -1, 128]);  view_359 = None
         permute_116: "f16[1, 8, 1, 128][1024, 128, 1024, 1]cuda:0" = torch.ops.aten.permute.default(view_360, [0, 2, 1, 3]);  view_360 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_21: "f16[1, 8, s21, 128][1024*s21, 128*s21, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg132_1, [None, None, arg2_1], permute_116);  arg132_1 = permute_116 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -2237,7 +2237,7 @@ class <lambda>(torch.nn.Module):
         mul_900: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.mul.Tensor(cat_23, unsqueeze_233);  cat_23 = unsqueeze_233 = None
         add_540: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.add.Tensor(mul_899, mul_900);  mul_899 = mul_900 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_22: "f16[1, 8, 2048, 128][2097152, 262144, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg142_1, [None, None, arg2_1], add_540);  arg142_1 = add_540 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -2259,7 +2259,7 @@ class <lambda>(torch.nn.Module):
         view_394: "f16[1, 1, 8, 128][1024, 1024, 128, 1]cuda:0" = torch.ops.aten.reshape.default(view_393, [1, 1, -1, 128]);  view_393 = None
         permute_127: "f16[1, 8, 1, 128][1024, 128, 1024, 1]cuda:0" = torch.ops.aten.permute.default(view_394, [0, 2, 1, 3]);  view_394 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_23: "f16[1, 8, s23, 128][1024*s23, 128*s23, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg144_1, [None, None, arg2_1], permute_127);  arg144_1 = permute_127 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -2429,7 +2429,7 @@ class <lambda>(torch.nn.Module):
         mul_981: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.mul.Tensor(cat_25, unsqueeze_253);  cat_25 = unsqueeze_253 = None
         add_589: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.add.Tensor(mul_980, mul_981);  mul_980 = mul_981 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_24: "f16[1, 8, 2048, 128][2097152, 262144, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg154_1, [None, None, arg2_1], add_589);  arg154_1 = add_589 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -2451,7 +2451,7 @@ class <lambda>(torch.nn.Module):
         view_428: "f16[1, 1, 8, 128][1024, 1024, 128, 1]cuda:0" = torch.ops.aten.reshape.default(view_427, [1, 1, -1, 128]);  view_427 = None
         permute_138: "f16[1, 8, 1, 128][1024, 128, 1024, 1]cuda:0" = torch.ops.aten.permute.default(view_428, [0, 2, 1, 3]);  view_428 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_25: "f16[1, 8, s25, 128][1024*s25, 128*s25, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg156_1, [None, None, arg2_1], permute_138);  arg156_1 = permute_138 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -2621,7 +2621,7 @@ class <lambda>(torch.nn.Module):
         mul_1062: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.mul.Tensor(cat_27, unsqueeze_273);  cat_27 = unsqueeze_273 = None
         add_638: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.add.Tensor(mul_1061, mul_1062);  mul_1061 = mul_1062 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_26: "f16[1, 8, 2048, 128][2097152, 262144, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg166_1, [None, None, arg2_1], add_638);  arg166_1 = add_638 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -2643,7 +2643,7 @@ class <lambda>(torch.nn.Module):
         view_462: "f16[1, 1, 8, 128][1024, 1024, 128, 1]cuda:0" = torch.ops.aten.reshape.default(view_461, [1, 1, -1, 128]);  view_461 = None
         permute_149: "f16[1, 8, 1, 128][1024, 128, 1024, 1]cuda:0" = torch.ops.aten.permute.default(view_462, [0, 2, 1, 3]);  view_462 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_27: "f16[1, 8, s27, 128][1024*s27, 128*s27, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg168_1, [None, None, arg2_1], permute_149);  arg168_1 = permute_149 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -2813,7 +2813,7 @@ class <lambda>(torch.nn.Module):
         mul_1143: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.mul.Tensor(cat_29, unsqueeze_293);  cat_29 = unsqueeze_293 = None
         add_687: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.add.Tensor(mul_1142, mul_1143);  mul_1142 = mul_1143 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_28: "f16[1, 8, 2048, 128][2097152, 262144, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg178_1, [None, None, arg2_1], add_687);  arg178_1 = add_687 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -2835,7 +2835,7 @@ class <lambda>(torch.nn.Module):
         view_496: "f16[1, 1, 8, 128][1024, 1024, 128, 1]cuda:0" = torch.ops.aten.reshape.default(view_495, [1, 1, -1, 128]);  view_495 = None
         permute_160: "f16[1, 8, 1, 128][1024, 128, 1024, 1]cuda:0" = torch.ops.aten.permute.default(view_496, [0, 2, 1, 3]);  view_496 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_29: "f16[1, 8, s29, 128][1024*s29, 128*s29, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg180_1, [None, None, arg2_1], permute_160);  arg180_1 = permute_160 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -3005,7 +3005,7 @@ class <lambda>(torch.nn.Module):
         mul_1224: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.mul.Tensor(cat_31, unsqueeze_313);  cat_31 = unsqueeze_313 = None
         add_736: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.add.Tensor(mul_1223, mul_1224);  mul_1223 = mul_1224 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_30: "f16[1, 8, 2048, 128][2097152, 262144, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg190_1, [None, None, arg2_1], add_736);  arg190_1 = add_736 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -3027,7 +3027,7 @@ class <lambda>(torch.nn.Module):
         view_530: "f16[1, 1, 8, 128][1024, 1024, 128, 1]cuda:0" = torch.ops.aten.reshape.default(view_529, [1, 1, -1, 128]);  view_529 = None
         permute_171: "f16[1, 8, 1, 128][1024, 128, 1024, 1]cuda:0" = torch.ops.aten.permute.default(view_530, [0, 2, 1, 3]);  view_530 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_31: "f16[1, 8, s31, 128][1024*s31, 128*s31, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg192_1, [None, None, arg2_1], permute_171);  arg192_1 = permute_171 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -3197,7 +3197,7 @@ class <lambda>(torch.nn.Module):
         mul_1305: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.mul.Tensor(cat_33, unsqueeze_333);  cat_33 = unsqueeze_333 = None
         add_785: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.add.Tensor(mul_1304, mul_1305);  mul_1304 = mul_1305 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_32: "f16[1, 8, 2048, 128][2097152, 262144, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg202_1, [None, None, arg2_1], add_785);  arg202_1 = add_785 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -3219,7 +3219,7 @@ class <lambda>(torch.nn.Module):
         view_564: "f16[1, 1, 8, 128][1024, 1024, 128, 1]cuda:0" = torch.ops.aten.reshape.default(view_563, [1, 1, -1, 128]);  view_563 = None
         permute_182: "f16[1, 8, 1, 128][1024, 128, 1024, 1]cuda:0" = torch.ops.aten.permute.default(view_564, [0, 2, 1, 3]);  view_564 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_33: "f16[1, 8, s33, 128][1024*s33, 128*s33, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg204_1, [None, None, arg2_1], permute_182);  arg204_1 = permute_182 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -3389,7 +3389,7 @@ class <lambda>(torch.nn.Module):
         mul_1386: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.mul.Tensor(cat_35, unsqueeze_353);  cat_35 = unsqueeze_353 = None
         add_834: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.add.Tensor(mul_1385, mul_1386);  mul_1385 = mul_1386 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_34: "f16[1, 8, 2048, 128][2097152, 262144, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg214_1, [None, None, arg2_1], add_834);  arg214_1 = add_834 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -3411,7 +3411,7 @@ class <lambda>(torch.nn.Module):
         view_598: "f16[1, 1, 8, 128][1024, 1024, 128, 1]cuda:0" = torch.ops.aten.reshape.default(view_597, [1, 1, -1, 128]);  view_597 = None
         permute_193: "f16[1, 8, 1, 128][1024, 128, 1024, 1]cuda:0" = torch.ops.aten.permute.default(view_598, [0, 2, 1, 3]);  view_598 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_35: "f16[1, 8, s35, 128][1024*s35, 128*s35, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg216_1, [None, None, arg2_1], permute_193);  arg216_1 = permute_193 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -3581,7 +3581,7 @@ class <lambda>(torch.nn.Module):
         mul_1467: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.mul.Tensor(cat_37, unsqueeze_373);  cat_37 = unsqueeze_373 = None
         add_883: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.add.Tensor(mul_1466, mul_1467);  mul_1466 = mul_1467 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_36: "f16[1, 8, 2048, 128][2097152, 262144, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg226_1, [None, None, arg2_1], add_883);  arg226_1 = add_883 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -3603,7 +3603,7 @@ class <lambda>(torch.nn.Module):
         view_632: "f16[1, 1, 8, 128][1024, 1024, 128, 1]cuda:0" = torch.ops.aten.reshape.default(view_631, [1, 1, -1, 128]);  view_631 = None
         permute_204: "f16[1, 8, 1, 128][1024, 128, 1024, 1]cuda:0" = torch.ops.aten.permute.default(view_632, [0, 2, 1, 3]);  view_632 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_37: "f16[1, 8, s37, 128][1024*s37, 128*s37, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg228_1, [None, None, arg2_1], permute_204);  arg228_1 = permute_204 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -3773,7 +3773,7 @@ class <lambda>(torch.nn.Module):
         mul_1548: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.mul.Tensor(cat_39, unsqueeze_393);  cat_39 = unsqueeze_393 = None
         add_932: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.add.Tensor(mul_1547, mul_1548);  mul_1547 = mul_1548 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_38: "f16[1, 8, 2048, 128][2097152, 262144, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg238_1, [None, None, arg2_1], add_932);  arg238_1 = add_932 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -3795,7 +3795,7 @@ class <lambda>(torch.nn.Module):
         view_666: "f16[1, 1, 8, 128][1024, 1024, 128, 1]cuda:0" = torch.ops.aten.reshape.default(view_665, [1, 1, -1, 128]);  view_665 = None
         permute_215: "f16[1, 8, 1, 128][1024, 128, 1024, 1]cuda:0" = torch.ops.aten.permute.default(view_666, [0, 2, 1, 3]);  view_666 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_39: "f16[1, 8, s39, 128][1024*s39, 128*s39, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg240_1, [None, None, arg2_1], permute_215);  arg240_1 = permute_215 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -3965,7 +3965,7 @@ class <lambda>(torch.nn.Module):
         mul_1629: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.mul.Tensor(cat_41, unsqueeze_413);  cat_41 = unsqueeze_413 = None
         add_981: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.add.Tensor(mul_1628, mul_1629);  mul_1628 = mul_1629 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_40: "f16[1, 8, 2048, 128][2097152, 262144, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg250_1, [None, None, arg2_1], add_981);  arg250_1 = add_981 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -3987,7 +3987,7 @@ class <lambda>(torch.nn.Module):
         view_700: "f16[1, 1, 8, 128][1024, 1024, 128, 1]cuda:0" = torch.ops.aten.reshape.default(view_699, [1, 1, -1, 128]);  view_699 = None
         permute_226: "f16[1, 8, 1, 128][1024, 128, 1024, 1]cuda:0" = torch.ops.aten.permute.default(view_700, [0, 2, 1, 3]);  view_700 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_41: "f16[1, 8, s41, 128][1024*s41, 128*s41, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg252_1, [None, None, arg2_1], permute_226);  arg252_1 = permute_226 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -4157,7 +4157,7 @@ class <lambda>(torch.nn.Module):
         mul_1710: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.mul.Tensor(cat_43, unsqueeze_433);  cat_43 = unsqueeze_433 = None
         add_1030: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.add.Tensor(mul_1709, mul_1710);  mul_1709 = mul_1710 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_42: "f16[1, 8, 2048, 128][2097152, 262144, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg262_1, [None, None, arg2_1], add_1030);  arg262_1 = add_1030 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -4179,7 +4179,7 @@ class <lambda>(torch.nn.Module):
         view_734: "f16[1, 1, 8, 128][1024, 1024, 128, 1]cuda:0" = torch.ops.aten.reshape.default(view_733, [1, 1, -1, 128]);  view_733 = None
         permute_237: "f16[1, 8, 1, 128][1024, 128, 1024, 1]cuda:0" = torch.ops.aten.permute.default(view_734, [0, 2, 1, 3]);  view_734 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_43: "f16[1, 8, s43, 128][1024*s43, 128*s43, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg264_1, [None, None, arg2_1], permute_237);  arg264_1 = permute_237 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -4349,7 +4349,7 @@ class <lambda>(torch.nn.Module):
         mul_1791: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.mul.Tensor(cat_45, unsqueeze_453);  cat_45 = unsqueeze_453 = None
         add_1079: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.add.Tensor(mul_1790, mul_1791);  mul_1790 = mul_1791 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_44: "f16[1, 8, 2048, 128][2097152, 262144, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg274_1, [None, None, arg2_1], add_1079);  arg274_1 = add_1079 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -4371,7 +4371,7 @@ class <lambda>(torch.nn.Module):
         view_768: "f16[1, 1, 8, 128][1024, 1024, 128, 1]cuda:0" = torch.ops.aten.reshape.default(view_767, [1, 1, -1, 128]);  view_767 = None
         permute_248: "f16[1, 8, 1, 128][1024, 128, 1024, 1]cuda:0" = torch.ops.aten.permute.default(view_768, [0, 2, 1, 3]);  view_768 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_45: "f16[1, 8, s45, 128][1024*s45, 128*s45, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg276_1, [None, None, arg2_1], permute_248);  arg276_1 = permute_248 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -4541,7 +4541,7 @@ class <lambda>(torch.nn.Module):
         mul_1872: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.mul.Tensor(cat_47, unsqueeze_473);  cat_47 = unsqueeze_473 = None
         add_1128: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.add.Tensor(mul_1871, mul_1872);  mul_1871 = mul_1872 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_46: "f16[1, 8, 2048, 128][2097152, 262144, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg286_1, [None, None, arg2_1], add_1128);  arg286_1 = add_1128 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -4563,7 +4563,7 @@ class <lambda>(torch.nn.Module):
         view_802: "f16[1, 1, 8, 128][1024, 1024, 128, 1]cuda:0" = torch.ops.aten.reshape.default(view_801, [1, 1, -1, 128]);  view_801 = None
         permute_259: "f16[1, 8, 1, 128][1024, 128, 1024, 1]cuda:0" = torch.ops.aten.permute.default(view_802, [0, 2, 1, 3]);  view_802 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_47: "f16[1, 8, s47, 128][1024*s47, 128*s47, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg288_1, [None, None, arg2_1], permute_259);  arg288_1 = permute_259 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -4733,7 +4733,7 @@ class <lambda>(torch.nn.Module):
         mul_1953: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.mul.Tensor(cat_49, unsqueeze_493);  cat_49 = unsqueeze_493 = None
         add_1177: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.add.Tensor(mul_1952, mul_1953);  mul_1952 = mul_1953 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_48: "f16[1, 8, 2048, 128][2097152, 262144, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg298_1, [None, None, arg2_1], add_1177);  arg298_1 = add_1177 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -4755,7 +4755,7 @@ class <lambda>(torch.nn.Module):
         view_836: "f16[1, 1, 8, 128][1024, 1024, 128, 1]cuda:0" = torch.ops.aten.reshape.default(view_835, [1, 1, -1, 128]);  view_835 = None
         permute_270: "f16[1, 8, 1, 128][1024, 128, 1024, 1]cuda:0" = torch.ops.aten.permute.default(view_836, [0, 2, 1, 3]);  view_836 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_49: "f16[1, 8, s49, 128][1024*s49, 128*s49, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg300_1, [None, None, arg2_1], permute_270);  arg300_1 = permute_270 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -4925,7 +4925,7 @@ class <lambda>(torch.nn.Module):
         mul_2034: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.mul.Tensor(cat_51, unsqueeze_513);  cat_51 = unsqueeze_513 = None
         add_1226: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.add.Tensor(mul_2033, mul_2034);  mul_2033 = mul_2034 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_50: "f16[1, 8, 2048, 128][2097152, 262144, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg310_1, [None, None, arg2_1], add_1226);  arg310_1 = add_1226 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -4947,7 +4947,7 @@ class <lambda>(torch.nn.Module):
         view_870: "f16[1, 1, 8, 128][1024, 1024, 128, 1]cuda:0" = torch.ops.aten.reshape.default(view_869, [1, 1, -1, 128]);  view_869 = None
         permute_281: "f16[1, 8, 1, 128][1024, 128, 1024, 1]cuda:0" = torch.ops.aten.permute.default(view_870, [0, 2, 1, 3]);  view_870 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_51: "f16[1, 8, s51, 128][1024*s51, 128*s51, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg312_1, [None, None, arg2_1], permute_281);  arg312_1 = permute_281 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -5117,7 +5117,7 @@ class <lambda>(torch.nn.Module):
         mul_2115: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.mul.Tensor(cat_53, unsqueeze_533);  cat_53 = unsqueeze_533 = None
         add_1275: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.add.Tensor(mul_2114, mul_2115);  mul_2114 = mul_2115 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_52: "f16[1, 8, 2048, 128][2097152, 262144, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg322_1, [None, None, arg2_1], add_1275);  arg322_1 = add_1275 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -5139,7 +5139,7 @@ class <lambda>(torch.nn.Module):
         view_904: "f16[1, 1, 8, 128][1024, 1024, 128, 1]cuda:0" = torch.ops.aten.reshape.default(view_903, [1, 1, -1, 128]);  view_903 = None
         permute_292: "f16[1, 8, 1, 128][1024, 128, 1024, 1]cuda:0" = torch.ops.aten.permute.default(view_904, [0, 2, 1, 3]);  view_904 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_53: "f16[1, 8, s53, 128][1024*s53, 128*s53, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg324_1, [None, None, arg2_1], permute_292);  arg324_1 = permute_292 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -5309,7 +5309,7 @@ class <lambda>(torch.nn.Module):
         mul_2196: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.mul.Tensor(cat_55, unsqueeze_553);  cat_55 = unsqueeze_553 = None
         add_1324: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.add.Tensor(mul_2195, mul_2196);  mul_2195 = mul_2196 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_54: "f16[1, 8, 2048, 128][2097152, 262144, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg334_1, [None, None, arg2_1], add_1324);  arg334_1 = add_1324 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -5331,7 +5331,7 @@ class <lambda>(torch.nn.Module):
         view_938: "f16[1, 1, 8, 128][1024, 1024, 128, 1]cuda:0" = torch.ops.aten.reshape.default(view_937, [1, 1, -1, 128]);  view_937 = None
         permute_303: "f16[1, 8, 1, 128][1024, 128, 1024, 1]cuda:0" = torch.ops.aten.permute.default(view_938, [0, 2, 1, 3]);  view_938 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_55: "f16[1, 8, s55, 128][1024*s55, 128*s55, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg336_1, [None, None, arg2_1], permute_303);  arg336_1 = permute_303 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -5501,7 +5501,7 @@ class <lambda>(torch.nn.Module):
         mul_2277: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.mul.Tensor(cat_57, unsqueeze_573);  cat_57 = unsqueeze_573 = None
         add_1373: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.add.Tensor(mul_2276, mul_2277);  mul_2276 = mul_2277 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_56: "f16[1, 8, 2048, 128][2097152, 262144, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg346_1, [None, None, arg2_1], add_1373);  arg346_1 = add_1373 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -5523,7 +5523,7 @@ class <lambda>(torch.nn.Module):
         view_972: "f16[1, 1, 8, 128][1024, 1024, 128, 1]cuda:0" = torch.ops.aten.reshape.default(view_971, [1, 1, -1, 128]);  view_971 = None
         permute_314: "f16[1, 8, 1, 128][1024, 128, 1024, 1]cuda:0" = torch.ops.aten.permute.default(view_972, [0, 2, 1, 3]);  view_972 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_57: "f16[1, 8, s57, 128][1024*s57, 128*s57, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg348_1, [None, None, arg2_1], permute_314);  arg348_1 = permute_314 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -5693,7 +5693,7 @@ class <lambda>(torch.nn.Module):
         mul_2358: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.mul.Tensor(cat_59, unsqueeze_593);  cat_59 = unsqueeze_593 = None
         add_1422: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.add.Tensor(mul_2357, mul_2358);  mul_2357 = mul_2358 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_58: "f16[1, 8, 2048, 128][2097152, 262144, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg358_1, [None, None, arg2_1], add_1422);  arg358_1 = add_1422 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -5715,7 +5715,7 @@ class <lambda>(torch.nn.Module):
         view_1006: "f16[1, 1, 8, 128][1024, 1024, 128, 1]cuda:0" = torch.ops.aten.reshape.default(view_1005, [1, 1, -1, 128]);  view_1005 = None
         permute_325: "f16[1, 8, 1, 128][1024, 128, 1024, 1]cuda:0" = torch.ops.aten.permute.default(view_1006, [0, 2, 1, 3]);  view_1006 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_59: "f16[1, 8, s59, 128][1024*s59, 128*s59, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg360_1, [None, None, arg2_1], permute_325);  arg360_1 = permute_325 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -5885,7 +5885,7 @@ class <lambda>(torch.nn.Module):
         mul_2439: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.mul.Tensor(cat_61, unsqueeze_613);  cat_61 = unsqueeze_613 = None
         add_1471: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.add.Tensor(mul_2438, mul_2439);  mul_2438 = mul_2439 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_60: "f16[1, 8, 2048, 128][2097152, 262144, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg370_1, [None, None, arg2_1], add_1471);  arg370_1 = add_1471 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -5907,7 +5907,7 @@ class <lambda>(torch.nn.Module):
         view_1040: "f16[1, 1, 8, 128][1024, 1024, 128, 1]cuda:0" = torch.ops.aten.reshape.default(view_1039, [1, 1, -1, 128]);  view_1039 = None
         permute_336: "f16[1, 8, 1, 128][1024, 128, 1024, 1]cuda:0" = torch.ops.aten.permute.default(view_1040, [0, 2, 1, 3]);  view_1040 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_61: "f16[1, 8, s61, 128][1024*s61, 128*s61, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg372_1, [None, None, arg2_1], permute_336);  arg372_1 = permute_336 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -6077,7 +6077,7 @@ class <lambda>(torch.nn.Module):
         mul_2520: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.mul.Tensor(cat_63, unsqueeze_633);  cat_63 = unsqueeze_633 = None
         add_1520: "f16[1, 8, 1, 128][1024, 128, 128, 1]cuda:0" = torch.ops.aten.add.Tensor(mul_2519, mul_2520);  mul_2519 = mul_2520 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:156 in update, code: self.keys.index_copy_(2, cache_position, key_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:150 in update, code: self.keys.index_copy_(2, cache_position, key_states)
         index_put_62: "f16[1, 8, 2048, 128][2097152, 262144, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg382_1, [None, None, arg2_1], add_1520);  arg382_1 = add_1520 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -6099,7 +6099,7 @@ class <lambda>(torch.nn.Module):
         view_1074: "f16[1, 1, 8, 128][1024, 1024, 128, 1]cuda:0" = torch.ops.aten.reshape.default(view_1073, [1, 1, -1, 128]);  view_1073 = None
         permute_347: "f16[1, 8, 1, 128][1024, 128, 1024, 1]cuda:0" = torch.ops.aten.permute.default(view_1074, [0, 2, 1, 3]);  view_1074 = None
         
-         # File: /app/low_bit_inference/optims/cache_optim.py:157 in update, code: self.values.index_copy_(2, cache_position, value_states)
+         # File: /app/low_bit_inference/optims/cache_optim.py:151 in update, code: self.values.index_copy_(2, cache_position, value_states)
         index_put_63: "f16[1, 8, s63, 128][1024*s63, 128*s63, 128, 1]cuda:0" = torch.ops.aten.index_put_.default(arg384_1, [None, None, arg2_1], permute_347);  arg384_1 = arg2_1 = permute_347 = None
         
          # File: /app/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py:15 in repeat_kv, code: return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
@@ -6199,7 +6199,7 @@ class <lambda>(torch.nn.Module):
         # No stacktrace found for following nodes
         triton_kernel_wrapper_mutation = torch.ops.higher_order.triton_kernel_wrapper_mutation(kernel_idx = 130, constant_args_idx = 129, grid = [(1, 1, 1)], tma_descriptor_metadata = {}, kwargs = {'Y_ptr': empty_128, 'X_ptr': view_1092, 'W_ptr': arg390_1, 'RSTD_ptr': empty_129});  view_1092 = arg390_1 = empty_129 = triton_kernel_wrapper_mutation = None
         
-         # File: /app/low_bit_inference/model.py:451 in forward, code: logits = self.lm_head(hidden_states[:, slice_indices, :])
+         # File: /app/low_bit_inference/model.py:453 in forward, code: logits = self.lm_head(hidden_states[:, slice_indices, :])
         view_1095: "f16[1, 1, 4096][4096, 4096, 1]cuda:0" = torch.ops.aten.reshape.default(empty_128, [1, 1, 4096]);  empty_128 = None
         slice_744: "f16[1, 1, 4096][4096, 4096, 1]cuda:0" = torch.ops.aten.slice.Tensor(view_1095, 1, -1, 9223372036854775807);  view_1095 = None
         view_1096: "f16[1, 4096][4096, 1]cuda:0" = torch.ops.aten.reshape.default(slice_744, [1, 4096]);  slice_744 = None
