@@ -334,8 +334,6 @@ class Cache:
         """Recursively reset all layers tensors"""
         for layer_idx in range(len(self.layers)):
             self.layers[layer_idx].reset()
-            self.layers[layer_idx].keys = torch.clone(self.layers[layer_idx].keys).to(self.layers[layer_idx].keys.device)
-            self.layers[layer_idx].values = torch.clone(self.layers[layer_idx].values).to(self.layers[layer_idx].values.device)
 
     def reorder_cache(self, beam_idx: torch.LongTensor):
         """Reorder the cache for beam search"""
