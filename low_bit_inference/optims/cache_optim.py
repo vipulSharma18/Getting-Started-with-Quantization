@@ -89,7 +89,7 @@ class StaticLayer(CacheLayerMixin):
         super().__init__()
         self.max_cache_len = max_cache_len
 
-    def lazy_initialization(self, key_states: torch.Tensor):
+    def lazy_initialization(self, key_states: torch.Tensor, value_states: torch.Tensor):
         """
         Lazy initialization of the keys and values tensors. This allows to get all properties (dtype, device,
         num_heads in case of TP etc...) at runtime directly, which is extremely practical as it avoids moving
@@ -103,8 +103,17 @@ class StaticLayer(CacheLayerMixin):
         i.e. `mode="reduce-overhead"` is known to fail). But it will in general work correctly, and prefill should
         not be compiled anyway for performances!
         """
-        self.max_batch_size, self.num_heads, _, self.head_dim = key_states.shape
-        self.dtype, self.device = key_states.dtype, key_states.device
+        key_batch, key_heads, _, key_dim = key_states.shape
+        key_dtype, key_device = key_states.dtype, key_states.device
+
+        value_batch, value_heads, _, value_dim = value_states.shape
+        value_dtype, value_device = value_states.dtype, value_states.device
+
+        assert (key_batch==value_batch) and (key_heads==value_heads) and (key_dim==value_dim) \
+            and (key_dtype==value_dtype) and (key_device==value_device)
+
+        self.max_batch_size, self.num_heads, self.head_dim = value_batch, value_heads, value_dim
+        self.dtype, self.device = value_dtype, value_device
 
         self.keys = torch.zeros(
             (self.max_batch_size, self.num_heads, self.max_cache_len, self.head_dim),
@@ -135,8 +144,8 @@ class StaticLayer(CacheLayerMixin):
             tuple[`torch.Tensor`, `torch.Tensor`]: The key and value states.
         """
         # Lazy initialization
-        if self.keys is None:
-            self.lazy_initialization(key_states)
+        if self.keys is None or self.values is None:
+            self.lazy_initialization(key_states, value_states)
 
         # Some old models give None for `cache_position` or even omit passing `cache_kwargs` when used as cross-attention,
         # in which case we should copy the whole Layer (key_states.shape[-2] == self.max_cache_len)
@@ -296,7 +305,7 @@ class Cache:
         fake_keys_tensor = torch.zeros((batch_size, num_heads, 0, head_dim), dtype=dtype, device=device)
         # Init all layers
         for layer in self.layers:
-            layer.lazy_initialization(fake_keys_tensor)
+            layer.lazy_initialization(fake_keys_tensor, fake_keys_tensor)
 
     def get_seq_length(self, layer_idx: Optional[int] = 0) -> int:
         """Returns the sequence length of the cache for the given layer."""
@@ -473,4 +482,10 @@ def setup_cache(cache_size, model_config, profile_config):
         device=profile_config.device,
         dtype=to_torch_dtype(profile_config.compute_dtype)
     )
+    past_key_values.early_initialization(
+        batch_size=1,
+        num_heads=model_config.num_key_value_heads,
+        head_dim=model_config.head_dim,
+        dtype=to_torch_dtype(profile_config.compute_dtype),
+        device=profile_config.device)
     return past_key_values
