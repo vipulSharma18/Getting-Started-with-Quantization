@@ -6,6 +6,9 @@ ports.log
 trace.json
 log
 
+# compiler tlparse output
+tl_out
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
