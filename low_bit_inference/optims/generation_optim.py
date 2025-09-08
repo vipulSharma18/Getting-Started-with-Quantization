@@ -341,8 +341,10 @@ class GenerationMixinCustom:
         is_prefill = True
 
         if self.custom_compile:
-            self.compiled_forward_decode = self.get_compiled_call(dynamic=False)
-            self.compiled_forward_prefill = self.get_compiled_call(dynamic=True)
+            if self.compiled_forward_decode is None:
+                self.compiled_forward_decode = self.get_compiled_call(dynamic=False)
+            if self.compiled_forward_prefill is None:
+                self.compiled_forward_prefill = self.get_compiled_call(dynamic=True)
         else:
             self.compiled_forward_decode = self.compiled_forward_prefill = self.forward
 
