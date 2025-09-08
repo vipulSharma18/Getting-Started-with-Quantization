@@ -56,6 +56,7 @@ class CacheLayerMixin(ABC):
             self.keys = self.keys.to(self.device, non_blocking=True)
             self.values = self.values.to(self.device, non_blocking=True)
 
+    @torch.compile(mode="reduce-overhead")
     def reset(self) -> None:
         """Resets the cache values while preserving the objects"""
         if self.keys is not None:
