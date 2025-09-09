@@ -4,6 +4,12 @@
 
 Experimenting with different methods for low bit inference of Llama-3.1.
 
+Manual Docker pull and run if not using VastAI or RunPod:
+```
+docker pull ghcr.io/vipulsharma18/low-bit-inference:main
+docker run --gpus all -d ghcr.io/vipulsharma18/low-bit-inference:main
+```
+
 GitHub setup within the container:
 ```
 gh auth login
