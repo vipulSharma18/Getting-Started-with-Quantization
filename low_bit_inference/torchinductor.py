@@ -36,9 +36,9 @@ print("Model moved to GPU, starting profiling.")
 
 def cache_init(past_key_values, model, config, kv_compiled=False):
     if not kv_compiled:
-        past_key_values.early_initialization = torch.compile(past_key_values.early_initialization, mode="max-autotune", dynamic=True)
-        past_key_values.update = torch.compile(past_key_values.update, mode="max-autotune", dynamic=True)
-        past_key_values.reset = torch.compile(past_key_values.reset, mode="max-autotune", dynamic=True)
+        past_key_values.early_initialization = torch.compile(past_key_values.early_initialization, mode="max-autotune", dynamic=False)
+        past_key_values.update = torch.compile(past_key_values.update, dynamic=True)
+        past_key_values.reset = torch.compile(past_key_values.reset, dynamic=True)
     
     past_key_values.early_initialization(
         batch_size=1,
