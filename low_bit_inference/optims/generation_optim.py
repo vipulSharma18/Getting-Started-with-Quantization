@@ -98,7 +98,7 @@ class GenerationMixinCustom:
         # Some models may overwrite the general one
         causal_mask_creation_function = getattr(self, "create_masks_for_generate", create_masks_for_generate)
         if self.custom_compile and not self.already_compiled:
-            causal_mask_creation_function = torch.compile(causal_mask_creation_function, mode="reduce-overhead", dynamic=True)
+            causal_mask_creation_function = torch.compile(causal_mask_creation_function, dynamic=True)
         attention_mask = causal_mask_creation_function(
             config=self.config,
             # we only need batch size, seq_length and dtype here - we don't care about the values of the embeddings
@@ -240,10 +240,6 @@ class GenerationMixinCustom:
         # 1. Handle `generation_config` and kwargs that might update it, and validate the `.generate()` call
         generation_config = self.generation_config
 
-        if self.custom_compile and not self.already_compiled:
-            self._prepare_model_inputs = torch.compile(self._prepare_model_inputs, mode="reduce-overhead", dynamic=True)
-            self._prepare_special_tokens = torch.compile(self._prepare_special_tokens, mode="reduce-overhead", dynamic=True)
-
         # 3. Define model inputs. We pass input_ids to generate instead of inputs = xyz, so need this.
         inputs_tensor, model_kwargs = self._prepare_model_inputs(
             inputs, kwargs
@@ -295,9 +291,6 @@ class GenerationMixinCustom:
             if self.compiled_forward_prefill is None:
                 self.compiled_forward_prefill = self.get_compiled_call(dynamic=True)
             model_kwargs["dummy_self"] = self
-            if not self.already_compiled:
-                self.prepare_inputs_for_generation = torch.compile(self.prepare_inputs_for_generation, mode="reduce-overhead", dynamic=True)
-                self._update_model_kwargs_for_generation = torch.compile(self._update_model_kwargs_for_generation, mode="reduce-overhead", dynamic=True)
         else:
             self.compiled_forward_decode = self.compiled_forward_prefill = self.forward
 
