@@ -401,6 +401,7 @@ class LlamaForCausalLM(GenerationMixinCustom, LlamaPreTrainedModel):
         self.custom_compile = True
         self.compiled_forward_decode = None
         self.compiled_forward_prefill = None
+        self.already_compiled = False
 
         # Initialize weights and apply final processing
         self.post_init()

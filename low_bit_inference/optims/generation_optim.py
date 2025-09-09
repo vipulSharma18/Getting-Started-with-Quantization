@@ -171,7 +171,6 @@ class GenerationMixinCustom:
     def _prepare_model_inputs(
         self,
         inputs: Optional[torch.Tensor] = None,
-        bos_token_id: Optional[torch.Tensor] = None,
         model_kwargs = None,
     ) -> tuple[torch.Tensor, Optional[str], dict[str, torch.Tensor]]:
         """
@@ -184,13 +183,12 @@ class GenerationMixinCustom:
         # and `inputs` is None, so use kwarg inputs
         inputs_kwarg = model_kwargs.pop(input_name, None)
         inputs = inputs_kwarg
-        return inputs, input_name, model_kwargs
+        return inputs, model_kwargs
 
     def _update_model_kwargs_for_generation(
         self,
         outputs,
         model_kwargs: dict[str, Any],
-        is_encoder_decoder: bool = False,
         num_new_tokens: int = 1,
     ) -> dict[str, Any]:
         cache_name = "past_key_values"
@@ -207,8 +205,6 @@ class GenerationMixinCustom:
     def _get_stopping_criteria(
         self,
         generation_config,
-        tokenizer = None,
-        **kwargs,
     ):
         criteria = StoppingCriteriaList()
         if generation_config.max_length is not None:
@@ -238,17 +234,9 @@ class GenerationMixinCustom:
         model_kwargs["cache_position"] = cache_position
         return model_kwargs
 
-    def _supports_logits_to_keep(self) -> bool:
-        """
-        Return True if the current model supports the keyword argument `logits_to_keep` in forward()
-        to save memory. Checking it in this way allows to avoid using a new model attribute.
-        """
-        return "logits_to_keep" in set(inspect.signature(self.forward).parameters.keys())
-
     def _prepare_special_tokens(
         self,
         generation_config,
-        kwargs_has_attention_mask: Optional[bool] = None,
         device: Optional[Union[torch.device, str]] = None,
     ):
         """
@@ -290,19 +278,21 @@ class GenerationMixinCustom:
         generation_config._pad_token_tensor = pad_token_tensor
         generation_config._decoder_start_token_tensor = decoder_start_token_tensor
 
-    def generate(self, inputs = None, generation_config = None, use_model_defaults = None, **kwargs):
+    def generate(self, inputs = None, generation_config = None, **kwargs):
 
         # 1. Handle `generation_config` and kwargs that might update it, and validate the `.generate()` call
-        tokenizer = kwargs.pop("tokenizer", None)  # Pull this out first, we only use it for stopping criteria
         generation_config = self.generation_config
-        kwargs_has_attention_mask = kwargs.get("attention_mask", None) is not None
+
+        if self.custom_compile and not self.already_compiled:
+            self._prepare_model_inputs = torch.compile(self._prepare_model_inputs, mode="reduce-overhead")
+            self._prepare_special_tokens = torch.compile(self._prepare_special_tokens, mode="reduce-overhead")
 
         # 3. Define model inputs. We pass input_ids to generate instead of inputs = xyz, so need this.
-        inputs_tensor, model_input_name, model_kwargs = self._prepare_model_inputs(
+        inputs_tensor, model_kwargs = self._prepare_model_inputs(
             inputs, generation_config.bos_token_id, kwargs
         )
         device = inputs_tensor.device
-        self._prepare_special_tokens(generation_config, kwargs_has_attention_mask, device=device)
+        self._prepare_special_tokens(generation_config, device=device)
 
         # 6. Prepare `max_length` depending on other stopping criteria.
         input_ids_length = inputs_tensor.shape[1]
@@ -310,11 +300,9 @@ class GenerationMixinCustom:
 
         # keep logits_to_keep as 1 to only keep the last logit indx and not all of them.
         # set it to 1 to avoid computing the whole logit matrix. This can save a lot of memory during the first forward pass.
-        if self._supports_logits_to_keep() and "logits_to_keep" not in model_kwargs:
+        if "logits_to_keep" not in model_kwargs:
             model_kwargs["logits_to_keep"] = 1
-        stopping_criteria = self._get_stopping_criteria(
-            generation_config=generation_config, tokenizer=tokenizer, **kwargs
-        )
+        stopping_criteria = self._get_stopping_criteria(generation_config=generation_config)
 
         # Set model_kwargs `use_cache` so we can use it later in forward runs
         model_kwargs["use_cache"] = generation_config.use_cache
@@ -350,6 +338,9 @@ class GenerationMixinCustom:
             if self.compiled_forward_prefill is None:
                 self.compiled_forward_prefill = self.get_compiled_call(dynamic=True)
             model_kwargs["dummy_self"] = self
+            if not self.already_compiled:
+                self.prepare_inputs_for_generation = torch.compile(self.prepare_inputs_for_generation, mode="reduce-overhead")
+                self._update_model_kwargs_for_generation = torch.compile(self._update_model_kwargs_for_generation, mode="reduce-overhead")
         else:
             self.compiled_forward_decode = self.compiled_forward_prefill = self.forward
 
@@ -367,7 +358,6 @@ class GenerationMixinCustom:
             model_kwargs = self._update_model_kwargs_for_generation(
                 outputs,
                 model_kwargs,
-                is_encoder_decoder=False,
             )
 
             # Copy is needed to avoid keeping a hanging ref to outputs.logits which may be very large for first iteration
@@ -391,5 +381,8 @@ class GenerationMixinCustom:
             # This is needed to properly delete outputs.logits which may be very large for first iteration
             # Otherwise a reference to outputs is kept which keeps the logits alive in the next iteration
             del outputs
+
+        if self.custom_compile:
+            self.already_compiled = True
 
         return input_ids
