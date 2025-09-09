@@ -53,7 +53,7 @@ python -m low_bit_inference.torch_baseline configs/profile_baseline.yaml tps_onl
 
 **Full graph torch compile with inductor**: 
 ```
-python -m low_bit_inference.torchinductor configs/profile_inductor.yaml tps_only=True skip_first=1 wait=0 warmup=1 active=1
+python -m low_bit_inference.torchinductor configs/profile_inductor.yaml tps_only=True
 ```
 
 **Torch compile with TorchAO AutoQuant**: 

@@ -289,7 +289,7 @@ class GenerationMixinCustom:
 
         # 3. Define model inputs. We pass input_ids to generate instead of inputs = xyz, so need this.
         inputs_tensor, model_kwargs = self._prepare_model_inputs(
-            inputs, generation_config.bos_token_id, kwargs
+            inputs, kwargs
         )
         device = inputs_tensor.device
         self._prepare_special_tokens(generation_config, device=device)
