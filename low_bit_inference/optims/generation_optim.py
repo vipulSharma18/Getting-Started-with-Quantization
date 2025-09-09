@@ -16,11 +16,9 @@ https://github.com/huggingface/transformers/blob/main/src/transformers/generatio
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import inspect
 import os
 from typing import Any, Optional, Union
 import torch
-from .cache_optim import Cache
 from .masking_optim import create_masks_for_generate
 from transformers import (
     EosTokenCriteria,
@@ -42,10 +40,8 @@ class GenerationMixinCustom:
         The code is put in a separate function to allow granular unit testing
         as it needs a different implementation to be exportable.
         """
-        if (cache_position[-1] >= input_ids.shape[1]):  # cache position goes out of bounds, i.e., beyond the tokens that have been generated till now
-            input_ids = input_ids[:, -cache_position.shape[0] :]
-        else:  # just take the last token generated, or at the cache position, for current query.
-            input_ids = input_ids[:, cache_position]
+        # just take the last token generated, or at the cache position, for current query.
+        input_ids = input_ids[:, cache_position]
         return input_ids
 
 
@@ -70,90 +66,51 @@ class GenerationMixinCustom:
         model_inputs["cache_position"] = cache_position
 
         # 2. Generic cache-dependent input preparation
-        if past_key_values is not None:
-            model_inputs["past_key_values"] = past_key_values
-            input_ids = self._cache_dependant_input_preparation(
-                input_ids, cache_position
-            )
+        model_inputs["past_key_values"] = past_key_values
+        input_ids = self._cache_dependant_input_preparation(
+            input_ids, cache_position
+        )
 
         # 3. Prepare base model inputs
         input_ids_key = "input_ids"
         # `clone` calls in this function ensure a consistent stride. See #32227
         model_inputs[input_ids_key] = input_ids.clone(memory_format=torch.contiguous_format)
 
-        # 4. Create missing `position_ids` on the fly
+        # 4. Create missing `position_ids` on the fly and make it as same shape as model input
         attention_mask_key = "attention_mask"
         position_ids_key = "position_ids"
-        if (
-            attention_mask is not None
-            and kwargs.get(position_ids_key) is None
-            and position_ids_key in set(inspect.signature(self.forward).parameters.keys())
-        ):
-            position_ids = attention_mask.long().cumsum(-1) - 1
-            position_ids.masked_fill_(attention_mask == 0, 1)
-            kwargs[position_ids_key] = position_ids  # placed in kwargs for further processing (see below)
+        position_ids = attention_mask.long().cumsum(-1) - 1
+        position_ids.masked_fill_(attention_mask == 0, 1)
+        current_input_length = model_inputs[input_ids_key].shape[1]
+        position_ids = position_ids[:, -current_input_length:]
+        position_ids = position_ids.clone(memory_format=torch.contiguous_format)
+        model_inputs[position_ids_key] = position_ids
 
-        # 5. slice the position ids to make them the same length as model's input_ids
-        position_ids = kwargs.get(position_ids_key)
-        if position_ids is not None:
-            if past_key_values is not None:
-                current_input_length = model_inputs[input_ids_key].shape[1]
-                position_ids = position_ids[:, -current_input_length:]
-                position_ids = position_ids.clone(memory_format=torch.contiguous_format)
-            model_inputs[position_ids_key] = position_ids
-
-        # 6. Create 4D attention mask is we are using a compilable cache (important for performant compiled forward
+        # 6. Create 4D attention mask if we are using a compilable cache (important for performant compiled forward
         # pass)
-        if (
-            isinstance(past_key_values, Cache)
-            and past_key_values.is_compileable
-            and attention_mask is not None
-            and attention_mask.ndim == 2
-        ):  # true for llama3.1-8b with static cache
-            batch_size, sequence_length = model_inputs[input_ids_key].shape[:2]
+        # true for llama3.1-8b with static cache
+        batch_size, sequence_length = model_inputs[input_ids_key].shape[:2]
 
-            # Create the causal mask with fixed shape in advance, to reduce recompilations. If the function to create
-            # the 4D causal mask exists, it should be present in the base model (XXXModel class) or in its decoder.
-            base_model = getattr(self, self.base_model_prefix, self)
-            decoder = base_model.get_decoder() if hasattr(base_model, "get_decoder") else None
-            causal_mask_creation_function = getattr(
-                base_model, "_prepare_4d_causal_attention_mask_with_cache_position", None
-            )
-            if causal_mask_creation_function is None and decoder is not None:  # it may be in the decoder
-                causal_mask_creation_function = getattr(
-                    decoder, "_prepare_4d_causal_attention_mask_with_cache_position", None
-                )
+        # Create the causal mask with fixed shape in advance, to reduce recompilations. If the function to create
+        # the 4D causal mask exists, it should be present in the base model (XXXModel class) or in its decoder.
+        token_type_ids = model_inputs.get("token_type_ids")
+        position_ids = model_inputs.get(position_ids_key)
+        # Some models may overwrite the general one
+        causal_mask_creation_function = getattr(self, "create_masks_for_generate", create_masks_for_generate)
+        if self.custom_compile and not self.already_compiled:
+            causal_mask_creation_function = torch.compile(causal_mask_creation_function, mode="reduce-overhead", dynamic=True)
+        attention_mask = causal_mask_creation_function(
+            config=self.config,
+            # we only need batch size, seq_length and dtype here - we don't care about the values of the embeddings
+            input_embeds=torch.empty((batch_size, sequence_length), dtype=self.dtype),
+            attention_mask=attention_mask,
+            cache_position=cache_position,
+            past_key_values=past_key_values,
+            position_ids=position_ids,
+            token_type_ids=token_type_ids,
+        )
 
-            # If it's not defined, it means the model uses the new general mask API
-            if causal_mask_creation_function is None:  # can't be found
-                token_type_ids = model_inputs.get("token_type_ids")
-                position_ids = model_inputs.get(position_ids_key)
-                # Some models may overwrite the general one
-                causal_mask_creation_function = getattr(self, "create_masks_for_generate", create_masks_for_generate)
-                attention_mask = causal_mask_creation_function(
-                    config=self.config,
-                    # we only need batch size, seq_length and dtype here - we don't care about the values of the embeddings
-                    input_embeds=torch.empty((batch_size, sequence_length), dtype=self.dtype),
-                    attention_mask=attention_mask,
-                    cache_position=cache_position,
-                    past_key_values=past_key_values,
-                    position_ids=position_ids,
-                    token_type_ids=token_type_ids,
-                )
-            else:
-                attention_mask = causal_mask_creation_function(
-                    attention_mask,
-                    sequence_length=sequence_length,
-                    target_length=past_key_values.get_max_cache_shape(),
-                    dtype=self.dtype,
-                    cache_position=cache_position,
-                    batch_size=batch_size,
-                    config=self.config,
-                    past_key_values=past_key_values,
-                )
-
-        if attention_mask is not None:
-            model_inputs[attention_mask_key] = attention_mask
+        model_inputs[attention_mask_key] = attention_mask
 
         # 7. Forward ALL kwargs that are uninitialized (e.g. `use_cache`).
         for key, value in kwargs.items():
@@ -284,8 +241,8 @@ class GenerationMixinCustom:
         generation_config = self.generation_config
 
         if self.custom_compile and not self.already_compiled:
-            self._prepare_model_inputs = torch.compile(self._prepare_model_inputs, mode="reduce-overhead")
-            self._prepare_special_tokens = torch.compile(self._prepare_special_tokens, mode="reduce-overhead")
+            self._prepare_model_inputs = torch.compile(self._prepare_model_inputs, mode="reduce-overhead", dynamic=True)
+            self._prepare_special_tokens = torch.compile(self._prepare_special_tokens, mode="reduce-overhead", dynamic=True)
 
         # 3. Define model inputs. We pass input_ids to generate instead of inputs = xyz, so need this.
         inputs_tensor, model_kwargs = self._prepare_model_inputs(
@@ -339,8 +296,8 @@ class GenerationMixinCustom:
                 self.compiled_forward_prefill = self.get_compiled_call(dynamic=True)
             model_kwargs["dummy_self"] = self
             if not self.already_compiled:
-                self.prepare_inputs_for_generation = torch.compile(self.prepare_inputs_for_generation, mode="reduce-overhead")
-                self._update_model_kwargs_for_generation = torch.compile(self._update_model_kwargs_for_generation, mode="reduce-overhead")
+                self.prepare_inputs_for_generation = torch.compile(self.prepare_inputs_for_generation, mode="reduce-overhead", dynamic=True)
+                self._update_model_kwargs_for_generation = torch.compile(self._update_model_kwargs_for_generation, mode="reduce-overhead", dynamic=True)
         else:
             self.compiled_forward_decode = self.compiled_forward_prefill = self.forward
 
@@ -348,13 +305,12 @@ class GenerationMixinCustom:
             # prepare model inputs
             model_inputs = self.prepare_inputs_for_generation(input_ids, **model_kwargs)
 
-            if is_prefill: # the shape of prefill stage is unknown as the prompt can be of any length, so we can't use compile well.
+            if is_prefill:
                 outputs = self.compiled_forward_prefill(**model_inputs, return_dict=True)
                 is_prefill = False
-            else: # decode only happens one token at a time, so we can use compile well.
+            else:
                 outputs = self.compiled_forward_decode(**model_inputs, return_dict=True)
 
-            # don't waste resources running the code we don't need; kwargs must be updated before skipping
             model_kwargs = self._update_model_kwargs_for_generation(
                 outputs,
                 model_kwargs,

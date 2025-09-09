@@ -466,17 +466,17 @@ class LlamaForCausalLM(GenerationMixinCustom, LlamaPreTrainedModel):
         )
 
     @staticmethod
-    def duped_forward(forward_call: Callable, salt: int):
-        co_new = forward_call.__code__.replace(
-            co_consts=forward_call.__code__.co_consts + (salt,),
+    def duped_function(function: Callable, salt: int):
+        co_new = function.__code__.replace(
+            co_consts=function.__code__.co_consts + (salt,),
             )
         return FunctionType(
-            co_new, forward_call.__globals__, forward_call.__name__,
-            forward_call.__defaults__, forward_call.__closure__,
+            co_new, function.__globals__, function.__name__,
+            function.__defaults__, function.__closure__,
         )
 
     def get_compiled_call(self, dynamic=True):
-        duped_forward = self.duped_forward(self.forward, int(dynamic))
+        duped_forward = self.duped_function(self.forward, int(dynamic))
         compiled_call = torch.compile(duped_forward, fullgraph=True, dynamic=dynamic)
         return compiled_call
 
