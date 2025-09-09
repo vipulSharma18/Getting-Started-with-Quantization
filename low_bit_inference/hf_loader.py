@@ -1,8 +1,8 @@
 import math
+from .optims.cache_optim import StaticCache
 from transformers import AutoTokenizer
 from .model import LlamaForCausalLM
 from .utils.config_utils import to_torch_dtype
-from .optims.cache_optim import setup_cache
 
 
 def autoname_modules(m):
@@ -13,7 +13,6 @@ def load_model_tokenizer_prompt_cache(config):
     tokenizer = AutoTokenizer.from_pretrained(
         config.model_id,
         cache_dir=config.cache_dir,
-
     )
     # if a rust based tokenizer is not avialable, this falls back to Python implementation which is slower.
     model = LlamaForCausalLM.from_pretrained(
@@ -45,8 +44,16 @@ def load_model_tokenizer_prompt_cache(config):
     past_key_values = None
     if config.use_cache:
         model.config.use_cache = config.use_cache
-        model.generation_config.cache_implementation = None  # remove the gen config var otherwise value error for setting it here and passing an explicit key value store past_key_values
-        cache_size = 2**math.ceil(math.log(len(prompt) + config.max_new_tokens, 2))
-        past_key_values = setup_cache(cache_size, model.config, config)
-        print("Set up KV cache with max length across attention layers:", past_key_values.max_cache_len)
+        # set to None as explicitly passing kv cache
+        model.generation_config.cache_implementation = None
+        prompt_len = tokenizer(prompt, return_tensors="pt")["input_ids"].shape[-1]
+        cache_size = 2**math.ceil(math.log(prompt_len + config.max_new_tokens, 2))
+        past_key_values = StaticCache(
+            config=model.config,
+            max_batch_size=1,
+            max_cache_len=cache_size,
+            device=config.device,
+            dtype=to_torch_dtype(config.compute_dtype)
+        )
+
     return model, tokenizer, prompt, past_key_values

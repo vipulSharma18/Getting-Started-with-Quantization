@@ -2,7 +2,7 @@ import torch
 from omegaconf import OmegaConf
 # utils
 from .hf_loader import load_model_tokenizer_prompt_cache
-from .utils.config_utils import get_config
+from .utils.config_utils import get_config, to_torch_dtype
 from .utils.profile_utils import profile_model
 
 
@@ -34,4 +34,20 @@ torch._inductor.config.benchmark_fusion = True
 model = model.to(config.device)
 print("Model moved to GPU, starting profiling.")
 
-profile_model(model, tokenizer, past_key_values, prompt, config)
+def cache_init(past_key_values, model, config, kv_compiled=False):
+    if not kv_compiled:
+        past_key_values.early_initialization = torch.compile(past_key_values.early_initialization, mode="max-autotune")
+        past_key_values.lazy_initialization = torch.compile(past_key_values.lazy_initialization, mode="max-autotune")
+        past_key_values.update = torch.compile(past_key_values.update, mode="max-autotune")
+        past_key_values.reset = torch.compile(past_key_values.reset, mode="max-autotune")
+    
+    past_key_values.early_initialization(
+        batch_size=1,
+        num_heads=model.config.num_key_value_heads,
+        head_dim=model.config.head_dim,
+        dtype=to_torch_dtype(config.compute_dtype),
+        device=config.device,
+    )
+    return past_key_values
+
+profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)

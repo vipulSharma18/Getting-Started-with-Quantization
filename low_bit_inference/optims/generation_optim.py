@@ -158,7 +158,11 @@ class GenerationMixinCustom:
         # 7. Forward ALL kwargs that are uninitialized (e.g. `use_cache`).
         for key, value in kwargs.items():
             if key not in model_inputs:
-                model_inputs[key] = value
+                # pass self manually for prefill and decode compiled fns: temp workaround
+                if key == "dummy_self":
+                    model_inputs["self"] = self
+                else:
+                    model_inputs[key] = value
 
         # 8. Remove unexpected `generate` inputs
         model_inputs.pop("labels", None)
@@ -345,6 +349,7 @@ class GenerationMixinCustom:
                 self.compiled_forward_decode = self.get_compiled_call(dynamic=False)
             if self.compiled_forward_prefill is None:
                 self.compiled_forward_prefill = self.get_compiled_call(dynamic=True)
+            model_kwargs["dummy_self"] = self
         else:
             self.compiled_forward_decode = self.compiled_forward_prefill = self.forward
 
@@ -353,10 +358,10 @@ class GenerationMixinCustom:
             model_inputs = self.prepare_inputs_for_generation(input_ids, **model_kwargs)
 
             if is_prefill: # the shape of prefill stage is unknown as the prompt can be of any length, so we can't use compile well.
-                outputs = self.compiled_forward_prefill(self, **model_inputs, return_dict=True)
+                outputs = self.compiled_forward_prefill(**model_inputs, return_dict=True)
                 is_prefill = False
             else: # decode only happens one token at a time, so we can use compile well.
-                outputs = self.compiled_forward_decode(self, **model_inputs, return_dict=True)
+                outputs = self.compiled_forward_decode(**model_inputs, return_dict=True)
 
             # don't waste resources running the code we don't need; kwargs must be updated before skipping
             model_kwargs = self._update_model_kwargs_for_generation(

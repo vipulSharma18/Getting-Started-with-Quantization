@@ -1,10 +1,9 @@
-import os
 import torch
 from torchao.quantization import quantize_, Int4WeightOnlyConfig
 from omegaconf import OmegaConf
 # utils
 from .hf_loader import load_model_tokenizer_prompt_cache
-from .utils.config_utils import get_config
+from .utils.config_utils import get_config, to_torch_dtype
 from .utils.profile_utils import profile_model
 
 
@@ -38,4 +37,4 @@ quantize_(past_key_values, Int4WeightOnlyConfig())
 model = model.to(config.device)
 print("Model moved to GPU, starting profiling.")
 
-profile_model(model, tokenizer, past_key_values, prompt, config)
+profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)

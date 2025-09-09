@@ -21,7 +21,7 @@ Toy config for quick testing:
 ```
 import torch
 from low_bit_inference.utils.config_utils import get_config
-from low_bit_inference.hf_loader import load_model_tokenizer_prompt_cache
+from low_bit_inference.hf_loader import load_model_tokenizer_prompt
 config = get_config()
 model, tokenizer, prompt, past_key_values = load_model_tokenizer_prompt_cache(config)
 tokenized_prompt = tokenizer([config.prompt], return_tensors="pt").to(config.device)
@@ -41,19 +41,17 @@ TORCH_TRACE="log/compile" python -m low_bit_inference.torchinductor configs/prof
 tlparse log/compile/* --overwrite
 ```
 
+> Note: .vscode folder has a launch.json file with different debugging and testing launch configurations for easy use.
+
 ## Run benchmark:
 > Note: Run without tps_only=True to get trace of CPU and GPU kernels.
 
-**Baseline result (I think HF does compile by default)**: 
-
-47.90370070952305 tokens per second
+**Baseline result**: 
 ```
-python -m low_bit_inference.baseline configs/profile_baseline.yaml tps_only=True
+python -m low_bit_inference.torch_baseline configs/profile_baseline.yaml tps_only=True
 ```
 
 **Full graph torch compile with inductor**: 
-
-Only compiling model.forward function: 48.54674292202595 tokens per second
 ```
 python -m low_bit_inference.torchinductor configs/profile_inductor.yaml tps_only=True
 ```

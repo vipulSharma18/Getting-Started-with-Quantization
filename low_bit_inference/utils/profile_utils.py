@@ -21,7 +21,7 @@ def none_context():
     return NoneContext()
 
 
-def profile_model(model, tokenizer, past_key_values, prompt, config):
+def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init):
     """
     Reused model profiling code.
     """
@@ -61,10 +61,16 @@ def profile_model(model, tokenizer, past_key_values, prompt, config):
             with_flops = profiling_flag,
         )
 
+    kv_compiled = False
     with prof:
         for i in range(total_steps):
             print(f"Profiling iteration {i} out of total {total_steps}")
-            torch.compiler.cudagraph_mark_step_begin() 
+            torch.compiler.cudagraph_mark_step_begin()
+            past_key_values = cache_init(past_key_values, model, config, kv_compiled)
+            kv_compiled = True
+            # mark step begin will release past cudagraph's memory, so clean it up
+            gc.collect()
+            torch.cuda.empty_cache()
             torch.cuda.synchronize()
             start = torch.cuda.Event(enable_timing=True)
             end = torch.cuda.Event(enable_timing=True)
@@ -86,10 +92,10 @@ def profile_model(model, tokenizer, past_key_values, prompt, config):
                 cumulative_time += step_time
                 generated_token_count += len(generated_tokens)  # generated_tokens contains prefill and new decode stage tokens
                 print(f"Profile step {i} included for tps calculation.")
-            # need to reset which involves inplace ops and hence need to go in inference mode otherwise error
+            del generated_tokens, generated_token_ids
+            # inference mode might force tensors used and created inside it to always use it in future for some ops
             with torch.inference_mode():
                 past_key_values.reset()
-            del generated_tokens, generated_token_ids
             gc.collect()
             torch.cuda.empty_cache()
     print(f"Profiling complete, tokens per second: {generated_token_count/(cumulative_time/1000)}")

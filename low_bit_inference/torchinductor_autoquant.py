@@ -3,7 +3,7 @@ import torchao
 from omegaconf import OmegaConf
 # utils
 from .hf_loader import load_model_tokenizer_prompt_cache
-from .utils.config_utils import get_config
+from .utils.config_utils import get_config, to_torch_dtype
 from .utils.profile_utils import profile_model
 
 
@@ -37,4 +37,4 @@ past_key_values = torchao.autoquant(past_key_values, set_inductor_config=False)
 model = model.to(config.device)
 print("Model moved to GPU, starting profiling.")
 
-profile_model(model, tokenizer, past_key_values, prompt, config)
+profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
