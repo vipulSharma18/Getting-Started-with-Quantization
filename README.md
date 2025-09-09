@@ -21,7 +21,7 @@ Toy config for quick testing:
 ```
 import torch
 from low_bit_inference.utils.config_utils import get_config
-from low_bit_inference.hf_loader import load_model_tokenizer_prompt
+from low_bit_inference.hf_loader import load_model_tokenizer_prompt_cache
 config = get_config()
 model, tokenizer, prompt, past_key_values = load_model_tokenizer_prompt_cache(config)
 tokenized_prompt = tokenizer([config.prompt], return_tensors="pt").to(config.device)
