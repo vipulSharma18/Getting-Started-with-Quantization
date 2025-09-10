@@ -291,9 +291,6 @@ class GenerationMixinCustom:
             if self.compiled_forward_prefill is None:
                 self.compiled_forward_prefill = self.get_compiled_call(dynamic=True)
             model_kwargs["dummy_self"] = self
-            if not self.already_compiled:
-                self.prepare_inputs_for_generation = torch.compile(self.prepare_inputs_for_generation)
-                self._update_model_kwargs_for_generation = torch.compile(self._update_model_kwargs_for_generation)
         else:
             self.compiled_forward_decode = self.compiled_forward_prefill = self.forward
 
