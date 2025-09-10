@@ -46,8 +46,6 @@ def cache_init(past_key_values, model, config, kv_compiled=False):
         device=config.device,
     )
 
-    # quantize the keys and values tensors for each layer here. they're not part of nn.module.
-
     return past_key_values
 
 profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
