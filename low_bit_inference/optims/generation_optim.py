@@ -97,8 +97,6 @@ class GenerationMixinCustom:
         position_ids = model_inputs.get(position_ids_key)
         # Some models may overwrite the general one
         causal_mask_creation_function = getattr(self, "create_masks_for_generate", create_masks_for_generate)
-        if self.custom_compile and not self.already_compiled:
-            causal_mask_creation_function = torch.compile(causal_mask_creation_function)
         attention_mask = causal_mask_creation_function(
             config=self.config,
             # we only need batch size, seq_length and dtype here - we don't care about the values of the embeddings
@@ -330,8 +328,5 @@ class GenerationMixinCustom:
             # This is needed to properly delete outputs.logits which may be very large for first iteration
             # Otherwise a reference to outputs is kept which keeps the logits alive in the next iteration
             del outputs
-
-        if self.custom_compile:
-            self.already_compiled = True
 
         return input_ids
