@@ -26,15 +26,26 @@ torch.backends.cudnn.deterministic = False
 torch.backends.cudnn.benchmark = True
 
 torch._inductor.config.benchmark_kernel = True
-torch._inductor.config.max_autotune = True
-torch._inductor.config.coordinate_descent_tuning = True
-torch._inductor.config.triton.cudagraphs = True
 torch._inductor.config.benchmark_fusion = True
 torch._inductor.config.freezing = True
 
 quantize_(model, Int4WeightOnlyConfig())
-quantize_(past_key_values, Int4WeightOnlyConfig())
 model = model.to(config.device)
 print("Model moved to GPU, starting profiling.")
+
+def cache_init(past_key_values, model, config, kv_compiled=False):
+    if not kv_compiled:
+        # just doing this so that the key and vals are output of cudagraph and hence mutating them in update doesn't cause cudagraph skipping
+        past_key_values.early_initialization = torch.compile(past_key_values.early_initialization, mode="reduce-overhead")
+
+    past_key_values.early_initialization(
+        batch_size=1,
+        num_heads=model.config.num_key_value_heads,
+        head_dim=model.config.head_dim,
+        dtype=to_torch_dtype(config.compute_dtype),
+        device=config.device,
+    )
+
+    return past_key_values
 
 profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
