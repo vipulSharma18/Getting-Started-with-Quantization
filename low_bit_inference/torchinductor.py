@@ -33,9 +33,8 @@ print("Model moved to GPU, starting profiling.")
 
 def cache_init(past_key_values, model, config, kv_compiled=False):
     if not kv_compiled:
+        # just doing this so that the key and vals are output of cudagraph and hence mutating them in update doesn't cause cudagraph skipping
         past_key_values.early_initialization = torch.compile(past_key_values.early_initialization, mode="reduce-overhead")
-        past_key_values.update = torch.compile(past_key_values.update, dynamic=True)
-        past_key_values.reset = torch.compile(past_key_values.reset, dynamic=True)
     
     past_key_values.early_initialization(
         batch_size=1,
