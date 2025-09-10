@@ -26,9 +26,6 @@ torch.backends.cudnn.deterministic = False
 torch.backends.cudnn.benchmark = True
 
 torch._inductor.config.benchmark_kernel = True
-torch._inductor.config.max_autotune = True
-torch._inductor.config.coordinate_descent_tuning = True
-torch._inductor.config.triton.cudagraphs = True
 torch._inductor.config.benchmark_fusion = True
 
 model = model.to(config.device)
@@ -36,7 +33,7 @@ print("Model moved to GPU, starting profiling.")
 
 def cache_init(past_key_values, model, config, kv_compiled=False):
     if not kv_compiled:
-        past_key_values.early_initialization = torch.compile(past_key_values.early_initialization, mode="max-autotune", dynamic=False)
+        past_key_values.early_initialization = torch.compile(past_key_values.early_initialization, mode="reduce-overhead")
         past_key_values.update = torch.compile(past_key_values.update, dynamic=True)
         past_key_values.reset = torch.compile(past_key_values.reset, dynamic=True)
     

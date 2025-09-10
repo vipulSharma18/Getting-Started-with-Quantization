@@ -98,7 +98,7 @@ class GenerationMixinCustom:
         # Some models may overwrite the general one
         causal_mask_creation_function = getattr(self, "create_masks_for_generate", create_masks_for_generate)
         if self.custom_compile and not self.already_compiled:
-            causal_mask_creation_function = torch.compile(causal_mask_creation_function, dynamic=True)
+            causal_mask_creation_function = torch.compile(causal_mask_creation_function)
         attention_mask = causal_mask_creation_function(
             config=self.config,
             # we only need batch size, seq_length and dtype here - we don't care about the values of the embeddings

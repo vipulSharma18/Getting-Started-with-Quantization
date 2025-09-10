@@ -38,6 +38,7 @@ from .utils.model_configuration_utils import LlamaConfig
 #     def extra_repr(self):
 #         return f"{tuple(self.weight.shape)}, eps={self.variance_epsilon}"
 
+compiled_create_causal_mask = torch.compile(create_causal_mask)
 
 class LlamaRotaryEmbedding(nn.Module):
     inv_freq: torch.Tensor  # fix linting for `register_buffer`
@@ -337,6 +338,7 @@ class LlamaModel(LlamaPreTrainedModel):
         inputs_embeds: Optional[torch.FloatTensor] = None,
         cache_position: Optional[torch.LongTensor] = None,
         use_cache: Optional[bool] = None,
+        custom_compile: bool = False,
         **kwargs: Unpack[TransformersKwargs],
     ) -> BaseModelOutputWithPast:
         if (input_ids is None) ^ (inputs_embeds is not None):
@@ -357,14 +359,24 @@ class LlamaModel(LlamaPreTrainedModel):
         if position_ids is None:
             position_ids = cache_position.unsqueeze(0)
 
-        causal_mask = create_causal_mask(
-            config=self.config,
-            input_embeds=inputs_embeds,
-            attention_mask=attention_mask,
-            cache_position=cache_position,
-            past_key_values=past_key_values,
-            position_ids=position_ids,
-        )
+        if custom_compile:
+            causal_mask = compiled_create_causal_mask(
+                config=self.config,
+                input_embeds=inputs_embeds,
+                attention_mask=attention_mask,
+                cache_position=cache_position,
+                past_key_values=past_key_values,
+                position_ids=position_ids,
+            )
+        else:
+            causal_mask = create_causal_mask(
+                config=self.config,
+                input_embeds=inputs_embeds,
+                attention_mask=attention_mask,
+                cache_position=cache_position,
+                past_key_values=past_key_values,
+                position_ids=position_ids,
+            )
 
         hidden_states = inputs_embeds
         position_embeddings = self.rotary_emb(hidden_states, position_ids)
@@ -445,6 +457,7 @@ class LlamaForCausalLM(GenerationMixinCustom, LlamaPreTrainedModel):
             inputs_embeds=inputs_embeds,
             use_cache=use_cache,
             cache_position=cache_position,
+            custom_compile=self.custom_compile,
             **kwargs,
         )
 
@@ -475,9 +488,9 @@ class LlamaForCausalLM(GenerationMixinCustom, LlamaPreTrainedModel):
             function.__defaults__, function.__closure__,
         )
 
-    def get_compiled_call(self, dynamic=True):
+    def get_compiled_call(self, dynamic=True, mode="max-autotune"):
         duped_forward = self.duped_function(self.forward, int(dynamic))
-        compiled_call = torch.compile(duped_forward, fullgraph=True, dynamic=dynamic)
+        compiled_call = torch.compile(duped_forward, fullgraph=True, dynamic=dynamic, mode=mode)
         return compiled_call
 
 __all__ = [
