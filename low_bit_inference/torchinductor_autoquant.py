@@ -29,7 +29,6 @@ torch._inductor.config.benchmark_kernel = True
 torch._inductor.config.benchmark_fusion = True
 torch._inductor.config.freezing = True
 
-model = torchao.autoquant(model, set_inductor_config=False)
 model = model.to(config.device)
 print("Model moved to GPU, starting profiling.")
 
@@ -47,5 +46,11 @@ def cache_init(past_key_values, model, config, kv_compiled=False):
     )
 
     return past_key_values
+
+def model_quantize(model):
+    model = torchao.autoquant(model, set_inductor_config=False)
+    return model
+
+model.quantization_function = model_quantize
 
 profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)

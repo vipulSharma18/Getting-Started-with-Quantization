@@ -400,6 +400,8 @@ class LlamaForCausalLM(GenerationMixinCustom, LlamaPreTrainedModel):
         self.custom_compile = True
         self.compiled_forward_decode = None
         self.compiled_forward_prefill = None
+        self.quantization_function = None
+        self.quantized = False
 
         # Initialize weights and apply final processing
         self.post_init()
@@ -476,6 +478,8 @@ class LlamaForCausalLM(GenerationMixinCustom, LlamaPreTrainedModel):
     def get_compiled_call(self, dynamic=True, mode="max-autotune"):
         duped_forward = self.duped_function(self.forward, int(dynamic))
         compiled_call = torch.compile(duped_forward, fullgraph=True, dynamic=dynamic, mode=mode)
+        if self.quantization_function is not None:
+            self.model = self.quantization_function(self.model)
         return compiled_call
 
 __all__ = [
