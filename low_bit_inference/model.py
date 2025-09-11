@@ -398,6 +398,7 @@ class LlamaForCausalLM(GenerationMixinCustom, LlamaPreTrainedModel):
         self.vocab_size = config.vocab_size
         self.lm_head = nn.Linear(config.hidden_size, config.vocab_size, bias=False)
         self.custom_compile = True
+        self.compile_prefill = False
         self.compiled_forward_decode = None
         self.compiled_forward_prefill = None
         self.quantization_function = None

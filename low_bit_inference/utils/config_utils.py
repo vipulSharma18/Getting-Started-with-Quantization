@@ -49,6 +49,7 @@ class ProfileConfig:
     use_cache: bool = True
     cache_implementation: str = "static"
     attn_implementation: str = "sdpa"
+    compile_prefill: bool = False
 
     # tokenizer args
     padding_side: str = "left"
