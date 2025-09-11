@@ -120,6 +120,7 @@ python -m low_bit_inference.torchinductor_fp8 configs/profile_inductor.yaml tps_
 [3] M. Dehghankar, M. Erfanian, and A. Asudeh, “An Efficient Matrix Multiplication Algorithm for Accelerating Inference in Binary and Ternary Neural Networks,” May 02, 2025, arXiv: arXiv:2411.06360. doi: 10.48550/arXiv.2411.06360.    
 [4] S. Bekman, stas00/ml-engineering. (Aug. 20, 2025). Python. Accessed: Aug. 20, 2025. [Online]. Available: https://github.com/stas00/ml-engineering          
 [5] https://github.com/meta-pytorch/gpt-fast                    
-[6] https://pytorch.org/blog/accelerating-generative-ai-2/                 
+[6] https://pytorch.org/blog/accelerating-generative-ai-2/                     
 [7] https://huggingface.co/blog/kv-cache      
-[8] https://github.com/pytorch/pytorch/issues/157950
+[8] https://github.com/pytorch/pytorch/issues/157950        
+[9] Benchmarks on Llama-3.1-8B done by torchao team: https://github.com/pytorch/ao/tree/main/torchao/_models/llama       
