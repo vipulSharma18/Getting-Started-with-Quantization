@@ -279,6 +279,9 @@ class GenerationMixinCustom:
         os.environ["TOKENIZERS_PARALLELISM"] = "0"
         is_prefill = True
 
+        if self.quantize:
+            self.quantization_function(self)
+
         if self.compile_decode:
             if self.compiled_forward_decode is None:
                 self.compiled_forward_decode = self.get_compiled_call(dynamic=False)
@@ -290,9 +293,6 @@ class GenerationMixinCustom:
                 self.compiled_forward_prefill = self.get_compiled_call(dynamic=True)
         else:
             self.compiled_forward_prefill = self.forward
-
-        if self.quantize:
-            self.quantization_function(self)
 
         while not this_peer_finished:
             # prepare model inputs
