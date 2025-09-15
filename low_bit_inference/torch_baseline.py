@@ -22,7 +22,7 @@ print(f"Model moved to {config.device}, starting profiling.")
 
 assert (not model.compile_decode) and (not model.compile_prefill) and (not model.quantize)
 print(f"Compile config: decode {config.compile_decode}, \
-    prefill {config.compile_prefill}. Quantize status: {config.compile_quantize}")
+    prefill {config.compile_prefill}. Quantize status: {config.quantize}")
 
 def cache_init(past_key_values, model, config, *args, **kwargs):
     past_key_values.early_initialization(

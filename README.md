@@ -62,22 +62,22 @@ python -m low_bit_inference.torchinductor configs/profile_inductor.yaml tps_only
 
 **Torch compile with TorchAO AutoQuant**: 
 ```
-python -m low_bit_inference.torchinductor_autoquant configs/profile_inductor.yaml tps_only=True
+python -m low_bit_inference.torchinductor_autoquant configs/profile_inductor_torchao.yaml tps_only=True
 ```
 
 **Torch compile with TorchAO Int4**: 
 ```
-python -m low_bit_inference.torchinductor_int4 configs/profile_inductor.yaml tps_only=True
+python -m low_bit_inference.torchinductor_int4 configs/profile_inductor_torchao.yaml tps_only=True
 ```
 
 **Torch compile with TorchAO Int8**: 
 ```
-python -m low_bit_inference.torchinductor_int8 configs/profile_inductor.yaml tps_only=True
+python -m low_bit_inference.torchinductor_int8 configs/profile_inductor_torchao.yaml tps_only=True
 ```
 
 **Torch compile with TorchAO FP8**: 
 ```
-python -m low_bit_inference.torchinductor_fp8 configs/profile_inductor.yaml tps_only=True
+python -m low_bit_inference.torchinductor_fp8 configs/profile_inductor_torchao.yaml tps_only=True
 ```
 
 ## Benchmarking Roadmap:
