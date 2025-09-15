@@ -20,7 +20,7 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
     Reused model profiling code.
     """
     # enable logging for inductor compilation times and graph
-    if config.compile_summary:
+    if config.profile_compile:
         enable_inductor_profiling()
 
     profiling_schedule = torch.profiler.schedule(

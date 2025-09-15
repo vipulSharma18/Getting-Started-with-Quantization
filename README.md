@@ -43,7 +43,7 @@ tlparse log/compile/* --overwrite
 
 Inductor Profiling:
 ------------------
-Run with `compile_summary=True` to get the function-wise compile times and a SVG of the compiled graph.
+Run with `profile_compile=True` to get the function-wise compile times and a SVG of the compiled graph.
 
 > Note: .vscode folder has a launch.json file with different debugging and testing launch configurations for easy use.
 

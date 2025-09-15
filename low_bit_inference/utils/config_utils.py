@@ -37,7 +37,7 @@ class ProfileConfig:
     active: int = 1
     repeat: int = 1
     tps_only: bool = False
-    compile_summary: bool = False
+    profile_compile: bool = False
 
     # inference args
     prompt: str = ""
