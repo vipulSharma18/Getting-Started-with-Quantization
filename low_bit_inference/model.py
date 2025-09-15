@@ -1,5 +1,5 @@
 # reference: https://github.com/huggingface/transformers/blob/main/src/transformers/models/llama/modeling_llama.py
-from types import FunctionType
+from types import FunctionType, MethodType
 from typing import Callable, Optional, Union, Unpack
 import torch
 from torch import nn
@@ -397,10 +397,15 @@ class LlamaForCausalLM(GenerationMixinCustom, LlamaPreTrainedModel):
         self.model = LlamaModel(config)
         self.vocab_size = config.vocab_size
         self.lm_head = nn.Linear(config.hidden_size, config.vocab_size, bias=False)
-        self.custom_compile = True
+
+        # Note: compile happens for method, quantization for model weights, different things
+        # compile flags
+        self.compile_decode = True
         self.compile_prefill = False
+        # compile methods if compile flag true
         self.compiled_forward_decode = None
         self.compiled_forward_prefill = None
+        # quantization method and flag for model
         self.quantization_function = None
         self.quantized = False
 
@@ -466,15 +471,15 @@ class LlamaForCausalLM(GenerationMixinCustom, LlamaPreTrainedModel):
             attentions=outputs.attentions,
         )
 
-    @staticmethod
-    def duped_function(function: Callable, salt: int):
+    def duped_function(self, function: Callable, salt: int):
         co_new = function.__code__.replace(
             co_consts=function.__code__.co_consts + (salt,),
             )
-        return FunctionType(
+        fn = FunctionType(
             co_new, function.__globals__, function.__name__,
             function.__defaults__, function.__closure__,
         )
+        return MethodType(fn, self)
 
     def get_compiled_call(self, dynamic=True, mode="max-autotune"):
         duped_forward = self.duped_function(self.forward, int(dynamic))

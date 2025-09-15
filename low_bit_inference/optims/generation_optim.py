@@ -113,11 +113,7 @@ class GenerationMixinCustom:
         # 7. Forward ALL kwargs that are uninitialized (e.g. `use_cache`).
         for key, value in kwargs.items():
             if key not in model_inputs:
-                # pass self manually for prefill and decode compiled fns: temp workaround
-                if key == "dummy_self":
-                    model_inputs["self"] = self
-                else:
-                    model_inputs[key] = value
+                model_inputs[key] = value
 
         # 8. Remove unexpected `generate` inputs
         model_inputs.pop("labels", None)
@@ -283,14 +279,17 @@ class GenerationMixinCustom:
         os.environ["TOKENIZERS_PARALLELISM"] = "0"
         is_prefill = True
 
-        if self.custom_compile:
+        if self.compile_decode:
             if self.compiled_forward_decode is None:
                 self.compiled_forward_decode = self.get_compiled_call(dynamic=False)
+        else:
+            self.compiled_forward_decode = self.forward
+
+        if self.compile_prefill:
             if self.compiled_forward_prefill is None:
                 self.compiled_forward_prefill = self.get_compiled_call(dynamic=True)
-            model_kwargs["dummy_self"] = self
         else:
-            self.compiled_forward_decode = self.compiled_forward_prefill = self.forward
+            self.compiled_forward_prefill = self.forward
 
         while not this_peer_finished:
             # prepare model inputs
