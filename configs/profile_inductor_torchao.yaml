@@ -6,20 +6,20 @@ cache_dir: "/root/.cache/huggingface/hub"
 attn_implementation: "sdpa"  # flex_attention, sdpa, flash_attention_2, eager
 
 # profiling args
-profiling_dir: "log/"
+profiling_dir: "log/inductor"
 skip_first: 1
 wait: 1
 warmup: 3
 active: 5
 repeat: 0
 tps_only: False
-compile_decode: False
+compile_decode: True
 compile_prefill: False
 compile_summary: False
-quantize: False
+quantize: True
 
 # prompt args
-prompt: ""
+prompt: "Write an essay about large language models."
 max_new_tokens: 1000
 chat_template: ""
 do_sample: False

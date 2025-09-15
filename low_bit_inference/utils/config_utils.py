@@ -51,6 +51,8 @@ class ProfileConfig:
     cache_implementation: str = "static"
     attn_implementation: str = "sdpa"
     compile_prefill: bool = False
+    compile_decode: bool = False
+    quantize: bool = False
 
     # tokenizer args
     padding_side: str = "left"

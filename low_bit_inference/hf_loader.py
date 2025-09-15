@@ -40,7 +40,10 @@ def load_model_tokenizer_prompt_cache(config):
     model.generation_config.top_k = config.top_k
     model.generation_config.top_p = config.top_p
     model.generation_config.temperature = config.temperature
+
+    model.compile_decode = config.compile_decode
     model.compile_prefill = config.compile_prefill
+    model.quantize = config.quantize
 
     past_key_values = None
     if config.use_cache:

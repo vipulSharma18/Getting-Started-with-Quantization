@@ -32,6 +32,10 @@ torch._inductor.config.freezing = True
 model = model.to(config.device)
 print("Model moved to GPU, starting profiling.")
 
+assert config.compile_decode and config.quantize
+print(f"Compile config: decode {config.compile_decode}, \
+    prefill {config.compile_prefill}. Quantize status: {config.compile_quantize}")
+
 def cache_init(past_key_values, model, config, kv_compiled=False):
     if not kv_compiled:
         # just doing this so that the key and vals are output of cudagraph and hence mutating them in update doesn't cause cudagraph skipping
@@ -47,8 +51,9 @@ def cache_init(past_key_values, model, config, kv_compiled=False):
 
     return past_key_values
 
-def model_quantize(model):
-    model = torchao.autoquant(model, set_inductor_config=False)
+def model_quantize(causal_model):
+    causal_model.model = torchao.autoquant(causal_model.model)
+    causal_model.lm_head = torchao.autoquant(causal_model.lm_head)
     return model
 
 model.quantization_function = model_quantize

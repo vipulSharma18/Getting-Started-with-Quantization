@@ -31,6 +31,10 @@ torch._inductor.config.benchmark_fusion = True
 model = model.to(config.device)
 print("Model moved to GPU, starting profiling.")
 
+assert config.compile_decode and (not config.quantize)
+print(f"Compile config: decode {config.compile_decode}, \
+    prefill {config.compile_prefill}. Quantize status: {config.compile_quantize}")
+
 def cache_init(past_key_values, model, config, kv_compiled=False):
     if not kv_compiled:
         # just doing this so that the key and vals are output of cudagraph and hence mutating them in update doesn't cause cudagraph skipping

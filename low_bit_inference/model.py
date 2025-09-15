@@ -399,15 +399,15 @@ class LlamaForCausalLM(GenerationMixinCustom, LlamaPreTrainedModel):
         self.lm_head = nn.Linear(config.hidden_size, config.vocab_size, bias=False)
 
         # Note: compile happens for method, quantization for model weights, different things
-        # compile flags
+        # compile flags -> they're set in the configs or from cli
         self.compile_decode = True
         self.compile_prefill = False
-        # compile methods if compile flag true
+        # compile methods if compile flag true -> they get dynamically set in optims/generate_optim.py
         self.compiled_forward_decode = None
         self.compiled_forward_prefill = None
-        # quantization method and flag for model
+        # quantization method and flag for model -> quantization fn is set in the profiling file, and flag in configs.
         self.quantization_function = None
-        self.quantized = False
+        self.quantize = False
 
         # Initialize weights and apply final processing
         self.post_init()
@@ -484,8 +484,6 @@ class LlamaForCausalLM(GenerationMixinCustom, LlamaPreTrainedModel):
     def get_compiled_call(self, dynamic=True, mode="max-autotune"):
         duped_forward = self.duped_function(self.forward, int(dynamic))
         compiled_call = torch.compile(duped_forward, fullgraph=True, dynamic=dynamic, mode=mode)
-        if self.quantization_function is not None:
-            self.model = self.quantization_function(self.model)
         return compiled_call
 
 __all__ = [

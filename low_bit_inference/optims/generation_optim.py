@@ -291,6 +291,9 @@ class GenerationMixinCustom:
         else:
             self.compiled_forward_prefill = self.forward
 
+        if self.quantize:
+            self.quantization_function(self)
+
         while not this_peer_finished:
             # prepare model inputs
             model_inputs = self.prepare_inputs_for_generation(input_ids, **model_kwargs)
