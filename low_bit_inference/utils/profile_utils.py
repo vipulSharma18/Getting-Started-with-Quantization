@@ -1,30 +1,28 @@
-import torch
 import gc
+from contextlib import nullcontext
+import torch
 
 
-def none_context():
-    """
-    A no-op context manager that doesn't do anything but has a step function.
-    Useful as a drop-in replacement for torch.profiler.profile when profiling is disabled.
-    """
-    class NoneContext:
-        def __enter__(self):
-            return self
-        
-        def __exit__(self, exc_type, exc_val, exc_tb):
-            pass
-        
-        def step(self):
-            """No-op step function that doesn't do anything."""
-            pass
-    
-    return NoneContext()
+def enable_inductor_profiling():
+    torch._inductor.config.trace.enabled = True
+    torch._inductor.config.trace.graph_diagram = True
+    torch._inductor.config.trace.draw_orig_fx_graph = True
+    torch._inductor.config.trace.compile_profile = True
+
+class NoProfiler(nullcontext):
+    def step(self):
+        """No-op step function that doesn't do anything."""
+        pass
 
 
 def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init):
     """
     Reused model profiling code.
     """
+    # enable logging for inductor compilation times and graph
+    if config.compile_summary:
+        enable_inductor_profiling()
+
     profiling_schedule = torch.profiler.schedule(
         skip_first = config.skip_first,
         wait = config.wait,
@@ -43,7 +41,7 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
     tokenized_prompt = tokenizer(prompt, return_tensors="pt").to(config.device)
 
     if config.tps_only:
-        prof = none_context()
+        prof = NoProfiler()
     else:
         activities = [
             torch.profiler.ProfilerActivity.CPU,

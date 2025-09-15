@@ -11,7 +11,7 @@
             "module": "low_bit_inference.torch_baseline",
             "justMyCode": true,
             // If you want to pass as separate key-value pairs
-            "args": ["configs/profile_baseline.yaml", "tps_only=True", "skip_first=0", "warmup=1", "wait=0", "active=1"]
+            "args": ["configs/profile_baseline.yaml", "tps_only=True", "skip_first=0", "warmup=1", "wait=0", "active=1", "compile_summary=True"]
         },
         {
             "name": "Debug Inductor",
@@ -20,7 +20,7 @@
             "module": "low_bit_inference.torchinductor",
             "justMyCode": true,
             // If you want to pass as separate key-value pairs
-            "args": ["configs/profile_inductor.yaml", "tps_only=True", "skip_first=0", "warmup=1", "wait=0", "active=1"]
+            "args": ["configs/profile_inductor.yaml", "tps_only=True", "skip_first=0", "warmup=1", "wait=0", "active=1", "compile_summary=True"]
         },
         {
             "name": "Debug Inductor with TLPARSE",
@@ -29,7 +29,7 @@
             "module": "low_bit_inference.torchinductor",
             "justMyCode": true,
             "env": {"TORCH_TRACE": "log/compile"},
-            "args": ["configs/profile_inductor.yaml", "tps_only=True", "skip_first=0", "warmup=1", "wait=0", "active=1"]
+            "args": ["configs/profile_inductor.yaml", "tps_only=True", "skip_first=0", "warmup=1", "wait=0", "active=1", "compile_summary=True"]
         }
     ]
 }

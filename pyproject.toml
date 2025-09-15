@@ -22,6 +22,7 @@ dependencies = [
     "torch-tb-profiler",
     "omegaconf",
     "tlparse",
+    "snakeviz",
 ]
 
 [dependency-groups]

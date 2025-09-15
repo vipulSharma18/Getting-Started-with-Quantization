@@ -13,6 +13,7 @@ warmup: 3
 active: 5
 repeat: 0
 tps_only: False
+compile_summary: False
 
 # prompt args
 prompt: "Write an essay about large language models."

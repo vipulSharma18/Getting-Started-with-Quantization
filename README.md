@@ -27,7 +27,7 @@ model, tokenizer, prompt, past_key_values = load_model_tokenizer_prompt_cache(co
 tokenized_prompt = tokenizer([config.prompt], return_tensors="pt").to(config.device)
 ```
 
-Dynamo debugging:
+Dynamo Debugging:
 -----------------
 Either:
 ```
@@ -40,6 +40,10 @@ where, some useful options are: dynamic,guards,recompiles,perf_hints,fusion
 TORCH_TRACE="log/compile" python -m low_bit_inference.torchinductor configs/profile_inductor.yaml tps_only=True skip_first=1 wait=0 warmup=1 active=2
 tlparse log/compile/* --overwrite
 ```
+
+Inductor Profiling:
+------------------
+Run with `compile_summary=True` to get the function-wise compile times and a SVG of the compiled graph.
 
 > Note: .vscode folder has a launch.json file with different debugging and testing launch configurations for easy use.
 
