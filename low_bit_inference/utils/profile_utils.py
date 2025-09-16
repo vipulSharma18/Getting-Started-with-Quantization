@@ -73,18 +73,16 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
             start = torch.cuda.Event(enable_timing=True)
             end = torch.cuda.Event(enable_timing=True)
             with torch.inference_mode():
-                start.record()
                 if i==0 and model.quantize:
-                    print("Quantizing with 1 input token example input before profiling.")
                     model.quantization_function(model)
-                    _ = model.model(**tokenized_prompt)
-                    _ = model.lm_head()
-                    del _
+                start.record()
                 generated_token_ids = model.generate(
                     **tokenized_prompt,
                     past_key_values=past_key_values,
                 )
                 end.record()
+                if i==0 and model.quantize:
+                    model.finalize_autoquant()
             torch.cuda.synchronize()
             step_time = start.elapsed_time(end)
             generated_tokens = tokenizer.batch_decode(generated_token_ids[0], skip_special_tokens=True)
