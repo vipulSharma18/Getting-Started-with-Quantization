@@ -6,7 +6,6 @@ import torch
 def enable_inductor_profiling():
     torch._inductor.config.trace.enabled = True
     torch._inductor.config.trace.graph_diagram = True
-    torch._inductor.config.trace.draw_orig_fx_graph = True
     torch._inductor.config.trace.compile_profile = True
 
 class NoProfiler(nullcontext):
@@ -74,7 +73,7 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
             end = torch.cuda.Event(enable_timing=True)
             with torch.inference_mode():
                 if i==0 and model.quantize:
-                    model.quantization_function(model)
+                    model.quantization_function(model, quantized=False)
                 start.record()
                 generated_token_ids = model.generate(
                     **tokenized_prompt,
@@ -82,7 +81,7 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
                 )
                 end.record()
                 if i==0 and model.quantize:
-                    model.finalize_autoquant()
+                    model.quantization_function(model, quantized=True)
             torch.cuda.synchronize()
             step_time = start.elapsed_time(end)
             generated_tokens = tokenizer.batch_decode(generated_token_ids[0], skip_special_tokens=True)

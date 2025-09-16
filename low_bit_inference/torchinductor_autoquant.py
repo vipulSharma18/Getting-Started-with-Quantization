@@ -51,9 +51,13 @@ def cache_init(past_key_values, model, config, kv_compiled=False):
 
     return past_key_values
 
-def model_quantize(causal_model):
-    causal_model.model = torchao.autoquant(causal_model.model, manual=True)
-    causal_model.lm_head = torchao.autoquant(causal_model.lm_head, manual=True)
+def model_quantize(causal_model, quantized=False):
+    if not quantized:
+        causal_model.model = torchao.autoquant(causal_model.model, manual=True)
+        causal_model.lm_head = torchao.autoquant(causal_model.lm_head, manual=True)
+    else:
+        causal_model.model.finalize_autoquant()
+        causal_model.lm_head.finalize_autoquant()
 
 model.quantization_function = model_quantize
 
