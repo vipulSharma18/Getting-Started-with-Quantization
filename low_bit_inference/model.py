@@ -402,9 +402,9 @@ class LlamaForCausalLM(GenerationMixinCustom, LlamaPreTrainedModel):
         # compile flags -> they're set in the configs or from cli
         self.compile_decode = True
         self.compile_prefill = False
-        # compile methods if compile flag true -> they get dynamically set in optims/generate_optim.py
-        self.compiled_forward_decode = None
-        self.compiled_forward_prefill = None
+        # compile methods if compile flag true
+        self.compiled_forward_decode = self.forward
+        self.compiled_forward_prefill = self.forward
         # quantization method and flag for model -> quantization fn is set in the profiling file, and flag in configs.
         self.quantization_function = None
         self.quantize = False

@@ -5,24 +5,18 @@ import torch
 
 def compile_util(model):
     if model.compile_decode:
-        if model.compiled_forward_decode is None:
-            model.compiled_forward_decode = model.get_compiled_call(
-                dynamic=False,
-                mode="max-autotune",
-                fullgraph=True,
-            )
-    else:
-        model.compiled_forward_decode = model.forward
+        model.compiled_forward_decode = model.get_compiled_call(
+            dynamic=False,
+            mode="max-autotune",
+            fullgraph=True,
+        )
 
     if model.compile_prefill:
-        if model.compiled_forward_prefill is None:
-            model.compiled_forward_prefill = model.get_compiled_call(
-                dynamic=True,
-                fullgraph=True,
-                mode="default",
-            )
-    else:
-        model.compiled_forward_prefill = model.forward
+        model.compiled_forward_prefill = model.get_compiled_call(
+            dynamic=True,
+            fullgraph=True,
+            mode="default",
+        )
 
 
 def enable_inductor_profiling():
