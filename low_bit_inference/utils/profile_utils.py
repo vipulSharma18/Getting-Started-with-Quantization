@@ -30,6 +30,7 @@ def enable_inductor_profiling():
     torch._inductor.config.trace.graph_diagram = True
     torch._inductor.config.trace.compile_profile = True
 
+
 class NoProfiler(nullcontext):
     def step(self):
         """No-op step function that doesn't do anything."""
