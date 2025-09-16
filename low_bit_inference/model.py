@@ -481,9 +481,9 @@ class LlamaForCausalLM(GenerationMixinCustom, LlamaPreTrainedModel):
         )
         return MethodType(fn, self)
 
-    def get_compiled_call(self, dynamic=True, mode="max-autotune"):
+    def get_compiled_call(self, dynamic=True, mode="max-autotune", fullgraph=True):
         duped_forward = self.duped_function(self.forward, int(dynamic))
-        compiled_call = torch.compile(duped_forward, fullgraph=True, dynamic=dynamic, mode=mode)
+        compiled_call = torch.compile(duped_forward, fullgraph=fullgraph, dynamic=dynamic, mode=mode)
         return compiled_call
 
 __all__ = [
