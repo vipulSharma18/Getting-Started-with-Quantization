@@ -3,6 +3,20 @@ from contextlib import nullcontext
 import torch
 
 
+def compile_util(model):
+    if model.compile_decode:
+        if model.compiled_forward_decode is None:
+            model.compiled_forward_decode = model.get_compiled_call(dynamic=False)
+    else:
+        model.compiled_forward_decode = model.forward
+
+    if model.compile_prefill:
+        if model.compiled_forward_prefill is None:
+            model.compiled_forward_prefill = model.get_compiled_call(dynamic=True)
+    else:
+        model.compiled_forward_prefill = model.forward
+
+
 def enable_inductor_profiling():
     torch._inductor.config.trace.enabled = True
     torch._inductor.config.trace.graph_diagram = True
@@ -59,6 +73,11 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
         )
 
     kv_compiled = False
+    if model.quantize:
+        compile_iter = 1
+    else:
+        compile_iter = 0
+
     with prof:
         for i in range(total_steps):
             print(f"Profiling iteration {i} out of total {total_steps}")
@@ -74,6 +93,8 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
             with torch.inference_mode():
                 if i==0 and model.quantize:
                     model.quantization_function(model, quantized=False)
+                if i==compile_iter:
+                    compile_util(model)
                 start.record()
                 generated_token_ids = model.generate(
                     **tokenized_prompt,
@@ -91,7 +112,7 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
             print(f"Profiling step_num: {i}, curr action: {curr_action}, or in reality NONE if tps_only is True.")
             if curr_action in [torch.profiler.ProfilerAction.RECORD, torch.profiler.ProfilerAction.RECORD_AND_SAVE]:
                 cumulative_time += step_time
-                generated_token_count += len(generated_tokens)  # generated_tokens contains prefill and new decode stage tokens
+                generated_token_count += len(generated_tokens) - len(tokenized_prompt["input_ids"][0])  # generated_tokens has prefill and decode tokens
                 print(f"Profile step {i} included for tps calculation.")
             del generated_tokens, generated_token_ids
             # inference mode might force tensors used and created inside it to always use it in future for some ops
