@@ -49,6 +49,8 @@ Run with `profile_compile=True` to get the function-wise compile times and a SVG
 
 ## Run benchmark:
 > Note: Run without tps_only=True to get trace of CPU and GPU kernels.
+> Note: Run with skip_first=0 wait=0 warmup=2 active=1 for small runs.
+> Note: Run with profile_compile=True to get profile trace of compilation process.
 
 **Baseline result**: 
 ```
