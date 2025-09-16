@@ -34,6 +34,7 @@ RUN (type -p wget >/dev/null || (apt-get update && apt-get install wget -y)) \
     procps \
     net-tools \
     coreutils \
+    graphviz \
 && rm -rf /var/lib/apt/lists/* \
 && sh /uv-installer.sh \
 && rm /uv-installer.sh \
