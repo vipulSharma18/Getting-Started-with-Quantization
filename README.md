@@ -82,7 +82,7 @@ python -m low_bit_inference.torchinductor_int8 configs/profile_inductor_torchao.
 python -m low_bit_inference.torchinductor_fp8 configs/profile_inductor_torchao.yaml tps_only=True
 ```
 
-## Quantization Methods:
+## TorchAO Quantization Configs:
 Note: All these are affine transforms available in TorchAO. They are not custom transforms.
 
 quantized_val = input_high_precision_float_val / scale + zero_point
