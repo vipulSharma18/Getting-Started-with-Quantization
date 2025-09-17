@@ -81,12 +81,12 @@ ZeroPointDomain: none, int or float, set dtype of zero point.
 Note: Use bf16 model for all affine quants other than fp6.
 
 **INT4**:       
-A16W4 WeightOnly Quantization Int4WeightOnlyConfig
+A16W4 WeightOnly Quantization Int4WeightOnlyConfig    
+A8W4 Int8DynamicActivationInt4WeightConfig    
 
 **INT8**:       
 A16W8 Int8 WeightOnly Quantization Int8WeightOnlyConfig     
-A8W8 Int8 Dynamic Quantization Int8DynamicActivationInt8WeightConfig        
-Int8DynamicActivationInt4WeightConfig       
+A8W8 Int8 Dynamic Quantization Int8DynamicActivationInt8WeightConfig               
 
 **Miscellaneous int4 and int8**:                
 GemliteUIntXWeightOnlyConfig
