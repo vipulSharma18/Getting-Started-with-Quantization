@@ -1,5 +1,6 @@
 import torch
 from torchao.quantization import quantize_, Int8WeightOnlyConfig
+from torchao.utils import get_model_size_in_bytes
 from omegaconf import OmegaConf
 # utils
 from .hf_loader import load_model_tokenizer_prompt_cache
@@ -29,7 +30,9 @@ torch._inductor.config.benchmark_kernel = True
 torch._inductor.config.benchmark_fusion = True
 torch._inductor.config.freezing = True
 
+
 quantize_(model, Int8WeightOnlyConfig())
+model_size = get_model_size_in_bytes(model, ignore_embeddings=True) / 1e9
 model = model.to(config.device)
 print("Model moved to GPU, starting profiling.")
 

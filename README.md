@@ -82,6 +82,41 @@ python -m low_bit_inference.torchinductor_int8 configs/profile_inductor_torchao.
 python -m low_bit_inference.torchinductor_fp8 configs/profile_inductor_torchao.yaml tps_only=True
 ```
 
+## Quantization Methods:
+Note: All these are affine transforms available in TorchAO. They are not custom transforms.
+
+quantized_val = input_high_precision_float_val / scale + zero_point
+
+**Functions/Params**:      
+quantize_affine: original fp32, fp16, bf16 tensor.
+dequantize_affine: quantized tensor o/p of above.
+
+choose_qparams_affine: fp32, bf16, fp16 example i/p tensor for calculating scaling factor.
+
+ZeroPointDomain: none, int or float, set dtype of zero point.
+
+Note: Use bf16 model for all affine quants other than fp6.
+
+**INT4**:       
+A16W4 WeightOnly Quantization Int4WeightOnlyConfig
+
+**INT8**:       
+A16W8 Int8 WeightOnly Quantization Int8WeightOnlyConfig
+A8W8 Int8 Dynamic Quantization Int8DynamicActivationInt8WeightConfig
+Int8DynamicActivationInt4WeightConfig
+
+**Miscellaneous int4 and int8**:                
+GemliteUIntXWeightOnlyConfig
+
+**Float8**:     
+A16W8 Float8 WeightOnly Quantization Float8WeightOnlyConfig
+A8W8 Float8 Dynamic Quantization with Tensorwise or Rowwise Scaling Float8DynamicActivationFloat8WeightConfig
+A8W4 Float8 DQ Float8DynamicActivationInt4WeightConfig
+A8W8 Float8StaticActivationFloat8WeightConfig
+
+**FP6**:        
+A16W6 Floating Point WeightOnly Quantization FPXWeightOnlyConfig
+
 ## Benchmarking Roadmap:
 - [ ] Calculate theoretical performance limit and roofline model for Llama-3.1 8B to have a target - HTA will give us the MFU that we can try to maximize.
 - [ ] Megakernel for Llama-3.1-8B: https://github.com/HazyResearch/Megakernels/blob/main/demos/low-latency-llama/llama.cuh , https://hazyresearch.stanford.edu/blog/2025-05-27-no-bubbles
