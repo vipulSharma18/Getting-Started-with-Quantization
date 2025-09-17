@@ -4,10 +4,15 @@ import torch
 
 
 architecture_metadata = {
-    "a6000": {"peak_flops": 0, "peak_bandwidth": 0},
-    "rtx5090": {"peak_flops": 0, "peak_bandwidth": 0},
-    "rtx4090": {"peak_flops": 0, "peak_bandwidth": 0},
-    "l40": {"peak_flops": 0, "peak_bandwidth": 0},
+    "rtx5090": {"peak_flops_f4f32": 0, "peak_flops_f8f16": 0, "peak_flops_f8f32": 0, \
+        "peak_flops_f16f16": 0, "peak_flops_f16f32": 0, "peak_flops_i8": 0, \
+        "peak_bandwidth": 1792, "vram": 32},
+    "rtx4090": {"peak_flops_f4f32": 0, "peak_flops_f8f16": 0, "peak_flops_f8f32": 0, \
+        "peak_flops_f16f16": 0, "peak_flops_f16f32": 0, "peak_flops_i8": 0, \
+        "peak_bandwidth": 1008, "vram": 24},
+    "rtx3090": {"peak_flops_f4f32": 0, "peak_flops_f8f16": 0, "peak_flops_f8f32": 0, \
+        "peak_flops_f16f16": 0, "peak_flops_f16f32": 0, "peak_flops_i8": 0, \
+        "peak_bandwidth": 936, "vram": 24},
 }
 
 def compile_util(model):
