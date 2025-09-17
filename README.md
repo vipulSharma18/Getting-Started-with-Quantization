@@ -105,7 +105,7 @@ A16W6 Floating Point WeightOnly Quantization FPXWeightOnlyConfig
 * Static activation quantization seems to be lacking in a lot of dtypes.
 
 ## Benchmarking Roadmap:
-- [ ] Calculate theoretical performance limit: get token/s and multiply it by model size for bandwidth and by model flops for compute util.
+- [x] Calculate theoretical performance limit: get token/s and multiply it by model size for bandwidth and by model flops for compute util.
 - [ ] Use existing TorchAO configs.
 - [ ] Quantize non-linear layers which isn't done in TorchAO yet.
 - [ ] Enforce static quantization.
