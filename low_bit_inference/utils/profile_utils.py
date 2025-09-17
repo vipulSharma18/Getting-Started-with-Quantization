@@ -4,7 +4,10 @@ import torch
 
 
 architecture_metadata = {
-
+    "a6000": {"peak_flops": 0, "peak_bandwidth": 0},
+    "rtx5090": {"peak_flops": 0, "peak_bandwidth": 0},
+    "rtx4090": {"peak_flops": 0, "peak_bandwidth": 0},
+    "l40": {"peak_flops": 0, "peak_bandwidth": 0},
 }
 
 def compile_util(model):
