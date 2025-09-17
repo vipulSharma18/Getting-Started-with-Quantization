@@ -54,6 +54,9 @@ def mfu_mbu(tps, architecture):
     mbu = tps * metadata["peak_bandwidth"]
     return {"mfu": mfu, "mbu": mbu}
 
+def sys_and_user_metrics():
+    {"tps": 0, "ttft": 0, "tpot": 0, "prefill_throughput": 0, "decode_throughput": 0}
+
 def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init):
     """
     Reused model profiling code.
