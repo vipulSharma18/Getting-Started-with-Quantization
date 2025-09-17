@@ -1,6 +1,8 @@
 import gc
 from contextlib import nullcontext
 import torch
+from torchao.utils import get_model_size_in_bytes
+from torch.utils.flop_counter import FlopCounterMode
 
 
 def compile_util(model):
@@ -31,11 +33,11 @@ class NoProfiler(nullcontext):
         pass
 
 
-def mfu_mbu_mpu(tps, architecture):
+def flops_bandwidth_power(tps, model_size, model_flops):
     """
     Returns the model flops utilization, and the bandwidth utilization given a GPU
     architecture and a token/s decoding rate.
-    """
+
     architecture_metadata = {
         "rtx5090": {"peak_flops_f4f32": 1676, "peak_flops_f8f16": 838, "peak_flops_f8f32": 419, \
             "peak_flops_f16f16": 419, "peak_flops_f16f32": 209, "peak_flops_i8": 838, \
@@ -47,11 +49,12 @@ def mfu_mbu_mpu(tps, architecture):
             "peak_flops_f16f16": 142.3, "peak_flops_f16f32": 71.2, "peak_flops_i8": 284.7, \
             "peak_bandwidth": 936, "vram": 24},
     }
-    metadata = architecture_metadata[architecture]
-    mfu = tps * metadata["peak_flops"]
-    mbu = tps * metadata["peak_bandwidth"]
-    mpu = torch.cuda.power_draw()/(1e3 * metadata["peak_power"])
-    return {"mfu": mfu, "mbu": mbu, "mpu": mpu}
+    """
+    # metadata = architecture_metadata[architecture]
+    flops = tps * model_flops
+    bandwidth = tps * model_size
+    power = torch.cuda.power_draw()/1e3
+    return {"flops": flops, "bandwidth": bandwidth, "power": power}
 
 
 def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init):
@@ -117,6 +120,7 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
         compile_iter = 1
     else:
         compile_iter = 0
+    flop_counter = FlopCounterMode(mods=model, display=False, depth=None)
 
     with prof:
         for i in range(total_steps):
@@ -137,22 +141,30 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
             prefill_end = torch.cuda.Event(enable_timing=True)
             decode_start = torch.cuda.Event(enable_timing=True)
             decode_end = torch.cuda.Event(enable_timing=True)
+            
+            if i==0:
+                flop_context = flop_counter
+            else:
+                flop_context = nullcontext()
 
             with torch.inference_mode():
                 if i==0 and model.quantize:
                     model.quantization_function(model, quantized=False)
                 if i==compile_iter:
                     compile_util(model)
-                start.record()
-                generated_token_ids = model.generate(
-                    **tokenized_prompt,
-                    past_key_values=past_key_values,
-                    prefill_start=prefill_start,
-                    prefill_end=prefill_end,
-                    decode_start=decode_start,
-                    decode_end=decode_end,
-                )
-                end.record()
+
+                with flop_context:
+                    start.record()
+                    generated_token_ids = model.generate(
+                        **tokenized_prompt,
+                        past_key_values=past_key_values,
+                        prefill_start=prefill_start,
+                        prefill_end=prefill_end,
+                        decode_start=decode_start,
+                        decode_end=decode_end,
+                    )
+                    end.record()
+
                 if i==0 and model.quantize:
                     model.quantization_function(model, quantized=True)
             torch.cuda.synchronize()
@@ -215,6 +227,14 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
         f"decode throughput: {metrics['decode_throughput']}, "
         f"latency: {metrics['latency']}, "
         f"iterations: {metrics['iterations']}"
+    )
+    model_size = get_model_size_in_bytes(model, ignore_embeddings=True)/1e9
+    model_flops =  flop_counter.get_total_flops()
+    gpu_utils = flops_bandwidth_power(metrics['tps'], model_size, model_flops)
+    print("GPU util: "
+        f"FLOPS used (tps*model flops): {gpu_utils["flops"]}, "
+        f"Bandwidth used (tps*model_size): {gpu_utils["bandwidth"]}, "
+        f"Power used in last sample period: {gpu_utils["power"]}."
     )
 
     try:
