@@ -4,14 +4,14 @@ import torch
 
 
 architecture_metadata = {
-    "rtx5090": {"peak_flops_f4f32": 0, "peak_flops_f8f16": 0, "peak_flops_f8f32": 0, \
-        "peak_flops_f16f16": 0, "peak_flops_f16f32": 0, "peak_flops_i8": 0, \
+    "rtx5090": {"peak_flops_f4f32": 1676, "peak_flops_f8f16": 838, "peak_flops_f8f32": 419, \
+        "peak_flops_f16f16": 419, "peak_flops_f16f32": 209, "peak_flops_i8": 838, \
         "peak_bandwidth": 1792, "vram": 32},
-    "rtx4090": {"peak_flops_f4f32": 0, "peak_flops_f8f16": 0, "peak_flops_f8f32": 0, \
-        "peak_flops_f16f16": 0, "peak_flops_f16f32": 0, "peak_flops_i8": 0, \
+    "rtx4090": {"peak_flops_f4f32": 0, "peak_flops_f8f16": 660, "peak_flops_f8f32": 330, \
+        "peak_flops_f16f16": 330, "peak_flops_f16f32": 165.2, "peak_flops_i8": 660, \
         "peak_bandwidth": 1008, "vram": 24},
     "rtx3090": {"peak_flops_f4f32": 0, "peak_flops_f8f16": 0, "peak_flops_f8f32": 0, \
-        "peak_flops_f16f16": 0, "peak_flops_f16f32": 0, "peak_flops_i8": 0, \
+        "peak_flops_f16f16": 142.3, "peak_flops_f16f32": 71.2, "peak_flops_i8": 284.7, \
         "peak_bandwidth": 936, "vram": 24},
 }
 
