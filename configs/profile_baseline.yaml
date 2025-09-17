@@ -1,6 +1,6 @@
 # hf model args
 device: "cuda:0"
-compute_dtype: fp16
+compute_dtype: bf16
 model_id: "unsloth/Meta-Llama-3.1-8B-Instruct"
 cache_dir: "/root/.cache/huggingface/hub"
 attn_implementation: "sdpa"  # flex_attention, sdpa, flash_attention_2, eager

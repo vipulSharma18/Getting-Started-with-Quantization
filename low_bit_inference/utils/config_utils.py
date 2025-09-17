@@ -25,7 +25,7 @@ class DType(Enum):
 class ProfileConfig:
     # hf model args
     device: str = "cuda:0"
-    compute_dtype: DType = DType.fp16
+    compute_dtype: DType = DType.bf16
     model_id: str = "unsloth/Meta-Llama-3.1-8B-Instruct"
     cache_dir: str = "/root/.cache/huggingface/hub"
 
