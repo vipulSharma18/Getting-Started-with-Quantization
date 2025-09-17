@@ -3,6 +3,10 @@ from contextlib import nullcontext
 import torch
 
 
+architecture_metadata = {
+
+}
+
 def compile_util(model):
     if model.compile_decode:
         model.compiled_forward_decode = model.get_compiled_call(
@@ -30,6 +34,17 @@ class NoProfiler(nullcontext):
         """No-op step function that doesn't do anything."""
         pass
 
+
+def mfu_mbu(tps, architecture):
+    """
+    Returns the model flops utilization, and the bandwidth utilization given a GPU
+    architecture and a token/s decoding rate.
+    """
+    global architecture_metadata
+    metadata = architecture_metadata[architecture]
+    mfu = tps * metadata["peak_flops"]
+    mbu = tps * metadata["peak_bandwidth"]
+    return {"mfu": mfu, "mbu": mbu}
 
 def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init):
     """
