@@ -115,6 +115,14 @@ A16W6 Floating Point WeightOnly Quantization FPXWeightOnlyConfig
 - [ ] llama.cpp deployment with our model: https://github.com/ggml-org/llama.cpp.
 
 ## Benchmarking Notes:
+* **Metrics**:
+    * TPS: Tokens/sec or Throughput = #decode tokens/(prefill+decode time)
+    * TTFT: Time to first token = prefill time
+    * TPOT: Time per output token = decode time/#decode tokens
+    * Prefill Throughput: #prefill tokens/prefill time
+    * Decode Throughput: #decode tokens/decode time
+    * Latency: prefill + decode time
+
 * **Compiler Mode and Options Map**: 'default': {}, 'reduce-overhead': {'triton,cudagraphs': True}, 'max-autotune-no-cudagraphs': {'max_autotune': True, 'coordinate_descent_tuning': True}, 'max-autotune': {'max_autotune': True, 'triton.cudagraphs': True, 'coordinate_descent_tuning': True}
 
 * **Prefill Compilation**: Since we have a known prompt length, we're doing compilation for prefill stage as well. In practice, we'd do compile with different prompt lengths before serving to ensure compile cache is hit. Such issues don't occur in the decode stage as the input is always 1 token long (with a static KV cache, i.e., the KV don't change length and the query is 1 length).

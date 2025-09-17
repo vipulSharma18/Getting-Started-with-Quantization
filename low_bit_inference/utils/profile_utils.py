@@ -15,6 +15,7 @@ architecture_metadata = {
         "peak_bandwidth": 936, "vram": 24},
 }
 
+
 def compile_util(model):
     if model.compile_decode:
         model.compiled_forward_decode = model.get_compiled_call(
@@ -43,7 +44,7 @@ class NoProfiler(nullcontext):
         pass
 
 
-def mfu_mbu(tps, architecture):
+def mfu_mbu_mpu(tps, architecture):
     """
     Returns the model flops utilization, and the bandwidth utilization given a GPU
     architecture and a token/s decoding rate.
@@ -52,15 +53,31 @@ def mfu_mbu(tps, architecture):
     metadata = architecture_metadata[architecture]
     mfu = tps * metadata["peak_flops"]
     mbu = tps * metadata["peak_bandwidth"]
-    return {"mfu": mfu, "mbu": mbu}
+    mpu = torch.cuda.power_draw()/(1e3 * metadata["peak_power"])
+    return {"mfu": mfu, "mbu": mbu, "mpu": mpu}
 
-def sys_and_user_metrics():
-    {"tps": 0, "ttft": 0, "tpot": 0, "prefill_throughput": 0, "decode_throughput": 0}
 
 def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init):
     """
-    Reused model profiling code.
+    Model profiling code.
+    Metrics:
+    --------
+    TPS: Tokens/sec or Throughput = #decode tokens/(prefill+decode time)
+    TTFT: Time to first token = prefill time
+    TPOT: Time per output token = decode time/#decode tokens
+    Prefill Throughput: #prefill tokens/prefill time
+    Decode Throughput: #decode tokens/decode time
+    Latency: prefill + decode time
     """
+    metrics = {"tps": 0, \
+        "ttft": 0, \
+        "tpot": 0, \
+        "prefill_throughput": 0, \
+        "decode_throughput": 0, \
+        "latency": 0, \
+        "iterations": 0
+    }
+
     # enable logging for inductor compilation times and graph
     if config.profile_compile:
         enable_inductor_profiling()
@@ -109,16 +126,24 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
 
     with prof:
         for i in range(total_steps):
-            print(f"Profiling iteration {i} out of total {total_steps}")
+            print(f"Profiling iteration {i+1} out of total {total_steps}.")
             torch.compiler.cudagraph_mark_step_begin()
             past_key_values = cache_init(past_key_values, model, config, kv_compiled)
             kv_compiled = True
+
             # mark step begin will release past cudagraph's memory, so clean it up
             gc.collect()
             torch.cuda.empty_cache()
             torch.cuda.synchronize()
+
+            # timers
             start = torch.cuda.Event(enable_timing=True)
             end = torch.cuda.Event(enable_timing=True)
+            prefill_start = torch.cuda.Event(enable_timing=True)
+            prefill_end = torch.cuda.Event(enable_timing=True)
+            decode_start = torch.cuda.Event(enable_timing=True)
+            decode_end = torch.cuda.Event(enable_timing=True)
+
             with torch.inference_mode():
                 if i==0 and model.quantize:
                     model.quantization_function(model, quantized=False)
@@ -128,28 +153,74 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
                 generated_token_ids = model.generate(
                     **tokenized_prompt,
                     past_key_values=past_key_values,
+                    prefill_start=prefill_start,
+                    prefill_end=prefill_end,
+                    decode_start=decode_start,
+                    decode_end=decode_end,
                 )
                 end.record()
                 if i==0 and model.quantize:
                     model.quantization_function(model, quantized=True)
             torch.cuda.synchronize()
-            step_time = start.elapsed_time(end)
             generated_tokens = tokenizer.batch_decode(generated_token_ids[0], skip_special_tokens=True)
+
+            # gather metrics
+            latency = start.elapsed_time(end)/1e3
+            prefill_time = prefill_start.elapsed_time(prefill_end)/1e3
+            decode_time = decode_start.elapsed_time(decode_end)/1e3
+            prefill_tokens = len(tokenized_prompt["input_ids"][0])
+            decode_tokens = len(generated_tokens) - prefill_tokens
+            prefill_throughput = prefill_tokens/prefill_time
+            decode_throughput = decode_tokens/decode_time
+            tpot = decode_time/decode_tokens
+            throughput = decode_tokens/latency
             prof.step()
+
+            # log metrics
             curr_action = profiling_schedule(i)
-            print(f"Generated tokens (last 5): {generated_tokens[-5:]}, len: {len(generated_tokens)}, time: {step_time/1000}s")
-            print(f"Profiling step_num: {i}, curr action: {curr_action}, or in reality NONE if tps_only is True.")
+            print(f"Generated tokens (last 5): {generated_tokens[-5:]}, \
+                total len: {len(generated_tokens)}, \
+                prefill len: {prefill_tokens}, \
+                decode len: {decode_tokens}, \
+                latency: {latency}s, \
+                prefill_throughput: {prefill_throughput}tps, \
+                decode_throughput: {decode_throughput}tps, \
+                throughput: {throughput}tps, \
+                ttft: {prefill_time}s, \
+                tpot: {tpot}s. \
+            ")
+
+            print(f"Profiling step_num: {i+1}, curr action: {curr_action}.")
             if curr_action in [torch.profiler.ProfilerAction.RECORD, torch.profiler.ProfilerAction.RECORD_AND_SAVE]:
-                cumulative_time += step_time
-                generated_token_count += len(generated_tokens) - len(tokenized_prompt["input_ids"][0])  # generated_tokens has prefill and decode tokens
-                print(f"Profile step {i} included for tps calculation.")
-            del generated_tokens, generated_token_ids
-            # inference mode might force tensors used and created inside it to always use it in future for some ops
+                print(f"Profile step {i+1} included for tps calculation.")
+                old_iter = metrics["iterations"]
+                metrics["iterations"] += 1
+                metrics["tps"] = (metrics["tps"]*old_iter + throughput)/metrics["iterations"]
+                metrics["ttft"] = (metrics["ttft"]*old_iter + prefill_time)/metrics["iterations"]
+                metrics["tpot"] = (metrics["tpot"]*old_iter + tpot)/metrics["iterations"]
+                metrics["prefill_throughput"] = (metrics["prefill_throughput"]*old_iter + prefill_throughput)/metrics["iterations"]
+                metrics["decode_throughput"] = (metrics["decode_throughput"]*old_iter + decode_throughput)/metrics["iterations"]
+                metrics["latency"] = (metrics["latency"]*old_iter + latency)/metrics["iterations"]
+
+            # cleanup step:
             with torch.inference_mode():
+                # tensors created in inference mode might force to be modifed in inference mode for all ops
                 past_key_values.reset()
+            del generated_tokens, generated_token_ids
             gc.collect()
             torch.cuda.empty_cache()
-    print(f"Profiling complete, tokens per second: {generated_token_count/(cumulative_time/1000)}")
+
+    print(
+        "Profiling complete. Metrics: "
+        f"tokens per second (tps): {metrics['tps']}, "
+        f"time to first token (ttft): {metrics['ttft']}, "
+        f"time per output token (tpot): {metrics['tpot']}, "
+        f"prefill throughput: {metrics['prefill_throughput']}, "
+        f"decode throughput: {metrics['decode_throughput']}, "
+        f"latency: {metrics['latency']}, "
+        f"iterations: {metrics['iterations']}"
+    )
+
     try:
         if not config.tps_only and prof.profiler is not None:
             prof.export_chrome_trace(config.profiling_dir + "/trace.json")
