@@ -3,19 +3,6 @@ from contextlib import nullcontext
 import torch
 
 
-architecture_metadata = {
-    "rtx5090": {"peak_flops_f4f32": 1676, "peak_flops_f8f16": 838, "peak_flops_f8f32": 419, \
-        "peak_flops_f16f16": 419, "peak_flops_f16f32": 209, "peak_flops_i8": 838, \
-        "peak_bandwidth": 1792, "vram": 32},
-    "rtx4090": {"peak_flops_f4f32": 0, "peak_flops_f8f16": 660, "peak_flops_f8f32": 330, \
-        "peak_flops_f16f16": 330, "peak_flops_f16f32": 165.2, "peak_flops_i8": 660, \
-        "peak_bandwidth": 1008, "vram": 24},
-    "rtx3090": {"peak_flops_f4f32": 0, "peak_flops_f8f16": 0, "peak_flops_f8f32": 0, \
-        "peak_flops_f16f16": 142.3, "peak_flops_f16f32": 71.2, "peak_flops_i8": 284.7, \
-        "peak_bandwidth": 936, "vram": 24},
-}
-
-
 def compile_util(model):
     if model.compile_decode:
         model.compiled_forward_decode = model.get_compiled_call(
@@ -49,7 +36,17 @@ def mfu_mbu_mpu(tps, architecture):
     Returns the model flops utilization, and the bandwidth utilization given a GPU
     architecture and a token/s decoding rate.
     """
-    global architecture_metadata
+    architecture_metadata = {
+        "rtx5090": {"peak_flops_f4f32": 1676, "peak_flops_f8f16": 838, "peak_flops_f8f32": 419, \
+            "peak_flops_f16f16": 419, "peak_flops_f16f32": 209, "peak_flops_i8": 838, \
+            "peak_bandwidth": 1792, "vram": 32},
+        "rtx4090": {"peak_flops_f4f32": 0, "peak_flops_f8f16": 660, "peak_flops_f8f32": 330, \
+            "peak_flops_f16f16": 330, "peak_flops_f16f32": 165.2, "peak_flops_i8": 660, \
+            "peak_bandwidth": 1008, "vram": 24},
+        "rtx3090": {"peak_flops_f4f32": 0, "peak_flops_f8f16": 0, "peak_flops_f8f32": 0, \
+            "peak_flops_f16f16": 142.3, "peak_flops_f16f32": 71.2, "peak_flops_i8": 284.7, \
+            "peak_bandwidth": 936, "vram": 24},
+    }
     metadata = architecture_metadata[architecture]
     mfu = tps * metadata["peak_flops"]
     mbu = tps * metadata["peak_bandwidth"]
@@ -92,9 +89,6 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
 
     mul_factor = max(1, config.repeat)
     total_steps = config.skip_first + mul_factor*(config.wait + config.warmup + config.active)
-
-    cumulative_time = 0.0
-    generated_token_count = 0
 
     # returns a dict of token_ids and attention_mask keys
     tokenized_prompt = tokenizer(prompt, return_tensors="pt").to(config.device)
@@ -183,6 +177,8 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
                 prefill len: {prefill_tokens}, \
                 decode len: {decode_tokens}, \
                 latency: {latency}s, \
+                prefill_time: {prefill_time}s, \
+                decode_time: {decode_time}s, \
                 prefill_throughput: {prefill_throughput}tps, \
                 decode_throughput: {decode_throughput}tps, \
                 throughput: {throughput}tps, \

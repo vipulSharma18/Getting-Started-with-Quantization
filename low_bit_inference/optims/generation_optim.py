@@ -229,7 +229,14 @@ class GenerationMixinCustom:
         generation_config._pad_token_tensor = pad_token_tensor
         generation_config._decoder_start_token_tensor = decoder_start_token_tensor
 
-    def generate(self, inputs = None, generation_config = None, **kwargs):
+    def generate(self,
+        inputs = None,
+        generation_config = None,
+        prefill_start = None,
+        prefill_end = None,
+        decode_start = None,
+        decode_end = None,
+        **kwargs):
 
         # 1. Handle `generation_config` and kwargs that might update it, and validate the `.generate()` call
         generation_config = self.generation_config
@@ -254,10 +261,15 @@ class GenerationMixinCustom:
         # Set model_kwargs `use_cache` so we can use it later in forward runs
         model_kwargs["use_cache"] = generation_config.use_cache
         # 11. run sample (it degenerates to greedy search when `generation_config.do_sample=False`)
+        assert (prefill_start and prefill_end and decode_start and decode_end), "Timers not passed properly."
         result = self._sample(
             inputs_tensor,
             stopping_criteria=stopping_criteria,
             generation_config=generation_config,
+            prefill_start=prefill_start,
+            prefill_end=prefill_end,
+            decode_start=decode_start,
+            decode_end=decode_end,
             **model_kwargs,
         )
         return result
@@ -267,6 +279,10 @@ class GenerationMixinCustom:
         input_ids,
         stopping_criteria,
         generation_config,
+        prefill_start,
+        prefill_end,
+        decode_start,
+        decode_end,
         **model_kwargs,
     ):
         pad_token_id = generation_config._pad_token_tensor
@@ -284,7 +300,10 @@ class GenerationMixinCustom:
             model_inputs = self.prepare_inputs_for_generation(input_ids, **model_kwargs)
 
             if is_prefill:
+                prefill_start.record()
                 outputs = self.compiled_forward_prefill(**model_inputs, return_dict=True)
+                prefill_end.record()
+                decode_start.record()
                 is_prefill = False
             else:
                 outputs = self.compiled_forward_decode(**model_inputs, return_dict=True)
@@ -315,5 +334,5 @@ class GenerationMixinCustom:
             # This is needed to properly delete outputs.logits which may be very large for first iteration
             # Otherwise a reference to outputs is kept which keeps the logits alive in the next iteration
             del outputs
-
+        decode_end.record()
         return input_ids
