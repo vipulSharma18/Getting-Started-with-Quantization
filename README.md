@@ -30,10 +30,10 @@ tokenized_prompt = tokenizer([config.prompt], return_tensors="pt").to(config.dev
 > Note: .vscode folder has a launch.json file with different debugging and testing launch configurations for easy use.
 
 ## Run benchmark:
-> Note: Run without tps_only=True to get trace of CPU and GPU kernels.
-> Note: Run with skip_first=3 wait=0 warmup=1 active=1 for small runs.
-> Note: Run with profile_compile=True to get profile trace of compilation process.
-> Note: Run with TORCH_TRACE="log/compile" to generate dynamo logs that can be parsed with tlparse log/compile/* --overwrite. Alternatively, can use TORCH_LOGS="dynamic,guards,recompiles,perf_hints,fusion"
+> Note: Run without tps_only=True to get trace of CPU and GPU kernels.      
+> Note: Run with skip_first=3 wait=0 warmup=1 active=1 for small runs.      
+> Note: Run with profile_compile=True to get profile trace of compilation process.      
+> Note: Run with TORCH_TRACE="log/compile" to generate dynamo logs that can be parsed with tlparse log/compile/* --overwrite. Alternatively, can use TORCH_LOGS="dynamic,guards,recompiles,perf_hints,fusion".      
 
 **Baseline result**: 
 ```
@@ -71,8 +71,8 @@ Note: All these are affine transforms available in TorchAO. They are not custom 
 quantized_val = input_high_precision_float_val / scale + zero_point
 
 **Functions/Params**:      
-quantize_affine: original fp32, fp16, bf16 tensor.
-dequantize_affine: quantized tensor o/p of above.
+quantize_affine: original fp32, fp16, bf16 tensor.      
+dequantize_affine: quantized tensor o/p of above.       
 
 choose_qparams_affine: fp32, bf16, fp16 example i/p tensor for calculating scaling factor.
 
@@ -84,21 +84,21 @@ Note: Use bf16 model for all affine quants other than fp6.
 A16W4 WeightOnly Quantization Int4WeightOnlyConfig
 
 **INT8**:       
-A16W8 Int8 WeightOnly Quantization Int8WeightOnlyConfig
-A8W8 Int8 Dynamic Quantization Int8DynamicActivationInt8WeightConfig
-Int8DynamicActivationInt4WeightConfig
+A16W8 Int8 WeightOnly Quantization Int8WeightOnlyConfig     
+A8W8 Int8 Dynamic Quantization Int8DynamicActivationInt8WeightConfig        
+Int8DynamicActivationInt4WeightConfig       
 
 **Miscellaneous int4 and int8**:                
 GemliteUIntXWeightOnlyConfig
 
 **Float8**:     
-A16W8 Float8 WeightOnly Quantization Float8WeightOnlyConfig
-A8W8 Float8 Dynamic Quantization with Tensorwise or Rowwise Scaling Float8DynamicActivationFloat8WeightConfig
-A8W4 Float8 DQ Float8DynamicActivationInt4WeightConfig
-A8W8 Float8StaticActivationFloat8WeightConfig
+A16W8 Float8 WeightOnly Quantization Float8WeightOnlyConfig     
+A8W8 Float8 Dynamic Quantization with Tensorwise or Rowwise Scaling Float8DynamicActivationFloat8WeightConfig       
+A8W4 Float8 DQ Float8DynamicActivationInt4WeightConfig      
+A8W8 Float8StaticActivationFloat8WeightConfig       
 
 **FP6**:        
-A16W6 Floating Point WeightOnly Quantization FPXWeightOnlyConfig
+A16W6 Floating Point WeightOnly Quantization FPXWeightOnlyConfig        
 
 **Limitations of TorchAO Quantization Configs**:
 * Only quantizes linear layers, we can quantize non-linear layers as well.
