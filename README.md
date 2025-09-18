@@ -30,23 +30,23 @@ tokenized_prompt = tokenizer([config.prompt], return_tensors="pt").to(config.dev
 > Note: .vscode folder has a launch.json file with different debugging and testing launch configurations for easy use.
 
 ## Benchmark (on 1 RTX 4090):
-| File | Weight Bits | Activation Bits | Throughput (tokens/sec) |
-|------|-------------|-----------------|-------------------------|
-| `torch_baseline.py` | 16 (bf16) | 16 (bf16) | TBD |
-| `torchinductor.py` | 16 (bf16) | 16 (bf16) | TBD |
-| `torchinductor_autoquant.py` | Auto | Auto | TBD |
-| `torchinductor_int4wo.py` | 4 | 16 (bf16) | TBD |
-| `torchinductor_int4_full.py` | 4 | 4 | TBD |
-| `torchinductor_int8wo.py` | 8 | 16 (bf16) | TBD |
-| `torchinductor_int8_full.py` | 8 | 8 | TBD |
-| `torchinductor_fp8wo.py` | 8 | 16 (bf16) | TBD |
-| `torchinductor_fp8_full.py` | 8 | 8 | TBD |
-| `torchinductor_fp6wo.py` | 6 | 16 (bf16) | TBD |
-| `torchinductor_fp6_full.py` | 6 | 6 | TBD |
-| `torchinductor_fp4wo.py` | 6 | 16 (bf16) | TBD |
-| `torchinductor_fp4_full.py` | 4 | 4 | TBD |
-| `torchinductor_fp1_full.py` | 1 | 1 | TBD |
-| `torchinductor_fp1_58_full.py` | 1.58 | 1.58 | TBD |
+| Weight Bits | Activation Bits | Throughput (tokens/sec) |
+|-------------|-----------------|-------------------------|
+| 16 (bf16) | 16 (bf16) | TBD |
+| 16 (bf16) | 16 (bf16) | TBD |
+| Auto | Auto | TBD |
+| 4 | 16 (bf16) | TBD |
+| 4 | 4 | TBD |
+| 8 | 16 (bf16) | TBD |
+| 8 | 8 | TBD |
+| 8 | 16 (bf16) | TBD |
+| 8 | 8 | TBD |
+| 6 | 16 (bf16) | TBD |
+| 6 | 6 | TBD |
+| 4 | 16 (bf16) | TBD |
+| 4 | 4 | TBD |
+| 1 | 1 | TBD |
+| 1.58 | 1.58 | TBD |
 
 ## TorchAO Quantization Configs:
 Note: All these are affine transforms available in TorchAO. They are not custom transforms.

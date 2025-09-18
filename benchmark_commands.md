@@ -8,23 +8,23 @@
 python -m low_bit_inference.torch_baseline configs/profile_baseline.yaml tps_only=True
 
 python -m low_bit_inference.torchinductor configs/profile_inductor.yaml tps_only=True
-python -m low_bit_inference.torchinductor_autoquant configs/profile_inductor_torchao.yaml tps_only=True
+python -m low_bit_inference.torchao.autoquant configs/profile_inductor_torchao.yaml tps_only=True
 
-python -m low_bit_inference.torchinductor_int4wo configs/profile_inductor_torchao.yaml tps_only=True
-python -m low_bit_inference.torchinductor_int4_full configs/profile_inductor_torchao.yaml tps_only=True
+python -m low_bit_inference.torchao.int4wo configs/profile_inductor_torchao.yaml tps_only=True
+python -m low_bit_inference.gemlite.int4_full configs/profile_inductor_torchao.yaml tps_only=True
 
-python -m low_bit_inference.torchinductor_int8wo configs/profile_inductor_torchao.yaml tps_only=True
-python -m low_bit_inference.torchinductor_int8_full configs/profile_inductor_torchao.yaml tps_only=True
+python -m low_bit_inference.torchao.int8wo configs/profile_inductor_torchao.yaml tps_only=True
+python -m low_bit_inference.gemlite.int8_full configs/profile_inductor_torchao.yaml tps_only=True
 
-python -m low_bit_inference.torchinductor_fp8wo configs/profile_inductor_torchao.yaml tps_only=True
-python -m low_bit_inference.torchinductor_fp8_full configs/profile_inductor_torchao.yaml tps_only=True
+python -m low_bit_inference.torchao.fp8wo configs/profile_inductor_torchao.yaml tps_only=True
+python -m low_bit_inference.gemlite.fp8_full configs/profile_inductor_torchao.yaml tps_only=True
 
-python -m low_bit_inference.torchinductor_fp6wo configs/profile_inductor_torchao.yaml tps_only=True
-python -m low_bit_inference.torchinductor_fp6_full configs/profile_inductor_torchao.yaml tps_only=True
+python -m low_bit_inference.torchao.fp6wo configs/profile_inductor_torchao.yaml tps_only=True
+python -m low_bit_inference.gemlite.fp6_full configs/profile_inductor_torchao.yaml tps_only=True
 
-python -m low_bit_inference.torchinductor_fp4wo configs/profile_inductor_torchao.yaml tps_only=True
-python -m low_bit_inference.torchinductor_fp4_full configs/profile_inductor_torchao.yaml tps_only=True
+python -m low_bit_inference.torchao.fp4wo configs/profile_inductor_torchao.yaml tps_only=True
+python -m low_bit_inference.gemlite.fp4_full configs/profile_inductor_torchao.yaml tps_only=True
 
-python -m low_bit_inference.torchinductor_fp1_full configs/profile_inductor_torchao.yaml tps_only=True
-python -m low_bit_inference.torchinductor_fp1_58_full configs/profile_inductor_torchao.yaml tps_only=True
+python -m low_bit_inference.torchao.fp1_full configs/profile_inductor_torchao.yaml tps_only=True
+python -m low_bit_inference.gemlite.fp1_58_full configs/profile_inductor_torchao.yaml tps_only=True
 ```
