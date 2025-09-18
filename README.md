@@ -31,7 +31,7 @@ tokenized_prompt = tokenizer([config.prompt], return_tensors="pt").to(config.dev
 
 ## Run benchmark:
 > Note: Run without tps_only=True to get trace of CPU and GPU kernels.      
-> Note: Run with skip_first=3 wait=0 warmup=1 active=1 for small runs.      
+> Note: Run with skip_first=1 wait=0 warmup=3 active=1 for small runs (1 flop, 1 quant, 2 compile, 1 measure).      
 > Note: Run with profile_compile=True to get profile trace of compilation process.      
 > Note: Run with TORCH_TRACE="log/compile" to generate dynamo logs that can be parsed with tlparse log/compile/* --overwrite. Alternatively, can use TORCH_LOGS="dynamic,guards,recompiles,perf_hints,fusion".      
 

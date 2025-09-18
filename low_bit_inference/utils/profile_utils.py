@@ -48,10 +48,13 @@ def flops_bandwidth_power(tps, model_size, model_flops):
         "rtx3090": {"peak_flops_f4f32": 0, "peak_flops_f8f16": 0, "peak_flops_f8f32": 0, \
             "peak_flops_f16f16": 142.3, "peak_flops_f16f32": 71.2, "peak_flops_i8": 284.7, \
             "peak_bandwidth": 936, "vram": 24},
+        "a6000": {"peak_flops_f4f32": 0, "peak_flops_f8f16": 0, "peak_flops_f8f32": 0, \
+            "peak_flops_f16f16": 0, "peak_flops_f16f32": 38.7, "peak_flops_i8": 0, \
+            "peak_bandwidth": 768, "vram": 48},
     }
     """
     # metadata = architecture_metadata[architecture]
-    flops = tps * model_flops
+    flops = tps * model_flops/1e12 # TeraFLOPs
     bandwidth = tps * model_size
     power = torch.cuda.power_draw()/1e3
     return {"flops": flops, "bandwidth": bandwidth, "power": power}
@@ -121,6 +124,7 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
 
     with prof:
         for i in range(total_steps):
+            print("="*30)
             print(f"Profiling iteration {i+1} out of total {total_steps}.")
             torch.compiler.cudagraph_mark_step_begin()
             past_key_values = cache_init(past_key_values, model, config, kv_compiled)
@@ -181,19 +185,20 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
 
             # log metrics
             curr_action = profiling_schedule(i)
-            print(f"Generated tokens (last 5): {generated_tokens[-5:]}, \
-                total len: {len(generated_tokens)}, \
-                prefill len: {prefill_tokens}, \
-                decode len: {decode_tokens}, \
-                latency: {latency}s, \
-                prefill_time: {prefill_time}s, \
-                decode_time: {decode_time}s, \
-                prefill_throughput: {prefill_throughput}tps, \
-                decode_throughput: {decode_throughput}tps, \
-                throughput: {throughput}tps, \
-                ttft: {prefill_time}s, \
-                tpot: {tpot}s. \
-            ")
+            print(
+                f"Generated tokens (last 5): {generated_tokens[-5:]}, "
+                f"total len: {len(generated_tokens)}, "
+                f"prefill len: {prefill_tokens}, "
+                f"decode len: {decode_tokens}, "
+                f"latency: {latency}s, "
+                f"prefill_time: {prefill_time}s, "
+                f"decode_time: {decode_time}s, "
+                f"prefill_throughput: {prefill_throughput}tps, "
+                f"decode_throughput: {decode_throughput}tps, "
+                f"throughput: {throughput}tps, "
+                f"ttft: {prefill_time}s, "
+                f"tpot: {tpot}s. "
+            )
 
             print(f"Profiling step_num: {i+1}, curr action: {curr_action}.")
             if curr_action in [torch.profiler.ProfilerAction.RECORD, torch.profiler.ProfilerAction.RECORD_AND_SAVE]:
@@ -229,9 +234,9 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
     model_flops =  flop_counter.get_total_flops()
     gpu_utils = flops_bandwidth_power(metrics['tps'], model_size, model_flops)
     print("GPU util: "
-        f"FLOPS used (tps*model flops): {gpu_utils["flops"]}, "
-        f"Bandwidth used (tps*model_size): {gpu_utils["bandwidth"]}, "
-        f"Power used in last sample period: {gpu_utils["power"]}."
+        f"FLOPS used (tps*model flops): {gpu_utils["flops"]} TFLOPs, "
+        f"Bandwidth used (tps*model_size): {gpu_utils["bandwidth"]} GB/s, "
+        f"Power used in last sample period: {gpu_utils["power"]} W."
     )
 
     try:
