@@ -117,7 +117,7 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
 
     kv_compiled = False
     compile_iter = 1 # delay compile by 1 iter for quantization and/or flop counting
-    flop_counter = FlopCounterMode(mods=model, display=False, depth=None)
+    flop_counter = FlopCounterMode(display=False, depth=None)
 
     with prof:
         for i in range(total_steps):
