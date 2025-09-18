@@ -36,12 +36,17 @@ tokenized_prompt = tokenizer([config.prompt], return_tensors="pt").to(config.dev
 | `torchinductor.py` | 16 (bf16) | 16 (bf16) | TBD |
 | `torchinductor_autoquant.py` | Auto | Auto | TBD |
 | `torchinductor_int4wo.py` | 4 | 16 (bf16) | TBD |
+| `torchinductor_int4_full.py` | 4 | 4 | TBD |
 | `torchinductor_int8wo.py` | 8 | 16 (bf16) | TBD |
+| `torchinductor_int8_full.py` | 8 | 8 | TBD |
 | `torchinductor_fp8wo.py` | 8 | 16 (bf16) | TBD |
+| `torchinductor_fp8_full.py` | 8 | 8 | TBD |
 | `torchinductor_fp6wo.py` | 6 | 16 (bf16) | TBD |
-| `torchinductor_fp4wo.py` | 4 | 16 (bf16) | TBD |
-| `torchinductor_fp1wo.py` | 1 | 16 (bf16) | TBD |
-| `torchinductor_fp1_58wo.py` | 1.58 | 16 (bf16) | TBD |
+| `torchinductor_fp6_full.py` | 6 | 6 | TBD |
+| `torchinductor_fp4wo.py` | 6 | 16 (bf16) | TBD |
+| `torchinductor_fp4_full.py` | 4 | 4 | TBD |
+| `torchinductor_fp1_full.py` | 1 | 1 | TBD |
+| `torchinductor_fp1_58_full.py` | 1.58 | 1.58 | TBD |
 
 ## TorchAO Quantization Configs:
 Note: All these are affine transforms available in TorchAO. They are not custom transforms.
