@@ -1,7 +1,4 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
         {
@@ -20,7 +17,7 @@
             "module": "low_bit_inference.torchinductor",
             "justMyCode": true,
             // If you want to pass as separate key-value pairs
-            "args": ["configs/profile_inductor.yaml", "tps_only=True", "skip_first=1", "warmup=2", "wait=0", "active=1", "profile_compile=True"]
+            "args": ["configs/profile_inductor.yaml", "tps_only=True", "skip_first=1", "warmup=2", "wait=0", "active=1"]
         },
         {
             "name": "Debug Inductor with TLPARSE",

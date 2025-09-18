@@ -2,9 +2,9 @@ import torch
 from torchao.quantization import quantize_, Int8WeightOnlyConfig
 from omegaconf import OmegaConf
 # utils
-from .hf_loader import load_model_tokenizer_prompt_cache
-from .utils.config_utils import get_config, to_torch_dtype
-from .utils.profile_utils import profile_model
+from ..hf_loader import load_model_tokenizer_prompt_cache
+from ..utils.config_utils import get_config, to_torch_dtype
+from ..utils.profile_utils import profile_model
 
 
 config = get_config()
