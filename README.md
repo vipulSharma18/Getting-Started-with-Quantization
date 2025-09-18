@@ -34,7 +34,7 @@ tokenized_prompt = tokenizer([config.prompt], return_tensors="pt").to(config.dev
 |-------------|-----------------|-------------------------|
 | 16 (bf16) | 16 (bf16) | TBD |
 | 16 (bf16) | 16 (bf16) | TBD |
-| Auto | Auto | TBD |
+| TorchAO Autoquant | TorchAO Autoquant | TBD |
 | 4 | 16 (bf16) | TBD |
 | 4 | 4 | TBD |
 | 8 | 16 (bf16) | TBD |
