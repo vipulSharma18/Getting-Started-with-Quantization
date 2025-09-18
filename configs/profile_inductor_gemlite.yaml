@@ -1,0 +1,31 @@
+# hf model args
+device: "cuda:0"
+compute_dtype: bf16
+model_id: "unsloth/Meta-Llama-3.1-8B-Instruct"
+cache_dir: "/root/.cache/huggingface/hub"
+attn_implementation: "sdpa"  # flex_attention, sdpa, flash_attention_2, eager
+
+# profiling args
+profiling_dir: "log/inductor"
+skip_first: 1
+wait: 1
+warmup: 3
+active: 5
+repeat: 0
+tps_only: False
+compile_decode: True
+compile_prefill: False
+profile_compile: False
+quantize: True
+
+# prompt args
+prompt: "Write an essay about large language models."
+max_new_tokens: 1000
+chat_template: ""
+do_sample: False
+top_k: null
+top_p: null
+temperature: null
+use_cache: True
+cache_implementation: "static"
+padding_side: "left"
