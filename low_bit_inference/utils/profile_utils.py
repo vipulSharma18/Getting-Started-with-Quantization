@@ -33,7 +33,7 @@ class NoProfiler(nullcontext):
         pass
 
 
-def flops_bandwidth_power(tps, model_size, model_flops):
+def flops_bandwidth_power(tps, latency, model_size, generate_flops):
     """
     Returns the model flops utilization, and the bandwidth utilization given a GPU
     architecture and a token/s decoding rate.
@@ -54,10 +54,12 @@ def flops_bandwidth_power(tps, model_size, model_flops):
     }
     """
     # metadata = architecture_metadata[architecture]
-    flops = tps * model_flops/1e12 # TeraFLOPs
+    generate_flops = generate_flops/1e12 # TeraFLOP
+    flops = generate_flops/latency
+    flop_per_token = flops/tps
     bandwidth = tps * model_size
     power = torch.cuda.power_draw()/1e3
-    return {"flops": flops, "bandwidth": bandwidth, "power": power}
+    return {"flops": flops, "bandwidth": bandwidth, "power": power, "flop_per_token": flop_per_token}
 
 
 def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init):
@@ -231,10 +233,11 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
         f"iterations: {metrics['iterations']}"
     )
     model_size = get_model_size_in_bytes(model, ignore_embeddings=True)/1e9
-    model_flops =  flop_counter.get_total_flops()
-    gpu_utils = flops_bandwidth_power(metrics['tps'], model_size, model_flops)
+    generate_flops =  flop_counter.get_total_flops()
+    gpu_utils = flops_bandwidth_power(metrics['tps'], metrics['latency'], model_size, generate_flops)
     print("GPU util: "
-        f"FLOPS used (tps*model flops): {gpu_utils["flops"]} TFLOPs, "
+        f"FLOPs (total generate flops/latency): {gpu_utils["flops"]} TFLOPs, "
+        f"FLOP per token used (FLOPs/tps): {gpu_utils["flop_per_token"]} TFLOP/token, "
         f"Bandwidth used (tps*model_size): {gpu_utils["bandwidth"]} GB/s, "
         f"Power used in last sample period: {gpu_utils["power"]} W."
     )
