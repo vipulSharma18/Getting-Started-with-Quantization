@@ -1,5 +1,5 @@
 import torch
-from torchao.quantization import quantize_, Int4WeightOnlyConfig
+from torchao.quantization import quantize_, FPXWeightOnlyConfig
 from omegaconf import OmegaConf
 # utils
 from .hf_loader import load_model_tokenizer_prompt_cache
@@ -29,7 +29,9 @@ torch._inductor.config.benchmark_kernel = True
 torch._inductor.config.benchmark_fusion = True
 torch._inductor.config.freezing = True
 
-quantize_(model, Int4WeightOnlyConfig())
+assert config.compile_decode and config.quantize
+print(f"Compile config: decode {config.compile_decode}, \
+    prefill {config.compile_prefill}. Quantize status: {config.quantize}")
 model = model.to(config.device)
 print("Model moved to GPU, starting profiling.")
 
@@ -47,5 +49,17 @@ def cache_init(past_key_values, model, config, kv_compiled=False):
     )
 
     return past_key_values
+
+def model_quantize(causal_model, quantized=False):
+    """
+    There's the generic FPX dtype, then mxfp4, and nvfp4.
+    """
+    if not quantized:
+        quantize_(causal_model.model, FPXWeightOnlyConfig(ebits=2, mbits=1))
+        quantize_(causal_model.lm_head, FPXWeightOnlyConfig(ebits=2, mbits=1))
+    else:
+        pass
+
+model.quantization_function = model_quantize
 
 profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)

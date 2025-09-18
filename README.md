@@ -29,41 +29,19 @@ tokenized_prompt = tokenizer([config.prompt], return_tensors="pt").to(config.dev
 
 > Note: .vscode folder has a launch.json file with different debugging and testing launch configurations for easy use.
 
-## Run benchmark:
-> Note: Run without tps_only=True to get trace of CPU and GPU kernels.      
-> Note: Run with skip_first=1 wait=2 warmup=1 active=1 for small runs (1 flop and quant, 2 compile, 1 warmup, 1 measure).      
-> Note: Run with profile_compile=True to get profile trace of compilation process.      
-> Note: Run with TORCH_TRACE="log/compile" to generate dynamo logs that can be parsed with tlparse log/compile/* --overwrite. Alternatively, can use TORCH_LOGS="dynamic,guards,recompiles,perf_hints,fusion".      
-
-**Baseline result**: 
-```
-python -m low_bit_inference.torch_baseline configs/profile_baseline.yaml tps_only=True
-```
-
-**Full graph torch compile with inductor**: 
-```
-python -m low_bit_inference.torchinductor configs/profile_inductor.yaml tps_only=True
-```
-
-**Torch compile with TorchAO AutoQuant**: 
-```
-python -m low_bit_inference.torchinductor_autoquant configs/profile_inductor_torchao.yaml tps_only=True
-```
-
-**Torch compile with TorchAO Int4**: 
-```
-python -m low_bit_inference.torchinductor_int4 configs/profile_inductor_torchao.yaml tps_only=True
-```
-
-**Torch compile with TorchAO Int8**: 
-```
-python -m low_bit_inference.torchinductor_int8 configs/profile_inductor_torchao.yaml tps_only=True
-```
-
-**Torch compile with TorchAO FP8**: 
-```
-python -m low_bit_inference.torchinductor_fp8 configs/profile_inductor_torchao.yaml tps_only=True
-```
+## Benchmark (on 1 RTX 4090):
+| File | Weight Bits | Activation Bits | Throughput (tokens/sec) |
+|------|-------------|-----------------|-------------------------|
+| `torch_baseline.py` | 16 (bf16) | 16 (bf16) | TBD |
+| `torchinductor.py` | 16 (bf16) | 16 (bf16) | TBD |
+| `torchinductor_autoquant.py` | Auto | Auto | TBD |
+| `torchinductor_int4wo.py` | 4 | 16 (bf16) | TBD |
+| `torchinductor_int8wo.py` | 8 | 16 (bf16) | TBD |
+| `torchinductor_fp8wo.py` | 8 | 16 (bf16) | TBD |
+| `torchinductor_fp6wo.py` | 6 | 16 (bf16) | TBD |
+| `torchinductor_fp4wo.py` | 4 | 16 (bf16) | TBD |
+| `torchinductor_fp1wo.py` | 1 | 16 (bf16) | TBD |
+| `torchinductor_fp1_58wo.py` | 1.58 | 16 (bf16) | TBD |
 
 ## TorchAO Quantization Configs:
 Note: All these are affine transforms available in TorchAO. They are not custom transforms.

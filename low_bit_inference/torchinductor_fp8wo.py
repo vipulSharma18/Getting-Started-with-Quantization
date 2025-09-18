@@ -29,7 +29,9 @@ torch._inductor.config.benchmark_kernel = True
 torch._inductor.config.benchmark_fusion = True
 torch._inductor.config.freezing = True
 
-quantize_(model, Float8WeightOnlyConfig())
+assert config.compile_decode and config.quantize
+print(f"Compile config: decode {config.compile_decode}, \
+    prefill {config.compile_prefill}. Quantize status: {config.quantize}")
 model = model.to(config.device)
 print("Model moved to GPU, starting profiling.")
 
@@ -47,5 +49,14 @@ def cache_init(past_key_values, model, config, kv_compiled=False):
     )
 
     return past_key_values
+
+def model_quantize(causal_model, quantized=False):
+    if not quantized:
+        quantize_(causal_model.model, Float8WeightOnlyConfig())
+        quantize_(causal_model.lm_head, Float8WeightOnlyConfig())
+    else:
+        pass
+
+model.quantization_function = model_quantize
 
 profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
