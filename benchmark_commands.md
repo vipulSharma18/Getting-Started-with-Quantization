@@ -8,7 +8,12 @@
 ```
 python -m low_bit_inference.torch_baseline configs/profile_baseline.yaml tps_only=True
 python -m low_bit_inference.torchinductor configs/profile_inductor.yaml tps_only=True
+```
+
+```
 python -m low_bit_inference.torchao.autoquant configs/profile_inductor_torchao.yaml tps_only=True
+Profiling complete. Metrics: tokens per second (tps): 58.16137474427701, time to first token (ttft): 0.34503413085937495, time per output token (tpot): 0.016850888671875, prefill throughput: 26.084390469485204, decode throughput: 59.36347375212815, latency: 17.198946484374996, iterations: 5
+GPU util: FLOPs (total generate flops/latency): 0.9106460117336168 TFLOPs, FLOP per token used (FLOPs/tps): 0.01565722983229902 TFLOP/token, Bandwidth used (tps*model_size): 437.38728091187875 GB/s, Power used in last sample period: 103.419 W.
 ```
 
 ### TorchAO weight only configs:
