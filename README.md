@@ -32,21 +32,21 @@ tokenized_prompt = tokenizer([config.prompt], return_tensors="pt").to(config.dev
 ## Benchmark (on 1 RTX 4090):
 | Weight Bits | Activation Bits | Throughput (tokens/sec) |
 |-------------|-----------------|-------------------------|
-| 16 (bf16) | 16 (bf16) | TBD |
-| 16 (bf16) | 16 (bf16) | TBD |
-| TorchAO Autoquant | TorchAO Autoquant | TBD |
-| 4 | 16 (bf16) | TBD |
-| 4 | 4 | TBD |
-| 8 | 16 (bf16) | TBD |
-| 8 | 8 | TBD |
-| 8 | 16 (bf16) | TBD |
-| 8 | 8 | TBD |
-| 6 | 16 (bf16) | TBD |
-| 6 | 6 | TBD |
-| 4 | 16 (bf16) | TBD |
-| 4 | 4 | TBD |
-| 1 | 1 | TBD |
-| 1.58 | 1.58 | TBD |
+| (Torch eager) bf16 | bf16 | 37.52 |
+| (Inductor) bf16 | bf16 | 48.71 |
+| TorchAO Autoquant | TorchAO Autoquant | 58.16 |
+| int4 | bf16 | 105.58 |
+| int4 | int4 | TBD |
+| int8 | bf16 | TBD |
+| int8 | int8 | TBD |
+| mxfp8 | bf16 | TBD |
+| mxfp8 | mxfp8 | TBD |
+| fp6 (Quant-LLM, torchao) | bf16 | TBD |
+| mxfp6 | mxfp6 | TBD |
+| nvfp4 | bf16 | TBD |
+| nvfp4 | nvfp4 | TBD |
+| uint1 (bitnet) | uint1 | TBD |
+| 1.58 (ternary network) | 1.58 | TBD |
 
 ## TorchAO Quantization Configs:
 Note: All these are affine transforms available in TorchAO. They are not custom transforms.
@@ -89,6 +89,7 @@ A16W6 Floating Point WeightOnly Quantization FPXWeightOnlyConfig
 
 ## Benchmarking Roadmap:
 - [x] Calculate theoretical performance limit: get token/s and multiply it by model size for bandwidth and by model flops for compute util.
+- [ ] torchao weights only config cause cuda oom when doing tps only profiling for more than 1 iteration. for some dtypes, if we enable quantization of lm_head, then it ooms even on the first profiling iteration.
 - [ ] Use existing TorchAO configs.
 - [ ] Quantize non-linear layers which isn't done in TorchAO yet.
 - [ ] Enforce static quantization.
