@@ -6,7 +6,7 @@ Experimenting with different methods for low-bit inference of Llama-3.1.
 
 ## Project Presentation:
 * Survey of quantization presentation slides: https://docs.google.com/presentation/d/1fEeao2TyFgooLXeNd0r6hLvC93czzdQLRbBAVWHddCQ/edit?usp=sharing
-* Recording from the Eleuther AI ML Performance Reading Group: 
+* Recording from the Eleuther AI ML Performance Reading Group: https://www.youtube.com/watch?v=NpQv0R0w_qY 
 
 ## Setup:
 Manual Docker pull and run if not using VastAI or RunPod:
