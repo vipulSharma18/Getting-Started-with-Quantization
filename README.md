@@ -94,10 +94,11 @@ A16W6 Floating Point WeightOnly Quantization FPXWeightOnlyConfig
 
 ## Benchmarking Roadmap:
 - [x] Calculate theoretical performance limit: get token/s and multiply it by model size for bandwidth and by model flops for compute util.
-- [ ] torchao weights only config cause cuda oom when doing tps only profiling for more than 1 iteration. for some dtypes, if we enable quantization of lm_head, then it ooms even on the first profiling iteration.
-- [ ] Use existing TorchAO configs.
-- [ ] Quantize non-linear layers which isn't done in TorchAO yet.
-- [ ] Enforce static quantization.
+- [x] Use existing TorchAO configs. TorchAO does linear layer quant only, further, we use weights only quant from torchao.
+- [ ] torchao weights only config cause cuda oom when doing tps only profiling for more than 1 iteration. For some dtypes, if we enable quantization of lm_head, then it ooms even on the first profiling iteration.
+- [ ] Gemlite weights and activations quant.
+- [ ] FP1.58 kernel from microsoft bitblas: https://github.com/microsoft/BitBLAS
+- [ ] FP1.58 with kernel based on “An Efficient Matrix Multiplication Algorithm for Accelerating Inference in Binary and Ternary Neural Networks,”.
 
 ## Possible extensions:
 - [ ] Megakernel for Llama-3.1-8B: https://github.com/HazyResearch/Megakernels/blob/main/demos/low-latency-llama/llama.cuh , https://hazyresearch.stanford.edu/blog/2025-05-27-no-bubbles
@@ -134,4 +135,5 @@ A16W6 Floating Point WeightOnly Quantization FPXWeightOnlyConfig
 [9] Benchmarks on Llama-3.1-8B done by torchao team: https://github.com/pytorch/ao/tree/main/torchao/_models/llama       
 [10] S. Salaria, Z. Liu, and N. M. Gonzalez, “Meta-Metrics and Best Practices for System-Level Inference Performance Benchmarking,” Aug. 14, 2025, arXiv: arXiv:2508.10251. doi: 10.48550/arXiv.2508.10251.          
 [11] Z. Zhou et al., “A Survey on Efficient Inference for Large Language Models,” July 19, 2024, arXiv: arXiv:2404.14294. doi: 10.48550/arXiv.2404.14294.            
-[12] A. Gholami, S. Kim, Z. Dong, Z. Yao, M. W. Mahoney, and K. Keutzer, “A Survey of Quantization Methods for Efficient Neural Network Inference,” June 21, 2021, arXiv: arXiv:2103.13630. doi: 10.48550/arXiv.2103.13630.
+[12] A. Gholami, S. Kim, Z. Dong, Z. Yao, M. W. Mahoney, and K. Keutzer, “A Survey of Quantization Methods for Efficient Neural Network Inference,” June 21, 2021, arXiv: arXiv:2103.13630. doi: 10.48550/arXiv.2103.13630.            
+[13] https://github.com/microsoft/BitBLAS            
