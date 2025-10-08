@@ -6,7 +6,10 @@
 #TRITON_PRINT_AUTOTUNING=1 ipython ...
 ################################################################################################################
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from omegaconf import OmegaConf
+from .hf_loader import load_model_tokenizer_prompt_cache
+from .utils.config_utils import get_config, to_torch_dtype
+from .utils.profile_utils import profile_model
 
 import gemlite
 from gemlite.core import TORCH_TO_DTYPE
