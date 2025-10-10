@@ -108,11 +108,6 @@ print(f"PyTorch sees {torch.cuda.device_count()} devices, current device: {torch
 
 print(f"Loading pretrained model and tokenizer: {config.model_id}.")
 model, tokenizer, prompt, past_key_values = load_model_tokenizer_prompt_cache(config)
-
-# gemlite linear layer replacement with GemLite.linear object
-autoname_modules(model)
-patch_linearlayers(model, patch_linear_to_gemlite)
-
 print(f"Model loaded {config.model_id}.")
 
 # torch backends and compiler configs
@@ -151,6 +146,9 @@ def cache_init(past_key_values, model, config, kv_compiled=False):
 def model_quantize(causal_model, quantized=False):
     quantize_activations = False
     W_nbits = 1
+    # gemlite linear layer replacement with GemLite.linear object
+    autoname_modules(model)
+    patch_linearlayers(model, patch_linear_to_gemlite)
 
     if not quantized:
         quantize_(causal_model.model, Int8WeightOnlyConfig())
