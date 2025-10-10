@@ -62,7 +62,7 @@ from gemlite import DType, GemLiteLinear
 
 from hqq.utils.generation_hf import HFGenerator
 
-gemlite.set_autotune("fast") #Use max for the best perf
+gemlite.set_autotune("max")  # fast for fast startup, but slow perf. max for slow startup, but best perf.
 
 device        = 'cuda:0'
 compute_dtype = torch.float16

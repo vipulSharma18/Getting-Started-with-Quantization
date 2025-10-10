@@ -75,6 +75,25 @@ tokenized_prompt = tokenizer([config.prompt], return_tensors="pt").to(config.dev
 * Only quantizes linear layers, we can quantize non-linear layers as well.
 * Static activation quantization seems to be lacking in a lot of dtypes.
 
+## Gemlite Quantization Notes:
+The main API for GemLite is the gemlite.GemLiteLinear object. \
+It supports weight quantization bitwidth from 8 to 1 (in powers of 2), and \
+groupsize that are divisible by 32. \
+The input (activations) can be 32, 16, or 8 bits, and the accumulation can be done in 32, 16, or 8 bits. \
+The scale is allowed to be 16 or 32 bit floats.
+
+At its core, it's an affine quantization scheme. We use the above created object to pack our weights \
+along with pre-calculated scales and zero points. \
+The gemlite_linear object can then be used just like a torch linear layer.
+
+Similar to TorchAO, GemLite provides different quantization configs in the gemlite.helper module:               
+* Weight only quantization supports MXFP8, MXFP4, NVFP4, INT8, FP8. Examples: A16W8, A16W4, A16W2, A16W1, A16W158.
+* Activation and weight quantization: A8W8, A8W4, A8W2, A8W1, A8W158.
+* 4 bit activation is also supported with configs like A4W8, and A4W4.
+
+**Limitations**:                
+* Just like TorchAO, GemLite focuses on linear layers. The current widespread belief in the quantization community is that non-linear layers don't behave well after quantization and adversely effect model performance. This leads to most work focusing on linear layers.
+
 ## Benchmarking Roadmap:
 - [x] Calculate theoretical performance limit: get token/s and multiply it by model size for bandwidth and by model flops for compute util.
 - [x] Use existing TorchAO configs. TorchAO does linear layer quant only, further, we use weights only quant from torchao.
