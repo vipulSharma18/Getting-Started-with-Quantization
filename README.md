@@ -4,7 +4,7 @@
 
 Experimenting with different methods for low-bit inference of Llama-3.1.
 
-## Project Presentation:
+## Project Summary & Presentation:
 * Survey of quantization presentation slides: https://docs.google.com/presentation/d/1fEeao2TyFgooLXeNd0r6hLvC93czzdQLRbBAVWHddCQ/edit?usp=sharing
 * Recording from the Eleuther AI ML Performance Reading Group: https://www.youtube.com/watch?v=NpQv0R0w_qY 
 
@@ -52,40 +52,24 @@ tokenized_prompt = tokenizer([config.prompt], return_tensors="pt").to(config.dev
 | nvfp4 | nvfp4 | TBD |
 | uint1 (bitnet) | uint1 | TBD |
 
-## TorchAO Quantization Configs:
-Note: All these are affine transforms available in TorchAO. They are not custom transforms.
+## TorchAO Quantization Notes:
+> Note: All of these are **affine quantization** schemes.               
+> quantized_val = input_high_precision_float_val / scale + zero_point
 
-quantized_val = input_high_precision_float_val / scale + zero_point
+**Summary of TorchAO Functions**:      
+* quantize_affine: original fp32, fp16, bf16 tensor.      
+* dequantize_affine: quantized tensor o/p of above.       
+* choose_qparams_affine: fp32, bf16, fp16 example i/p tensor for calculating scaling factor.                
+* ZeroPointDomain: none, int or float, set dtype of zero point.             
 
-**Functions/Params**:      
-quantize_affine: original fp32, fp16, bf16 tensor.      
-dequantize_affine: quantized tensor o/p of above.       
+> Note: Use bf16 model for all affine quants other than fp6, which works better with fp16.
 
-choose_qparams_affine: fp32, bf16, fp16 example i/p tensor for calculating scaling factor.
-
-ZeroPointDomain: none, int or float, set dtype of zero point.
-
-Note: Use bf16 model for all affine quants other than fp6.
-
-**INT4**:       
-A16W4 WeightOnly Quantization Int4WeightOnlyConfig    
-A8W4 Int8DynamicActivationInt4WeightConfig    
-
-**INT8**:       
-A16W8 Int8 WeightOnly Quantization Int8WeightOnlyConfig     
-A8W8 Int8 Dynamic Quantization Int8DynamicActivationInt8WeightConfig               
-
-**Miscellaneous int4 and int8**:                
-GemliteUIntXWeightOnlyConfig
-
-**Float8**:     
-A16W8 Float8 WeightOnly Quantization Float8WeightOnlyConfig     
-A8W8 Float8 Dynamic Quantization with Tensorwise or Rowwise Scaling Float8DynamicActivationFloat8WeightConfig       
-A8W4 Float8 DQ Float8DynamicActivationInt4WeightConfig      
-A8W8 Float8StaticActivationFloat8WeightConfig       
-
-**FP6**:        
-A16W6 Floating Point WeightOnly Quantization FPXWeightOnlyConfig        
+**Different Quantization Configs**:
+* **INT4**: A16W4 WeightOnly Quantization Int4WeightOnlyConfig, A8W4 Int8DynamicActivationInt4WeightConfig                  
+* **INT8**: A16W8 Int8 WeightOnly Quantization Int8WeightOnlyConfig, A8W8 Int8 Dynamic Quantization, Int8DynamicActivationInt8WeightConfig                  
+* **Miscellaneous int4 and int8**: GemliteUIntXWeightOnlyConfig
+* **Float8**: A16W8 Float8 WeightOnly Quantization Float8WeightOnlyConfig, A8W8 Float8 Dynamic Quantization with: Tensorwise or Rowwise Scaling Float8DynamicActivationFloat8WeightConfig, A8W4 Float8 DQ, Float8DynamicActivationInt4WeightConfig, A8W8 Float8StaticActivationFloat8WeightConfig           
+* **FP6**: A16W6 Floating Point WeightOnly Quantization FPXWeightOnlyConfig        
 
 **Limitations of TorchAO Quantization Configs**:
 * Only quantizes linear layers, we can quantize non-linear layers as well.
