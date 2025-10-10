@@ -96,6 +96,11 @@ Similar to TorchAO, GemLite provides different quantization configs in the gemli
 * Weight only quantization supports MXFP8, MXFP4, NVFP4, INT8, FP8. Examples: A16W8, A16W4, A16W2, A16W1, A16W158.
 * Activation and weight quantization: A8W8, A8W4, A8W2, A8W1, A8W158.
 * 4 bit activation is also supported with configs like A4W8, and A4W4.
+* Actual quantization options:               
+    * **A16**: A16W8, A16Wn, A16W8_INT, A16Wn_HQQ_INT, A16W8_HQQ_INT, A16W4_HQQ_INT, A16W2_HQQ_INT, A16W1_HQQ_INT, A16Wn_MXFP, A16W8_MXFP, A16W4_MXFP
+    * **A8**: A8W8_dynamic, A8W8_int8_dynamic, A8W8_INT8_dynamic, A8W8_fp8_dynamic, A8W8_FP8_dynamic, A8Wn_HQQ_INT_dynamic, A8W4_HQQ_INT_dynamic, A8W2_HQQ_INT_dynamic, A8W8_MXFP_dynamic, A8Wn_MXFP_dynamic, A8W8_MXFP_dynamic, A8W4_MXFP_dynamic
+    * **A4**: A4W4_MXFP_dynamic, A4W4_NVFP_dynamic
+    * **BitNet**: A16W158_INT, A8W158_INT_dynamic
 
 **Limitations**:                
 * Just like TorchAO, GemLite focuses on linear layers. The current widespread belief in the quantization community is that non-linear layers don't behave well after quantization and adversely effect model performance. This leads to most work focusing on linear layers.

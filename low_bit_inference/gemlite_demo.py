@@ -1,10 +1,3 @@
-# Original Author and code: mobicham, https://gist.github.com/mobicham/8e9d009a1ad7fd138e1df849a326a6ed
-#pip install torch torchvision --upgrade;
-#pip install transformers==4.53.2;
-#DISABLE_CUDA=1 pip install git+https://github.com/mobiusml/hqq/;
-#pip install git+https://github.com/mobiusml/gemlite/;
-#TRITON_PRINT_AUTOTUNING=1 ipython ...
-################################################################################################################
 import torch
 from omegaconf import OmegaConf
 from .hf_loader import load_model_tokenizer_prompt_cache
@@ -19,81 +12,11 @@ from gemlite.helper import (
     warmup
 )
 
-from gemlite.helper import (
-    A16W8,
-    A16Wn,
-    A16W8_INT,
-    A16Wn_HQQ_INT,
-    A16W8_HQQ_INT,
-    A16W4_HQQ_INT,
-    A16W2_HQQ_INT,
-    A16W1_HQQ_INT,
-    A16Wn_MXFP,
-    A16W8_MXFP,
-    A16W4_MXFP
-)
-
-from gemlite.helper import (
-    A8W8_dynamic,
-    A8W8_int8_dynamic,
-    A8W8_INT8_dynamic,
-    A8W8_fp8_dynamic,
-    A8W8_FP8_dynamic,
-    A8Wn_HQQ_INT_dynamic,
-    A8W4_HQQ_INT_dynamic,
-    A8W2_HQQ_INT_dynamic,
-    A8W8_MXFP_dynamic,
-    A8Wn_MXFP_dynamic,
-    A8W8_MXFP_dynamic,
-    A8W4_MXFP_dynamic
-)
-
-from gemlite.helper import (
-    A4W4_MXFP_dynamic,
-    A4W4_NVFP_dynamic
-)
-
-from gemlite.helper import (
-    A16W158_INT,
-    A8W158_INT_dynamic
-)
-
+from gemlite.helper import A16W8
 from gemlite import DType, GemLiteLinear
-
-from hqq.utils.generation_hf import HFGenerator
 
 gemlite.set_autotune("max")  # fast for fast startup, but slow perf. max for slow startup, but best perf.
 
-device        = 'cuda:0'
-compute_dtype = torch.float16
-model_id      = "unsloth/Meta-Llama-3.1-8B-Instruct"
-cache_dir     = "/root/.cache/huggingface/hub"
-
-print(f"Loading pretrained model and tokenizer: {model_id}.")
-
-tokenizer = AutoTokenizer.from_pretrained(model_id, cache_dir=cache_dir)
-model     = AutoModelForCausalLM.from_pretrained(
-    model_id,
-    torch_dtype=compute_dtype,
-    attn_implementation="sdpa",
-    cache_dir=cache_dir,
-    device_map="cpu"
-)
-
-params = sum(p.numel() for p in model.parameters())
-
-print(f"Model loaded {model_id}. Number of parameters in model: {params}")
-
-quantize_activations = False
-W_nbits = 1
-
-#4090 RTX - batch_size = 1
-#A16W16: 60 tokens/sec
-#A16W8 : 101 tokens/sec
-#A16W4 : 186 tokens/sec
-#A16W2 : 296 tokens/sec
-#A16W1 : 344 tokens/sec
-################################################################################################################
 def autoname_modules(m):
     for name, module in m.named_modules():
         module.name = name  
@@ -178,60 +101,63 @@ def patch_linear_to_gemlite(layer, name):
 
     return gemlite_linear
 
+config = get_config()
+print("config used -- ", OmegaConf.to_yaml(config), sep="\n")
+torch.cuda.set_device(config.device)
+print(f"PyTorch sees {torch.cuda.device_count()} devices, current device: {torch.cuda.current_device()}")
+
+print(f"Loading pretrained model and tokenizer: {config.model_id}.")
+model, tokenizer, prompt, past_key_values = load_model_tokenizer_prompt_cache(config)
+
+# gemlite linear layer replacement with GemLite.linear object
 autoname_modules(model)
 patch_linearlayers(model, patch_linear_to_gemlite)
-model = model.to(device)
+
+print(f"Model loaded {config.model_id}.")
+
+# torch backends and compiler configs
+torch.backends.cuda.matmul.allow_tf32 = True
+torch.backends.cuda.matmul.allow_bf16_reduced_precision_reduction = True
+torch.backends.cuda.matmul.allow_fp16_reduced_precision_reduction = True
+torch.backends.cuda.enable_flash_sdp(True)
+torch.backends.cudnn.allow_tf32 = True
+torch.backends.cudnn.deterministic = False
+torch.backends.cudnn.benchmark = True
+
+torch._inductor.config.benchmark_kernel = True
+torch._inductor.config.benchmark_fusion = True
+torch._inductor.config.freezing = True
+
+assert config.compile_decode and (not config.quantize)
+print(f"Compile config: decode {config.compile_decode}, \
+    prefill {config.compile_prefill}. Quantize status: {config.quantize}")
+model = model.to(config.device)
 print("Model moved to GPU, starting profiling.")
-torch.cuda.synchronize()
 
-################################################################################################################
+def cache_init(past_key_values, model, config, kv_compiled=False):
+    if not kv_compiled:
+        # just doing this so that the key and vals are output of cudagraph and hence mutating them in update doesn't cause cudagraph skipping
+        past_key_values.early_initialization = torch.compile(past_key_values.early_initialization, mode="reduce-overhead")
+    
+    past_key_values.early_initialization(
+        batch_size=1,
+        num_heads=model.config.num_key_value_heads,
+        head_dim=model.config.head_dim,
+        dtype=to_torch_dtype(config.compute_dtype),
+        device=config.device,
+    )
+    return past_key_values
 
-# use CUDA_BLOCKING_MODE=1 to do sync after each kernel dispatch and to know precisely what part of code is slow.
+def model_quantize(causal_model, quantized=False):
+    quantize_activations = False
+    W_nbits = 1
 
-skip_first = 0
-wait = 0
-warmup = 0
-active = 1
-repeat = 1
+    if not quantized:
+        quantize_(causal_model.model, Int8WeightOnlyConfig())
+        quantize_(causal_model.lm_head, Int8WeightOnlyConfig())
+    else:
+        pass
 
-profiling_schedule = torch.profiler.schedule(
-    skip_first = skip_first,
-    wait = wait,
-    warmup = warmup,
-    active = active,
-    repeat = repeat
-)
+model.quantization_function = model_quantize
 
-for i in range(skip_first + repeat*(wait + warmup + active)):
-    print(f"Profiling Iteration {i}.")
-    with torch.profiler.profile(
-        activities = [
-            torch.profiler.ProfilerActivity.CPU,
-            torch.profiler.ProfilerActivity.CUDA,
-        ],
-        schedule = profiling_schedule,
-        on_trace_ready = torch.profiler.tensorboard_trace_handler('./log/gemlite'),
-        record_shapes = True,
-        profile_memory = True,
-        with_stack = True,  # this will add overhead, set it to False for benchmarking.
-        with_flops = True,
-    ) as prof:
-        with torch.inference_mode():
-            gen = HFGenerator(
-                model,
-                tokenizer,
-                max_new_tokens=1024,
-                do_sample=False,
-                compile="partial",
-                compile_options={"mode": "max-autotune-no-cudagraphs", "fullgraph": True},
-            ).enable_cuda_graph().warmup()
-
-            out = gen.generate("Write an essay about large language models.", print_tokens=False)
-        prof.step()
-print("profiling complete")
-
-print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=100))
-print("-"*20)
-print(prof.key_averages(group_by_stack_n=8).table(sort_by="cpu_time_total", row_limit=100))
-
-prof.export_chrome_trace("trace.json")
+profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
