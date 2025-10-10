@@ -2,7 +2,7 @@
 
 [![Docker](https://github.com/vipulSharma18/low-bit-inference/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/vipulSharma18/low-bit-inference/actions/workflows/docker-publish.yml) [![Run on VastAI](https://img.shields.io/badge/Run_on-VastAI-blue)](https://cloud.vast.ai?ref_id=288801&template_id=9b22ab4bd296c4a6f1ce3f6eece5e6b4) [![Run on Runpod](https://img.shields.io/badge/Run_on-Runpod-green)](https://console.runpod.io/deploy?template=q0ucwygekf&ref=9969n21w)
 
-Experimenting with different methods for low-bit inference of Llama-3.1.
+A survey of various quantization formats, such as MXFP8 and NVFP4, and contemporary tools used for quantization, including TorchAO and GemLite, with inference of Llama-3.1 as an example.
 
 ## Project Summary & Presentation:
 * Survey of quantization presentation slides: https://docs.google.com/presentation/d/1fEeao2TyFgooLXeNd0r6hLvC93czzdQLRbBAVWHddCQ/edit?usp=sharing
