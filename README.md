@@ -8,6 +8,30 @@ A survey of various quantization formats, such as MXFP8 and NVFP4, and contempor
 * Survey of quantization presentation slides: https://docs.google.com/presentation/d/1fEeao2TyFgooLXeNd0r6hLvC93czzdQLRbBAVWHddCQ/edit?usp=sharing
 * Recording from the Eleuther AI ML Performance Reading Group: https://www.youtube.com/watch?v=NpQv0R0w_qY 
 
+## Benchmarking Results (on 1 RTX 4090):
+| Weight Bits | Activation Bits | Throughput (tokens/sec) |
+|-------------|-----------------|-------------------------|
+| (Torch eager) bf16 | bf16 | 37.52 |
+| (Inductor) bf16 | bf16 | 48.71 |
+| TorchAO Autoquant | TorchAO Autoquant | 58.16 |
+| int4 | bf16 | 105.58 |
+| int4 | int4 | TBD |
+| int8 | bf16 | TBD |
+| int8 | int8 | TBD |
+| mxfp8 | bf16 | TBD |
+| mxfp8 | mxfp8 | TBD |
+| fp6 (Quant-LLM, torchao) | bf16 | TBD |
+| mxfp6 | mxfp6 | TBD |
+| nvfp4 | bf16 | TBD |
+| nvfp4 | nvfp4 | TBD |
+| uint1 (bitnet) | uint1 | TBD |
+
+## Benchmarking Roadmap:
+- [x] Calculate theoretical performance limit: get token/s and multiply it by model size for bandwidth and by model flops for compute util.
+- [x] Use existing TorchAO configs. TorchAO does linear layer quant only, further, we use weights only quant from torchao.
+- [ ] torchao weights only config cause cuda oom when doing tps only profiling for more than 1 iteration. For some dtypes, if we enable quantization of lm_head, then it ooms even on the first profiling iteration.
+- [ ] Gemlite weights and activations quant.
+
 ## Setup:
 Manual Docker pull and run if not using VastAI or RunPod:
 ```
@@ -33,24 +57,6 @@ tokenized_prompt = tokenizer([config.prompt], return_tensors="pt").to(config.dev
 ```
 
 > Note: .vscode folder has a launch.json file with different debugging and testing launch configurations for easy use.
-
-## Benchmark (on 1 RTX 4090):
-| Weight Bits | Activation Bits | Throughput (tokens/sec) |
-|-------------|-----------------|-------------------------|
-| (Torch eager) bf16 | bf16 | 37.52 |
-| (Inductor) bf16 | bf16 | 48.71 |
-| TorchAO Autoquant | TorchAO Autoquant | 58.16 |
-| int4 | bf16 | 105.58 |
-| int4 | int4 | TBD |
-| int8 | bf16 | TBD |
-| int8 | int8 | TBD |
-| mxfp8 | bf16 | TBD |
-| mxfp8 | mxfp8 | TBD |
-| fp6 (Quant-LLM, torchao) | bf16 | TBD |
-| mxfp6 | mxfp6 | TBD |
-| nvfp4 | bf16 | TBD |
-| nvfp4 | nvfp4 | TBD |
-| uint1 (bitnet) | uint1 | TBD |
 
 ## TorchAO Quantization Notes:
 > Note: All of these are **affine quantization** schemes.               
@@ -94,12 +100,6 @@ Similar to TorchAO, GemLite provides different quantization configs in the gemli
 **Limitations**:                
 * Just like TorchAO, GemLite focuses on linear layers. The current widespread belief in the quantization community is that non-linear layers don't behave well after quantization and adversely effect model performance. This leads to most work focusing on linear layers.
 
-## Benchmarking Roadmap:
-- [x] Calculate theoretical performance limit: get token/s and multiply it by model size for bandwidth and by model flops for compute util.
-- [x] Use existing TorchAO configs. TorchAO does linear layer quant only, further, we use weights only quant from torchao.
-- [ ] torchao weights only config cause cuda oom when doing tps only profiling for more than 1 iteration. For some dtypes, if we enable quantization of lm_head, then it ooms even on the first profiling iteration.
-- [ ] Gemlite weights and activations quant.
-
 ## Possible extensions:
 - [ ] Megakernel for Llama-3.1-8B: https://github.com/HazyResearch/Megakernels/blob/main/demos/low-latency-llama/llama.cuh , https://hazyresearch.stanford.edu/blog/2025-05-27-no-bubbles
 - [ ] llama.cpp deployment with our model: https://github.com/ggml-org/llama.cpp.
@@ -107,7 +107,7 @@ Similar to TorchAO, GemLite provides different quantization configs in the gemli
 - [ ] FP1.58 with kernel based on “An Efficient Matrix Multiplication Algorithm for Accelerating Inference in Binary and Ternary Neural Networks,”.
 - [ ] A low-bit Megakernel for FP1.58
 
-## Benchmarking Notes:
+## General Benchmarking Notes:
 * **Metrics**:
     * TPS: Tokens/sec or Throughput = #decode tokens/(prefill+decode time)
     * TTFT: Time to first token = prefill time
