@@ -51,7 +51,6 @@ tokenized_prompt = tokenizer([config.prompt], return_tensors="pt").to(config.dev
 | nvfp4 | bf16 | TBD |
 | nvfp4 | nvfp4 | TBD |
 | uint1 (bitnet) | uint1 | TBD |
-| 1.58 (ternary network) | 1.58 | TBD |
 
 ## TorchAO Quantization Configs:
 Note: All these are affine transforms available in TorchAO. They are not custom transforms.
@@ -97,12 +96,13 @@ A16W6 Floating Point WeightOnly Quantization FPXWeightOnlyConfig
 - [x] Use existing TorchAO configs. TorchAO does linear layer quant only, further, we use weights only quant from torchao.
 - [ ] torchao weights only config cause cuda oom when doing tps only profiling for more than 1 iteration. For some dtypes, if we enable quantization of lm_head, then it ooms even on the first profiling iteration.
 - [ ] Gemlite weights and activations quant.
-- [ ] FP1.58 kernel from microsoft bitblas: https://github.com/microsoft/BitBLAS
-- [ ] FP1.58 with kernel based on “An Efficient Matrix Multiplication Algorithm for Accelerating Inference in Binary and Ternary Neural Networks,”.
 
 ## Possible extensions:
 - [ ] Megakernel for Llama-3.1-8B: https://github.com/HazyResearch/Megakernels/blob/main/demos/low-latency-llama/llama.cuh , https://hazyresearch.stanford.edu/blog/2025-05-27-no-bubbles
 - [ ] llama.cpp deployment with our model: https://github.com/ggml-org/llama.cpp.
+- [ ] FP1.58 kernel from microsoft bitblas: https://github.com/microsoft/BitBLAS
+- [ ] FP1.58 with kernel based on “An Efficient Matrix Multiplication Algorithm for Accelerating Inference in Binary and Ternary Neural Networks,”.
+- [ ] A low-bit Megakernel for FP1.58
 
 ## Benchmarking Notes:
 * **Metrics**:
