@@ -9,22 +9,23 @@ A survey of various quantization formats, such as MXFP8 and NVFP4, and contempor
 * Recording from the Eleuther AI ML Performance Reading Group: https://www.youtube.com/watch?v=NpQv0R0w_qY 
 
 ## Benchmarking Results (on 1 RTX 4090):
-| Weight Bits | Activation Bits | Throughput (tokens/sec) |
-|-------------|-----------------|-------------------------|
-| (Torch eager) bf16 | bf16 | 37.52 |
-| (Inductor) bf16 | bf16 | 48.71 |
-| TorchAO Autoquant | TorchAO Autoquant | 58.16 |
-| int4 | bf16 | 105.58 |
-| int4 | int4 | TBD |
-| int8 | bf16 | TBD |
-| int8 | int8 | TBD |
-| mxfp8 | bf16 | TBD |
-| mxfp8 | mxfp8 | TBD |
-| fp6 (Quant-LLM, torchao) | bf16 | TBD |
-| mxfp6 | mxfp6 | TBD |
-| nvfp4 | bf16 | TBD |
-| nvfp4 | nvfp4 | TBD |
-| uint1 (bitnet) | uint1 | TBD |
+| Library | Weight Bits | Activation Bits | Throughput (tokens/sec) |
+|-------------|-------------|-----------------|-------------------------|
+| Torch-Eager | bf16 | bf16 | 37.52 |
+| Torch-Compile | bf16 | bf16 | 48.71 |
+| TorchAO | Autoquant | bf16 | 58.16 |
+| TorchAO | int4 | bf16 | 105.58 |
+| TorchAO | int8 | bf16 | TBD |
+| TorchAO | mxfp8 | bf16 | TBD |
+| TorchAO | fp8 | bf16 | TBD |
+| TorchAO-QuantLLM | fp6 | bf16 | TBD |
+| GemLite | int4 | int4 | TBD |
+| GemLite | int8 | int8 | TBD |
+| GemLite | mxfp8 | mxfp8 | TBD |
+| GemLite | mxfp6 | mxfp6 | TBD |
+| GemLite | nvfp4 | bf16 | TBD |
+| GemLite | nvfp4 | nvfp4 | TBD |
+| GemLite | uint1 (bitnet) | uint1 | TBD |
 
 ## Benchmarking Roadmap:
 - [x] Calculate theoretical performance limit: get token/s and multiply it by model size for bandwidth and by model flops for compute util.
