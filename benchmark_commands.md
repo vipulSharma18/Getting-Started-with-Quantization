@@ -26,37 +26,69 @@ Profiling complete. Metrics: tokens per second (tps): 58.16137474427701, time to
 GPU util: FLOPs (total generate flops/latency): 0.9106460117336168 TFLOPs, FLOP per token used (FLOPs/tps): 0.01565722983229902 TFLOP/token, Bandwidth used (tps*model_size): 437.38728091187875 GB/s, Power used in last sample period: 103.419 W.
 ```
 
-### TorchAO weight only configs:
+### TorchAO weight only quantization configs:
 ```
-python -m low_bit_inference.torchao.int4wo configs/profile_inductor_torchao.yaml tps_only=True
+python -m low_bit_inference.torchao.A_bf16_W_int4 configs/profile_inductor_torchao.yaml tps_only=True
 
 Profiling complete. Metrics: tokens per second (tps): 105.58340153538859, time to first token (ttft): 0.03942031326293945, time per output token (tpot): 0.009428716406249999, prefill throughput: 228.47623131299096, decode throughput: 106.06017183709037, latency: 9.47129453125, iterations: 5
 GPU util: FLOPs (total generate flops/latency): 0.05713749124097591 TFLOPs, FLOP per token used (FLOPs/tps): 0.0005411597884713445 TFLOP/token, Bandwidth used (tps*model_size): 421.0014105290168 GB/s, Power used in last sample period: 111.599 W.
 ```
 
 ```
-python -m low_bit_inference.torchao.int8wo configs/profile_inductor_torchao.yaml tps_only=True
-python -m low_bit_inference.torchao.fp8wo configs/profile_inductor_torchao.yaml tps_only=True
-python -m low_bit_inference.torchao.fp6wo configs/profile_inductor_torchao.yaml tps_only=True
+python -m low_bit_inference.torchao.A_bf16_W_int8 configs/profile_inductor_torchao.yaml tps_only=True
+```
+
+```
+python -m low_bit_inference.torchao.A_bf16_W_fp8 configs/profile_inductor_torchao.yaml tps_only=True
+```
+
+```
+python -m low_bit_inference.torchao.A_bf16_W_fp6 configs/profile_inductor_torchao.yaml tps_only=True
+```
+
+### Gemlite weight only quantization configs:
+```
+python -m low_bit_inference.gemlite.A_bf16_W_int1_full configs/profile_inductor_gemlite.yaml tps_only=True
+```
+
+```
+python -m low_bit_inference.gemlite.A_bf16_W_nvfp4 configs/profile_inductor_gemlite.yaml tps_only=True
+```
+
+```
+python -m low_bit_inference.gemlite.A_bf16_W_mxfp6 configs/profile_inductor_gemlite.yaml tps_only=True
+```
+
+```
+python -m low_bit_inference.gemlite.A_bf16_W_mxfp8 configs/profile_inductor_gemlite.yaml tps_only=True
 ```
 
 ### Gemlite weight and activation configs:
 ```
-python -m low_bit_inference.gemlite.int4_full configs/profile_inductor_gemlite.yaml tps_only=True
-python -m low_bit_inference.gemlite.int8_full configs/profile_inductor_gemlite.yaml tps_only=True
-python -m low_bit_inference.gemlite.mxfp8_full configs/profile_inductor_gemlite.yaml tps_only=True
-python -m low_bit_inference.gemlite.mxfp6_full configs/profile_inductor_gemlite.yaml tps_only=True
-python -m low_bit_inference.gemlite.nvfp4_full configs/profile_inductor_gemlite.yaml tps_only=True
+python -m low_bit_inference.gemlite.A_int4_W_int4 configs/profile_inductor_gemlite.yaml tps_only=True
+```
+
+```
+python -m low_bit_inference.gemlite.A_nvfp4_W_nvfp4 configs/profile_inductor_gemlite.yaml tps_only=True
+```
+
+```
+python -m low_bit_inference.gemlite.A_mxfp6_W_mxfp6 configs/profile_inductor_gemlite.yaml tps_only=True
+```
+
+```
+python -m low_bit_inference.gemlite.A_int8_W_int8 configs/profile_inductor_gemlite.yaml tps_only=True
+```
+
+```
+python -m low_bit_inference.gemlite.A_mxfp8_W_mxfp8 configs/profile_inductor_gemlite.yaml tps_only=True
 ```
 
 ### Gemlite extreme-low-bit weights and activation configs:
 ```
-python -m low_bit_inference.gemlite.fp1_full configs/profile_inductor_gemlite.yaml tps_only=True
-python -m low_bit_inference.gemlite.fp1_58_full configs/profile_inductor_gemlite.yaml tps_only=True
+python -m low_bit_inference.gemlite.A_bf16_W_int1_full configs/profile_inductor_gemlite.yaml tps_only=True
 ```
 
-### Custom triton extreme-low-bit weights and activation configs:
 ```
-python -m low_bit_inference.extreme_bit_custom.fp1_full configs/profile_inductor_torchao.yaml tps_only=True
-python -m low_bit_inference.extreme_bit_custom.fp1_58_full configs/profile_inductor_torchao.yaml tps_only=True
+python -m low_bit_inference.gemlite.A_int8_W_fp1_58 configs/profile_inductor_gemlite.yaml tps_only=True
 ```
