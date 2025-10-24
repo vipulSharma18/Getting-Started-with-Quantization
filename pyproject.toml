@@ -41,8 +41,8 @@ big_deps = [
 torch = { index = "pytorch-cu128" }
 torchvision = { index = "pytorch-cu128" }
 torchao = { index = "pytorch-cu128" }
-hqq = { git = "git+https://github.com/mobiusml/hqq/" }
-gemlite = { git = "git+https://github.com/mobiusml/gemlite/" }
+hqq = { git = "git+https://github.com/dropbox/hqq/" }
+gemlite = { git = "git+https://github.com/dropbox/gemlite/" }
 
 [[tool.uv.index]]
 name = "pytorch-cu128"
