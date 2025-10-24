@@ -107,6 +107,7 @@ Similar to TorchAO, GemLite provides different quantization configs in the gemli
 * Just like TorchAO, GemLite focuses on linear layers. The current widespread belief in the quantization community is that non-linear layers don't behave well after quantization and adversely effect model performance. This leads to most work focusing on linear layers.
 
 ## Possible extensions:
+- [ ] Extend quantization to non-linear layers like the attention layer.
 - [ ] Megakernel for Llama-3.1-8B: https://github.com/HazyResearch/Megakernels/blob/main/demos/low-latency-llama/llama.cuh , https://hazyresearch.stanford.edu/blog/2025-05-27-no-bubbles
 - [ ] llama.cpp deployment with our model: https://github.com/ggml-org/llama.cpp.
 - [ ] FP1.58 kernel from microsoft bitblas: https://github.com/microsoft/BitBLAS
