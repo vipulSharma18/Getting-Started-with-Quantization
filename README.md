@@ -18,7 +18,7 @@ A survey of various quantization formats, such as MXFP8 and NVFP4, and contempor
 | TorchAO | int8 | bf16 | TBD |
 | TorchAO | mxfp8 | bf16 | TBD |
 | TorchAO | fp8 | bf16 | TBD |
-| TorchAO-QuantLLM | fp6 | bf16 | TBD |
+| TorchAO-QuantLLM | fp6 | fp16 | TBD |
 | GemLite | int4 | int4 | TBD |
 | GemLite | int8 | int8 | TBD |
 | GemLite | mxfp8 | mxfp8 | TBD |
@@ -28,10 +28,10 @@ A survey of various quantization formats, such as MXFP8 and NVFP4, and contempor
 | GemLite | uint1 (bitnet) | uint1 | TBD |
 
 ## Benchmarking Roadmap:
-- [x] Calculate theoretical performance limit: get token/s and multiply it by model size for bandwidth and by model flops for compute util.
-- [x] Use existing TorchAO configs. TorchAO does linear layer quant only, further, we use weights only quant from torchao.
-- [ ] torchao weights only config cause cuda oom when doing tps only profiling for more than 1 iteration. For some dtypes, if we enable quantization of lm_head, then it ooms even on the first profiling iteration.
-- [ ] Gemlite weights and activations quant.
+- [x] Profile performance characteristics: get throughput, latency, memory, and FLOPs util.
+- [x] TorchAO weights only quantization for linear layers.
+    - [ ] Debugging: torchao weights only config cause cuda oom when doing tps only profiling for more than 1 iteration. For some dtypes, if we enable quantization of lm_head, then it ooms even on the first profiling iteration.
+- [ ] Gemlite weights and activations quantization for linear layers.
 
 ## Setup:
 Manual Docker pull and run if not using VastAI or RunPod:
