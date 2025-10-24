@@ -16,16 +16,18 @@ A survey of various quantization formats, such as MXFP8 and NVFP4, and contempor
 | TorchAO | Autoquant | bf16 | 58.16 |
 | TorchAO | int4 | bf16 | 105.58 |
 | TorchAO | int8 | bf16 | TBD |
-| TorchAO | mxfp8 | bf16 | TBD |
 | TorchAO | fp8 | bf16 | TBD |
 | TorchAO-QuantLLM | fp6 | fp16 | TBD |
 | GemLite | int4 | int4 | TBD |
 | GemLite | int8 | int8 | TBD |
+| GemLite | mxfp8 | bf16 | TBD |
 | GemLite | mxfp8 | mxfp8 | TBD |
+| GemLite | mxfp6 | bf16 | TBD |
 | GemLite | mxfp6 | mxfp6 | TBD |
 | GemLite | nvfp4 | bf16 | TBD |
 | GemLite | nvfp4 | nvfp4 | TBD |
-| GemLite | uint1 (bitnet) | uint1 | TBD |
+| GemLite | fp1.58 (ternary) | int8 | TBD |
+| GemLite | uint1 (bitnet) | bf16 | TBD |
 
 ## Benchmarking Roadmap:
 - [x] Profile performance characteristics: get throughput, latency, memory, and FLOPs util.
