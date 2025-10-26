@@ -44,7 +44,7 @@ torch._inductor.config.freezing = True
 model = model.to(config.device)
 print("Model moved to GPU, starting profiling.")
 
-assert config.compile_decode and (not config.quantize)
+assert config.compile_decode and config.quantize
 print(f"Compile config: decode {config.compile_decode}, \
     prefill {config.compile_prefill}. Quantize status: {config.quantize}")
 
