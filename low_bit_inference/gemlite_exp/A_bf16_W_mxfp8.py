@@ -74,9 +74,9 @@ def model_quantize(causal_model, quantized=False):
         torch.cuda.empty_cache()
         gc.collect()
 
-        patch_model(causal_model.lm_head, device="cuda", processor=A16W8_MXFP, skip_modules=[])
-        torch.cuda.empty_cache()
-        gc.collect()
+        # patch_model(causal_model.lm_head, device="cuda", processor=A16W8_MXFP, skip_modules=[])
+        # torch.cuda.empty_cache()
+        # gc.collect()
     else:
         pass
 
