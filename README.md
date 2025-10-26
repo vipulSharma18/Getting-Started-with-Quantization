@@ -15,19 +15,13 @@ A survey of various quantization formats, such as MXFP8 and NVFP4, and contempor
 | Torch-Compile | bf16 | bf16 | 48.71 |
 | TorchAO | bf16 | Autoquant | 58.16 |
 | TorchAO | bf16 | fp8 | TBD |
-| TorchAO | bf16 | int8 | TBD |
 | TorchAO | bf16 | int4 | 105.58 |
 | GemLite | bf16 | mxfp8 | TBD |
-| GemLite | bf16 | int8 | TBD |
-| GemLite | bf16 | mxfp4 | TBD |
 | GemLite | bf16 | int4 | TBD |
-| GemLite | bf16 | fp1.58 | TBD |
-| GemLite | bf16 | int1 | TBD |
 | GemLite | mxfp8 | mxfp8 | TBD |
-| GemLite | int8 | int8 | TBD |
-| GemLite | int8 | fp1.58 | TBD |
-| GemLite | mxfp4 | mxfp4 | TBD |
 | GemLite | nvfp4 | nvfp4 | TBD |
+| GemLite | bf16 | fp1.58 | TBD |
+| GemLite | int8 | fp1.58 | TBD |
 
 
 ## Benchmarking Roadmap:
