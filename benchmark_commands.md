@@ -42,44 +42,43 @@ python -m low_bit_inference.torchao_exp.A_bf16_W_int8 configs/profile_inductor_t
 python -m low_bit_inference.torchao_exp.A_bf16_W_fp8 configs/profile_inductor_torchao.yaml tps_only=True
 ```
 
+### Gemlite demo (A16W8_HQQ_INT):
 ```
-python -m low_bit_inference.torchao_exp.A_bf16_W_fp6 configs/profile_inductor_torchao.yaml tps_only=True
-```
-
-### Gemlite weight only quantization configs:
-Demo file and/or sanity check to compare with torchAO
-```
-# A_bf16_W_int4
 python -m low_bit_inference.gemlite_demo configs/profile_inductor_gemlite.yaml tps_only=True
 ```
 
+### Gemlite weight only quantization configs:
 ```
-python -m low_bit_inference.gemlite_exp.A_bf16_W_int1_full configs/profile_inductor_gemlite.yaml tps_only=True
-```
-
-```
-python -m low_bit_inference.gemlite_exp.A_bf16_W_nvfp4 configs/profile_inductor_gemlite.yaml tps_only=True
+python -m low_bit_inference.gemlite_exp.A_bf16_W_int1 configs/profile_inductor_gemlite.yaml tps_only=True
 ```
 
 ```
-python -m low_bit_inference.gemlite_exp.A_bf16_W_mxfp6 configs/profile_inductor_gemlite.yaml tps_only=True
+python -m low_bit_inference.gemlite_exp.A_bf16_W_fp1_58 configs/profile_inductor_gemlite.yaml tps_only=True
+```
+
+```
+python -m low_bit_inference.gemlite_exp.A_bf16_W_mxfp4 configs/profile_inductor_gemlite.yaml tps_only=True
 ```
 
 ```
 python -m low_bit_inference.gemlite_exp.A_bf16_W_mxfp8 configs/profile_inductor_gemlite.yaml tps_only=True
 ```
 
-### Gemlite weight and activation configs:
 ```
-python -m low_bit_inference.gemlite_exp.A_int4_W_int4 configs/profile_inductor_gemlite.yaml tps_only=True
+python -m low_bit_inference.gemlite_exp.A_bf16_W_int4 configs/profile_inductor_gemlite.yaml tps_only=True
 ```
 
+```
+python -m low_bit_inference.gemlite_exp.A_bf16_W_int8 configs/profile_inductor_gemlite.yaml tps_only=True
+```
+
+### Gemlite weight and activation configs:
 ```
 python -m low_bit_inference.gemlite_exp.A_nvfp4_W_nvfp4 configs/profile_inductor_gemlite.yaml tps_only=True
 ```
 
 ```
-python -m low_bit_inference.gemlite_exp.A_mxfp6_W_mxfp6 configs/profile_inductor_gemlite.yaml tps_only=True
+python -m low_bit_inference.gemlite_exp.A_mxfp4_W_mxfp4 configs/profile_inductor_gemlite.yaml tps_only=True
 ```
 
 ```
@@ -88,11 +87,6 @@ python -m low_bit_inference.gemlite_exp.A_int8_W_int8 configs/profile_inductor_g
 
 ```
 python -m low_bit_inference.gemlite_exp.A_mxfp8_W_mxfp8 configs/profile_inductor_gemlite.yaml tps_only=True
-```
-
-### Gemlite extreme-low-bit weights and activation configs:
-```
-python -m low_bit_inference.gemlite_exp.A_bf16_W_int1_full configs/profile_inductor_gemlite.yaml tps_only=True
 ```
 
 ```

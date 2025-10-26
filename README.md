@@ -9,26 +9,26 @@ A survey of various quantization formats, such as MXFP8 and NVFP4, and contempor
 * Recording from the Eleuther AI ML Performance Reading Group: https://www.youtube.com/watch?v=NpQv0R0w_qY 
 
 ## Benchmarking Results (on 1 RTX 4090):
-| Library | Weight Bits | Activation Bits | Throughput (tokens/sec) |
+| Library | Activation Bits | Weight Bits | Throughput (tokens/sec) |
 |-------------|-------------|-----------------|-------------------------|
 | Torch-Eager | bf16 | bf16 | 37.52 |
 | Torch-Compile | bf16 | bf16 | 48.71 |
-| TorchAO | Autoquant | bf16 | 58.16 |
-| TorchAO | int4 | bf16 | 105.58 |
-| TorchAO | int8 | bf16 | TBD |
-| TorchAO | fp8 | bf16 | TBD |
-| TorchAO-QuantLLM | fp6 | fp16 | TBD |
-| GemLite (Same config as TorchAO) | int4 | bf16 | TBD |
-| GemLite | int4 | int4 | TBD |
-| GemLite | int8 | int8 | TBD |
-| GemLite | mxfp8 | bf16 | TBD |
+| TorchAO | bf16 | Autoquant | 58.16 |
+| TorchAO | bf16 | fp8 | TBD |
+| TorchAO | bf16 | int8 | TBD |
+| TorchAO | bf16 | int4 | 105.58 |
+| GemLite | bf16 | mxfp8 | TBD |
+| GemLite | bf16 | int8 | TBD |
+| GemLite | bf16 | mxfp4 | TBD |
+| GemLite | bf16 | int4 | TBD |
+| GemLite | bf16 | fp1.58 | TBD |
+| GemLite | bf16 | int1 | TBD |
 | GemLite | mxfp8 | mxfp8 | TBD |
-| GemLite | mxfp6 | bf16 | TBD |
-| GemLite | mxfp6 | mxfp6 | TBD |
-| GemLite | nvfp4 | bf16 | TBD |
+| GemLite | int8 | int8 | TBD |
+| GemLite | int8 | fp1.58 | TBD |
+| GemLite | mxfp4 | mxfp4 | TBD |
 | GemLite | nvfp4 | nvfp4 | TBD |
-| GemLite | fp1.58 (ternary) | int8 | TBD |
-| GemLite | uint1 (bitnet) | bf16 | TBD |
+
 
 ## Benchmarking Roadmap:
 - [x] Profile performance characteristics: get throughput, latency, memory, and FLOPs util.
@@ -102,7 +102,7 @@ Similar to TorchAO, GemLite provides different quantization configs in the gemli
 * 4 bit activation is also supported with configs like A4W8, and A4W4.
 * Actual quantization options:               
     * **A16**: A16W8, A16Wn, A16W8_INT, A16Wn_HQQ_INT, A16W8_HQQ_INT, A16W4_HQQ_INT, A16W2_HQQ_INT, A16W1_HQQ_INT, A16Wn_MXFP, A16W8_MXFP, A16W4_MXFP
-    * **A8**: A8W8_dynamic, A8W8_int8_dynamic, A8W8_INT8_dynamic, A8W8_fp8_dynamic, A8W8_FP8_dynamic, A8Wn_HQQ_INT_dynamic, A8W4_HQQ_INT_dynamic, A8W2_HQQ_INT_dynamic, A8W8_MXFP_dynamic, A8Wn_MXFP_dynamic, A8W8_MXFP_dynamic, A8W4_MXFP_dynamic
+    * **A8**: A8W8_dynamic, A8W8_INT8_dynamic, A8W8_FP8_dynamic, A8Wn_HQQ_INT_dynamic, A8W4_HQQ_INT_dynamic, A8W2_HQQ_INT_dynamic, A8W8_MXFP_dynamic, A8Wn_MXFP_dynamic, A8W4_MXFP_dynamic
     * **A4**: A4W4_MXFP_dynamic, A4W4_NVFP_dynamic
     * **BitNet**: A16W158_INT, A8W158_INT_dynamic
 

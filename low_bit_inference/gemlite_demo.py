@@ -9,7 +9,7 @@ import torch
 import gemlite
 gemlite.reset_config()
 # fast for fast startup, but slow perf. max for slow startup, but best perf.
-gemlite.set_autotune("max")
+gemlite.set_autotune("fast")
 
 import gc
 from omegaconf import OmegaConf
