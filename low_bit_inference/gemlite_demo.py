@@ -10,13 +10,15 @@ import gemlite
 gemlite.reset_config()
 # fast for fast startup, but slow perf. max for slow startup, but best perf.
 gemlite.set_autotune("max")
-from gemlite.helper import patch_model, A16W4_HQQ_INT
+from gemlite.helper import A16W4_HQQ_INT
 
+import gc
 from omegaconf import OmegaConf
 # utils
 from .hf_loader import load_model_tokenizer_prompt_cache
 from .utils.config_utils import get_config, to_torch_dtype
 from .utils.profile_utils import profile_model
+from .utils.gemlite_utils import patch_model
 
 
 config = get_config()
@@ -68,7 +70,12 @@ def cache_init(past_key_values, model, config, kv_compiled=False):
 def model_quantize(causal_model, quantized=False):
     if not quantized:
         patch_model(causal_model.model, device="cuda", processor=A16W4_HQQ_INT, skip_modules=[])
+        torch.cuda.empty_cache()
+        gc.collect()
+
         patch_model(causal_model.lm_head, device="cuda", processor=A16W4_HQQ_INT, skip_modules=[])
+        torch.cuda.empty_cache()
+        gc.collect()
     else:
         pass
 
