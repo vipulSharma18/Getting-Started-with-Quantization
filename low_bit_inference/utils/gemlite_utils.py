@@ -57,3 +57,14 @@ def monkeypatch_gemlite():
     2. A8Wn_HQQ_INT_dynamic
     3. A16W158_INT, A8W158_INT_dynamic
     """
+    import gemlite.helper
+
+    gemlite.helper.A16Wn_HQQ_INT.from_linear = gemlite.helper.A16Wn_HQQ_INT.from_hqqlinear
+    gemlite.helper.A8Wn_HQQ_INT_dynamic.from_linear = gemlite.helper.A16Wn_HQQ_INT.from_hqqlinear
+    gemlite.helper.A16W158_INT.from_linear = gemlite.helper.A16W158_INT.from_bitlinear
+    gemlite.helper.A8W158_INT_dynamic.from_linear = gemlite.helper.A8W158_INT_dynamic.from_bitlinear
+
+    assert id(gemlite.helper.A16Wn_HQQ_INT.from_linear) == id(gemlite.helper.A16Wn_HQQ_INT.from_hqqlinear)
+    assert id(gemlite.helper.A8Wn_HQQ_INT_dynamic.from_linear) == id(gemlite.helper.A16Wn_HQQ_INT.from_hqqlinear)
+    assert id(gemlite.helper.A16W158_INT.from_linear) == id(gemlite.helper.A16W158_INT.from_bitlinear)
+    assert id(gemlite.helper.A8W158_INT_dynamic.from_linear) == id(gemlite.helper.A8W158_INT_dynamic.from_bitlinear)
