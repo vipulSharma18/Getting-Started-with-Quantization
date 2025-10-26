@@ -47,6 +47,12 @@ python -m low_bit_inference.torchao.A_bf16_W_fp6 configs/profile_inductor_torcha
 ```
 
 ### Gemlite weight only quantization configs:
+Demo file and/or sanity check to compare with torchAO
+```
+# A_bf16_W_int4
+python -m low_bit_inference.gemlite_demo configs/profile_inductor_gemlite.yaml tps_only=True
+```
+
 ```
 python -m low_bit_inference.gemlite.A_bf16_W_int1_full configs/profile_inductor_gemlite.yaml tps_only=True
 ```
