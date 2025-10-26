@@ -10,7 +10,6 @@ import gemlite
 gemlite.reset_config()
 # fast for fast startup, but slow perf. max for slow startup, but best perf.
 gemlite.set_autotune("max")
-from gemlite.helper import A16W4_HQQ_INT
 
 import gc
 from omegaconf import OmegaConf
@@ -18,7 +17,9 @@ from omegaconf import OmegaConf
 from .hf_loader import load_model_tokenizer_prompt_cache
 from .utils.config_utils import get_config, to_torch_dtype
 from .utils.profile_utils import profile_model
-from .utils.gemlite_utils import patch_model
+from .utils.gemlite_utils import patch_model, monkeypatch_gemlite
+monkeypatch_gemlite()
+from gemlite.helper import A16W4_HQQ_INT
 
 
 config = get_config()
