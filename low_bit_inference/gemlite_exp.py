@@ -71,17 +71,17 @@ def model_quantize(causal_model, config, quantized=False):
     """
     quantization_methods = {
         "default" : gemlite.helper.A16W8_HQQ_INT,
-        "gemlite_bf16_fp1.58" : gemlite.helper.A16W158_INT,
-        "gemlite_bf16_int1" : gemlite.helper.A16W1_HQQ_INT,
-        "gemlite_bf16_int4" : gemlite.helper.A16W4_HQQ_INT,
-        "gemlite_bf16_int8" : gemlite.helper.A16W8_HQQ_INT,
-        "gemlite_bf16_mxfp4" : gemlite.helper.A16W4_MXFP,
-        "gemlite_bf16_mxfp8" : gemlite.helper.A16W8_MXFP,
-        "gemlite_int8_fp1.58" : gemlite.helper.A8W158_INT_dynamic,
-        "gemlite_int8_int8" : gemlite.helper.A8W8_INT8_dynamic,
-        "gemlite_mxfp4_mxfp4" : gemlite.helper.A4W4_MXFP_dynamic,
-        "gemlite_mxfp8_mxfp8" : gemlite.helper.A8W8_MXFP_dynamic,
-        "gemlite_nvfp4_nvfp4" : gemlite.helper.A4W4_NVFP_dynamic,
+        "bf16_fp1.58" : gemlite.helper.A16W158_INT,
+        "bf16_int1" : gemlite.helper.A16W1_HQQ_INT,
+        "bf16_int4" : gemlite.helper.A16W4_HQQ_INT,
+        "bf16_int8" : gemlite.helper.A16W8_HQQ_INT,
+        "bf16_mxfp4" : gemlite.helper.A16W4_MXFP,
+        "bf16_mxfp8" : gemlite.helper.A16W8_MXFP,
+        "int8_fp1.58" : gemlite.helper.A8W158_INT_dynamic,
+        "int8_int8" : gemlite.helper.A8W8_INT8_dynamic,
+        "mxfp4_mxfp4" : gemlite.helper.A4W4_MXFP_dynamic,
+        "mxfp8_mxfp8" : gemlite.helper.A8W8_MXFP_dynamic,
+        "nvfp4_nvfp4" : gemlite.helper.A4W4_NVFP_dynamic,
     }
 
     if not quantized:
