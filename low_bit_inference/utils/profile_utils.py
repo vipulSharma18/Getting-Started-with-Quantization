@@ -152,7 +152,7 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
 
             with torch.inference_mode():
                 if i==0 and model.quantize:
-                    model.quantization_function(model, quantized=False)
+                    model.quantization_function(model, config, quantized=False)
                 if i==compile_iter:
                     compile_util(model)
 
@@ -169,7 +169,7 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
                     end.record()
 
                 if i==0 and model.quantize:
-                    model.quantization_function(model, quantized=True)
+                    model.quantization_function(model, config, quantized=True)
             torch.cuda.synchronize()
             generated_tokens = tokenizer.batch_decode(generated_token_ids[0], skip_special_tokens=True)
 

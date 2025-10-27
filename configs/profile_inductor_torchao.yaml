@@ -17,6 +17,7 @@ compile_decode: True
 compile_prefill: False
 profile_compile: False
 quantize: True
+quantization_method: "default"
 
 # prompt args
 prompt: "Write an essay about large language models."

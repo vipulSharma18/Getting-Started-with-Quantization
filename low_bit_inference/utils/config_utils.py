@@ -53,6 +53,7 @@ class ProfileConfig:
     compile_prefill: bool = False
     compile_decode: bool = False
     quantize: bool = False
+    quantization_method: str = "default"
 
     # tokenizer args
     padding_side: str = "left"

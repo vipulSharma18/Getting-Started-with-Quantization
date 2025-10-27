@@ -14,19 +14,6 @@ from .utils.config_utils import get_config, to_torch_dtype
 from .utils.profile_utils import profile_model
 from .utils.gemlite_utils import patch_model, monkeypatch_gemlite, get_default_cache_config
 monkeypatch_gemlite()
-from gemlite.helper import (
-    A16W158_INT,
-    A16W1_HQQ_INT,
-    A16W4_HQQ_INT,
-    A16W8_HQQ_INT,
-    A16W4_MXFP,
-    A16W8_MXFP,
-    A8W158_INT_dynamic,
-    A8W8_INT8_dynamic,
-    A4W4_MXFP_dynamic,
-    A8W8_MXFP_dynamic,
-    A4W4_NVFP_dynamic,
-)
 
 
 gemlite.reset_config()
@@ -78,9 +65,28 @@ def cache_init(past_key_values, model, config, kv_compiled=False):
     )
     return past_key_values
 
-def model_quantize(causal_model, quantized=False):
+def model_quantize(causal_model, config, quantized=False):
+    """
+    gemlite quantizer
+    """
+    quantization_methods = {
+        "default" : gemlite.helper.A16W8_HQQ_INT,
+        "gemlite_bf16_fp1.58" : gemlite.helper.A16W158_INT,
+        "gemlite_bf16_int1" : gemlite.helper.A16W1_HQQ_INT,
+        "gemlite_bf16_int4" : gemlite.helper.A16W4_HQQ_INT,
+        "gemlite_bf16_int8" : gemlite.helper.A16W8_HQQ_INT,
+        "gemlite_bf16_mxfp4" : gemlite.helper.A16W4_MXFP,
+        "gemlite_bf16_mxfp8" : gemlite.helper.A16W8_MXFP,
+        "gemlite_int8_fp1.58" : gemlite.helper.A8W158_INT_dynamic,
+        "gemlite_int8_int8" : gemlite.helper.A8W8_INT8_dynamic,
+        "gemlite_mxfp4_mxfp4" : gemlite.helper.A4W4_MXFP_dynamic,
+        "gemlite_mxfp8_mxfp8" : gemlite.helper.A8W8_MXFP_dynamic,
+        "gemlite_nvfp4_nvfp4" : gemlite.helper.A4W4_NVFP_dynamic,
+    }
+
     if not quantized:
-        processor = A16W158_INT(device="cuda", dtype=torch.bfloat16)
+        method = quantization_methods[config["quantization_method"]]
+        processor = method(device="cuda", dtype=torch.bfloat16)
         patch_model(causal_model.model, device="cuda", processor=processor, group_size=64)
         torch.cuda.empty_cache()
         gc.collect()

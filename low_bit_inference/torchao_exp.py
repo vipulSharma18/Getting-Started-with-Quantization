@@ -1,10 +1,6 @@
 import torch
-from torchao.quantization import (
-    quantize_,
-    Float8WeightOnlyConfig,
-    Int8WeightOnlyConfig,
-    Int4WeightOnlyConfig,
-)
+import torchao
+from torchao.quantization import quantize_
 from omegaconf import OmegaConf
 # utils
 from .hf_loader import load_model_tokenizer_prompt_cache
@@ -55,9 +51,18 @@ def cache_init(past_key_values, model, config, kv_compiled=False):
 
     return past_key_values
 
-def model_quantize(causal_model, quantized=False):
+def model_quantize(causal_model, config, quantized=False):
+
+    quantization_methods = {
+        "torchao_fp8" : torchao.quantization.Float8WeightOnlyConfig,
+        "torchao_int8" : torchao.quantization.Int8WeightOnlyConfig,
+        "torchao_int4" : torchao.quantization.Int4WeightOnlyConfig,
+        "default" : torchao.quantization.Int8WeightOnlyConfig,
+    }
+
     if not quantized:
-        quantize_(causal_model.model, Float8WeightOnlyConfig())
+        method = quantization_methods[config["quantization_method"]]
+        quantize_(causal_model.model, method)
     else:
         pass
 

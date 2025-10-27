@@ -17,6 +17,7 @@ compile_decode: False
 compile_prefill: False
 profile_compile: False
 quantize: False
+quantization_method: "default"
 
 # prompt args
 prompt: ""
