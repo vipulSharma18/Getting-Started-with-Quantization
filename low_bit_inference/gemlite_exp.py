@@ -9,10 +9,10 @@ import gemlite
 import gc
 from omegaconf import OmegaConf
 # utils
-from .hf_loader import load_model_tokenizer_prompt_cache
-from .utils.config_utils import get_config, to_torch_dtype
-from .utils.profile_utils import profile_model
-from .utils.gemlite_utils import patch_model, monkeypatch_gemlite, get_default_cache_config
+from low_bit_inference.hf_loader import load_model_tokenizer_prompt_cache
+from low_bit_inference.utils.config_utils import get_config, to_torch_dtype
+from low_bit_inference.utils.profile_utils import profile_model
+from low_bit_inference.utils.gemlite_utils import patch_model, monkeypatch_gemlite, get_default_cache_config
 monkeypatch_gemlite()
 
 

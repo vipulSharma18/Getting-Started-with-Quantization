@@ -4,17 +4,17 @@ from typing import Callable, Optional, Union, Unpack
 import torch
 from torch import nn
 
-from .optims.rms_norm_kernels.liger_rms_norm import LigerRMSNorm
-from .optims.activation_optim import ACT2FN
-from .optims.masking_optim import create_causal_mask
-from .optims.generation_optim import GenerationMixinCustom
-from .optims.cache_optim import Cache
-from .optims.model_output_optim import BaseModelOutputWithPast, CausalLMOutputWithPast
-from .optims.rope_optim import ROPE_INIT_FUNCTIONS, dynamic_rope_update
+from low_bit_inference.optims.rms_norm_kernels.liger_rms_norm import LigerRMSNorm
+from low_bit_inference.optims.activation_optim import ACT2FN
+from low_bit_inference.optims.masking_optim import create_causal_mask
+from low_bit_inference.optims.generation_optim import GenerationMixinCustom
+from low_bit_inference.optims.cache_optim import Cache
+from low_bit_inference.optims.model_output_optim import BaseModelOutputWithPast, CausalLMOutputWithPast
+from low_bit_inference.optims.rope_optim import ROPE_INIT_FUNCTIONS, dynamic_rope_update
 
 from transformers.modeling_utils import ALL_ATTENTION_FUNCTIONS, PreTrainedModel
-from .utils.generic_utils import TransformersKwargs 
-from .utils.model_configuration_utils import LlamaConfig
+from low_bit_inference.utils.generic_utils import TransformersKwargs 
+from low_bit_inference.utils.model_configuration_utils import LlamaConfig
 
 
 # the hf hub kernel uses liger-kernel rms norm which we've directly imported in the code

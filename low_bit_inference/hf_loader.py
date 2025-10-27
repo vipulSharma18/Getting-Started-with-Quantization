@@ -1,8 +1,8 @@
 import math
-from .optims.cache_optim import StaticCache
+from low_bit_inference.optims.cache_optim import StaticCache
 from transformers import AutoTokenizer
-from .model import LlamaForCausalLM
-from .utils.config_utils import to_torch_dtype
+from low_bit_inference.model import LlamaForCausalLM
+from low_bit_inference.utils.config_utils import to_torch_dtype
 
 
 def autoname_modules(m):

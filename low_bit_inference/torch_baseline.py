@@ -1,9 +1,9 @@
 import torch
 from omegaconf import OmegaConf
 # utils
-from .hf_loader import load_model_tokenizer_prompt_cache
-from .utils.config_utils import get_config, to_torch_dtype
-from .utils.profile_utils import profile_model
+from low_bit_inference.hf_loader import load_model_tokenizer_prompt_cache
+from low_bit_inference.utils.config_utils import get_config, to_torch_dtype
+from low_bit_inference.utils.profile_utils import profile_model
 
 config = get_config()
 print("config used -- ", OmegaConf.to_yaml(config), sep="\n")
