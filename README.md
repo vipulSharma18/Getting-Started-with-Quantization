@@ -1,14 +1,14 @@
-# Getting Started with Quantization:
+# Survey of Quantization Formats:
 
 [![Docker](https://github.com/vipulSharma18/low-bit-inference/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/vipulSharma18/low-bit-inference/actions/workflows/docker-publish.yml) [![Run on VastAI](https://img.shields.io/badge/Run_on-VastAI-blue)](https://cloud.vast.ai?ref_id=288801&template_id=9b22ab4bd296c4a6f1ce3f6eece5e6b4) [![Run on Runpod](https://img.shields.io/badge/Run_on-Runpod-green)](https://console.runpod.io/deploy?template=q0ucwygekf&ref=9969n21w)
 
 A survey of modern quantization formats (e.g., MXFP8, NVFP4) and inference optimization tools (e.g., TorchAO, GemLite), illustrated through the example of Llama-3.1 inference.
 
-## Project Summary & Presentation:
+## Supporting Video and Slides:
 * Slides covering the survey of quantization formats: https://docs.google.com/presentation/d/1fEeao2TyFgooLXeNd0r6hLvC93czzdQLRbBAVWHddCQ/edit?usp=sharing
-* Corresponding recording from the Eleuther AI ML performance reading group: https://www.youtube.com/watch?v=NpQv0R0w_qY 
+* Accompanying recording from the Eleuther AI ML performance reading group: https://www.youtube.com/watch?v=NpQv0R0w_qY 
 
-## Benchmarking Results (on 1 RTX 4090):
+## Benchmarking Results (on 1 RTX 5090):
 | Library | Activation Bits | Weight Bits | Throughput (tokens/sec) |
 |-------------|-------------|-----------------|-------------------------|
 | Torch-Eager | bf16 | bf16 | 37.52 |
@@ -28,7 +28,7 @@ A survey of modern quantization formats (e.g., MXFP8, NVFP4) and inference optim
 - [x] Profile performance characteristics: get throughput, latency, memory, and FLOPs util.
 - [x] TorchAO weights only quantization for linear layers.
 - [x] Gemlite weights only, weights & activations, and extreme-bit quantization for linear layers.
-- [ ] CUDAGraph Memory Debugging: Both GemLite and TorchAO can CUDA OOM when profiling for more than 1 iterations. This is because of CUDAGraphs taking up too much space. Need to find a solution to record numbers for all configurations.
+- [ ] CUDAGraph Memory Debugging: Both GemLite and TorchAO can CUDA OOM when profiling for more than 1 iteration. This is because of CUDAGraphs taking up too much space. Need to find a solution to record numbers for all configurations.
 
 ## Setup:
 Manual Docker pull and run if not using VastAI or RunPod:
@@ -107,8 +107,8 @@ Similar to TorchAO, GemLite provides different quantization configs in the gemli
 - [ ] Extend quantization to non-linear layers like the attention layer.
 - [ ] Megakernel for Llama-3.1-8B: https://github.com/HazyResearch/Megakernels/blob/main/demos/low-latency-llama/llama.cuh , https://hazyresearch.stanford.edu/blog/2025-05-27-no-bubbles
 - [ ] llama.cpp deployment with our model: https://github.com/ggml-org/llama.cpp.
-- [ ] FP1.58 kernel from microsoft bitblas: https://github.com/microsoft/BitBLAS
-- [ ] FP1.58 with kernel based on “An Efficient Matrix Multiplication Algorithm for Accelerating Inference in Binary and Ternary Neural Networks,”.
+- [ ] FP1.58 kernel from Microsoft BitBLAS: https://github.com/microsoft/BitBLAS
+- [ ] FP1.58 with kernel based on the paper, “An Efficient Matrix Multiplication Algorithm for Accelerating Inference in Binary and Ternary Neural Networks”.
 - [ ] A low-bit Megakernel for FP1.58
 
 ## General Benchmarking Notes:
