@@ -1,25 +1,10 @@
-"""
-Activations unquantized in bf16, and weights quantized in int4 as a demo for gemlite.
-TorchAO has the same configs as part of the weights only quantization runs,
-so we can try to match/compare the TorchAO and GemLite performance and be aware of that confound.
-"""
-
 import torch
-
-import gemlite
-from ..utils.gemlite_utils import get_default_cache_config
-gemlite.reset_config()
-gemlite.load_config(get_default_cache_config())
-
-import gc
+import torchao
 from omegaconf import OmegaConf
 # utils
-from ..hf_loader import load_model_tokenizer_prompt_cache
-from ..utils.config_utils import get_config, to_torch_dtype
-from ..utils.profile_utils import profile_model
-from ..utils.gemlite_utils import patch_model, monkeypatch_gemlite
-monkeypatch_gemlite()
-from gemlite.helper import A16W1_HQQ_INT
+from .hf_loader import load_model_tokenizer_prompt_cache
+from .utils.config_utils import get_config, to_torch_dtype
+from .utils.profile_utils import profile_model
 
 
 config = get_config()
@@ -31,7 +16,7 @@ print(f"Loading pretrained model and tokenizer: {config.model_id}.")
 model, tokenizer, prompt, past_key_values = load_model_tokenizer_prompt_cache(config)
 print(f"Model loaded {config.model_id}.")
 
-# torch backends and compiler configs
+# compile the model here if you want
 torch.backends.cuda.matmul.allow_tf32 = True
 torch.backends.cuda.matmul.allow_bf16_reduced_precision_reduction = True
 torch.backends.cuda.matmul.allow_fp16_reduced_precision_reduction = True
@@ -54,10 +39,7 @@ print(f"Compile config: decode {config.compile_decode}, \
 def cache_init(past_key_values, model, config, kv_compiled=False):
     if not kv_compiled:
         # just doing this so that the key and vals are output of cudagraph and hence mutating them in update doesn't cause cudagraph skipping
-        past_key_values.early_initialization = torch.compile(
-            past_key_values.early_initialization,
-            mode="reduce-overhead",
-        )
+        past_key_values.early_initialization = torch.compile(past_key_values.early_initialization, mode="reduce-overhead")
 
     past_key_values.early_initialization(
         batch_size=1,
@@ -66,16 +48,14 @@ def cache_init(past_key_values, model, config, kv_compiled=False):
         dtype=to_torch_dtype(config.compute_dtype),
         device=config.device,
     )
+
     return past_key_values
 
 def model_quantize(causal_model, quantized=False):
     if not quantized:
-        processor = A16W1_HQQ_INT(device="cuda", dtype=torch.bfloat16)
-        patch_model(causal_model.model, device="cuda", processor=processor, group_size=64)
-        torch.cuda.empty_cache()
-        gc.collect()
+        causal_model.model = torchao.autoquant(causal_model.model, manual=True)
     else:
-        pass
+        causal_model.model.finalize_autoquant()
 
 model.quantization_function = model_quantize
 
