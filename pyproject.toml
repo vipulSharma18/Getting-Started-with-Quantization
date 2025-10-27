@@ -1,7 +1,7 @@
 [project]
 name = "low_bit_inference"
 version = "0.1.0"
-description = "Low bit inference with inference using different quantization and optimization tools."
+description = "Low bit inference using different quantization and optimization tools."
 readme = "README.md"
 requires-python = ">=3.12"
 authors = [
@@ -10,31 +10,18 @@ authors = [
 
 dependencies = [
     "torch>=2.7.0",
-    "torchvision",
-    "HolisticTraceAnalysis",
     "ipython",
-    "jupyterlab",
-    "notebook",
-    "ipykernel",
     "huggingface_hub[hf_transfer,cli]",
-    "tensorboard",
-    "tensorboard-data-server",
-    "torch-tb-profiler",
     "omegaconf",
     "tlparse",
-    "graphviz",
-    "snakeviz",
 ]
 
 [dependency-groups]
 big_deps = [
-    "nvidia-modelopt[all]",
     "torchao",
     "transformers",
     "gemlite",
     "hqq",
-    "optimum-quanto",
-    # "tensorrt-llm", -> makes uv lock get stuck, figure out installation later
 ]
 
 [tool.uv.sources]
