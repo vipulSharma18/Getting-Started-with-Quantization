@@ -14,10 +14,10 @@ gemlite.set_autotune("fast")
 import gc
 from omegaconf import OmegaConf
 # utils
-from .hf_loader import load_model_tokenizer_prompt_cache
-from .utils.config_utils import get_config, to_torch_dtype
-from .utils.profile_utils import profile_model
-from .utils.gemlite_utils import patch_model, monkeypatch_gemlite
+from ..hf_loader import load_model_tokenizer_prompt_cache
+from ..utils.config_utils import get_config, to_torch_dtype
+from ..utils.profile_utils import profile_model
+from ..utils.gemlite_utils import patch_model, monkeypatch_gemlite
 monkeypatch_gemlite()
 from gemlite.helper import A8W8_MXFP_dynamic
 
