@@ -23,6 +23,8 @@ A survey of modern quantization formats (e.g., MXFP8, NVFP4) and inference optim
 | GemLite | bf16 | fp1.58 | TBD | 3 bit weights encoding to speed-up inference in memory bandwidth bound inference. |
 | GemLite | int8 | fp1.58 | TBD | 3 bit weights with computations using INT8 tensor cores. |
 
+You can reproduce these results by using the commands in the benchmarks_commands.md file with the Docker container.
+
 ## General Benchmarking Notes:
 * **Metrics**:
     * TPS: Tokens/sec or Throughput = #decode tokens/(prefill+decode time)
