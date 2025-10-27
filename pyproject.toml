@@ -9,7 +9,7 @@ authors = [
 ]
 
 dependencies = [
-    "torch>=2.7.0",
+    "torch>=2.8.0",
     "ipython",
     "huggingface_hub[hf_transfer,cli]",
     "omegaconf",
