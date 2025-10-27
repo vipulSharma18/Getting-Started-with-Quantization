@@ -9,19 +9,19 @@ A survey of modern quantization formats (e.g., MXFP8, NVFP4) and inference optim
 * Accompanying recording from the Eleuther AI ML performance reading group: https://www.youtube.com/watch?v=NpQv0R0w_qY 
 
 ## Benchmarking Results (on 1 RTX 5090):
-| Library | Activation Bits | Weight Bits | Throughput (tokens/sec) |
-|-------------|-------------|-----------------|-------------------------|
-| Torch-Eager | bf16 | bf16 | 37.52 |
-| Torch-Compile | bf16 | bf16 | 48.71 |
-| TorchAO | bf16 | Autoquant | 58.16 |
-| TorchAO | bf16 | fp8 | TBD |
-| TorchAO | bf16 | int4 | 105.58 |
-| GemLite | bf16 | mxfp8 | TBD |
-| GemLite | bf16 | int4 | 82.33 |
-| GemLite | mxfp8 | mxfp8 | TBD |
-| GemLite | nvfp4 | nvfp4 | TBD |
-| GemLite | bf16 | fp1.58 | TBD |
-| GemLite | int8 | fp1.58 | TBD |
+| Library | Activation Bits | Weight Bits | Throughput (tokens/sec) | Comments |
+|-------------|-------------|-----------------|-------------------------|-------------|
+| Torch-Eager | bf16 | bf16 | 37.52 | Baseline |
+| Torch-Compile | bf16 | bf16 | 48.71 | Faster due to compilation of decode. |
+| TorchAO | bf16 | Autoquant | 58.16 | Quantization of weights helps in memory bandwidth bound inference, i.e., during decode. |
+| TorchAO | bf16 | fp8 | TBD | Explicitly reducing the weights precision to speed-up inference. |
+| TorchAO | bf16 | int4 | 105.58 | Further reduce the memory bandwidth load. |
+| GemLite | bf16 | mxfp8 | TBD | MXFP8 instead of torch native FP8 for model accuracy/quality. |
+| GemLite | bf16 | int4 | 82.33 | Sanity check for comparison with TorchAO. |
+| GemLite | mxfp8 | mxfp8 | TBD | Weights & Activations quantization to use faster FP8 Tensor Cores instead of FP16 computations. |
+| GemLite | nvfp4 | nvfp4 | TBD | Use faster FP4 tensor cores available on Blackwell. |
+| GemLite | bf16 | fp1.58 | TBD | 3 bit weights encoding to speed-up inference in memory bandwidth bound inference. |
+| GemLite | int8 | fp1.58 | TBD | 3 bit weights with computations using INT8 tensor cores. |
 
 
 ## Benchmarking Roadmap:
