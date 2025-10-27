@@ -8,7 +8,7 @@ A survey of modern quantization formats (e.g., MXFP8, NVFP4) and inference optim
 * Slides covering the survey of quantization formats: https://docs.google.com/presentation/d/1fEeao2TyFgooLXeNd0r6hLvC93czzdQLRbBAVWHddCQ/edit?usp=sharing
 * Accompanying recording from the Eleuther AI ML performance reading group: https://www.youtube.com/watch?v=NpQv0R0w_qY 
 
-## Benchmarking Results (on 1 RTX 5090):
+## Benchmarking Results (on 1 RTX 4090):
 | Library | Activation Bits | Weight Bits | Throughput (tokens/sec) | Comments |
 |-------------|-------------|-----------------|-------------------------|-------------|
 | Torch-Eager | bf16 | bf16 | 37.52 | Baseline |
