@@ -70,13 +70,10 @@ def cache_init(past_key_values, model, config, kv_compiled=False):
 
 def model_quantize(causal_model, quantized=False):
     if not quantized:
-        patch_model(causal_model.model, device="cuda", processor=A16W8_MXFP, skip_modules=[])
+        processor = A16W8_MXFP(device="cuda", dtype=torch.bfloat16)
+        patch_model(causal_model.model, device="cuda", processor=processor, group_size=64)
         torch.cuda.empty_cache()
         gc.collect()
-
-        # patch_model(causal_model.lm_head, device="cuda", processor=A16W8_MXFP, skip_modules=[])
-        # torch.cuda.empty_cache()
-        # gc.collect()
     else:
         pass
 
