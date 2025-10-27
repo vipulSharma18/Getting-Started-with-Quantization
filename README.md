@@ -23,38 +23,24 @@ A survey of modern quantization formats (e.g., MXFP8, NVFP4) and inference optim
 | GemLite | bf16 | fp1.58 | TBD | 3 bit weights encoding to speed-up inference in memory bandwidth bound inference. |
 | GemLite | int8 | fp1.58 | TBD | 3 bit weights with computations using INT8 tensor cores. |
 
+## General Benchmarking Notes:
+* **Metrics**:
+    * TPS: Tokens/sec or Throughput = #decode tokens/(prefill+decode time)
+    * TTFT: Time to first token = prefill time
+    * TPOT: Time per output token = decode time/#decode tokens
+    * Prefill Throughput: #prefill tokens/prefill time
+    * Decode Throughput: #decode tokens/decode time
+    * Latency: prefill + decode time
 
-## Benchmarking Roadmap:
-- [x] Profile performance characteristics: get throughput, latency, memory, and FLOPs util.
-- [x] TorchAO weights only quantization for linear layers.
-- [x] Gemlite weights only, weights & activations, and extreme-bit quantization for linear layers.
-- [ ] CUDAGraph Memory Debugging: Both GemLite and TorchAO can CUDA OOM when profiling for more than 1 iteration. This is because of CUDAGraphs taking up too much space. Need to find a solution to record numbers for all configurations.
+* **Compiler Mode and Options Map**: 'default': {}, 'reduce-overhead': {'triton,cudagraphs': True}, 'max-autotune-no-cudagraphs': {'max_autotune': True, 'coordinate_descent_tuning': True}, 'max-autotune': {'max_autotune': True, 'triton.cudagraphs': True, 'coordinate_descent_tuning': True}
 
-## Setup:
-Manual Docker pull and run if not using VastAI or RunPod:
-```
-docker pull ghcr.io/vipulsharma18/low-bit-inference:main
-docker run --gpus all -d ghcr.io/vipulsharma18/low-bit-inference:main
-```
+* **Prefill Compilation**: Since we have a known prompt length, we can do compilation for prefill stage as well. In practice, we'd do compile with different prompt lengths before serving to ensure compile cache is hit. Such issues don't occur in the decode stage as the input is always 1 token long (with a static KV cache only, i.e., the KV don't change length and the query is 1 length).
 
-GitHub setup within the container:
-```
-gh auth login
-git config --global user.email "vipuls181999@gmail.com"
-git config --global user.name "Vipul Sharma"
-```
+* **Decoding**: HF by default uses greedy decoding but we can do speculative decoding, and structured/guided generation to speed-up generation at the cost of VRAM size and memory access.
 
-Toy config for quick testing:
-```
-import torch
-from low_bit_inference.utils.config_utils import get_config
-from low_bit_inference.hf_loader import load_model_tokenizer_prompt_cache
-config = get_config()
-model, tokenizer, prompt, past_key_values = load_model_tokenizer_prompt_cache(config)
-tokenized_prompt = tokenizer([config.prompt], return_tensors="pt").to(config.device)
-```
+* **Tokenizer**: The tokenizer should be a Rust-based (fast) implementation, not the default Python one. HF-Transformers' AutoTokenizer automatically uses a Rust-based implementation and falls back to Python if Rust implementation is not available. But for a new model, we'll need to create our own Rust-based implementation.
 
-> Note: .vscode folder has a launch.json file with different debugging and testing launch configurations for easy use.
+* **Profiling interpretability**: Run with CUDA_LAUNCH_BLOCKING=1 to make GPU-CPU sync after each kernel, to get more interpretable profiling results for each kernel.
 
 ## TorchAO Quantization Notes:
 > Note: All of these are **affine quantization** schemes.               
@@ -111,24 +97,31 @@ Similar to TorchAO, GemLite provides different quantization configs in the gemli
 - [ ] FP1.58 with kernel based on the paper, “An Efficient Matrix Multiplication Algorithm for Accelerating Inference in Binary and Ternary Neural Networks”.
 - [ ] A low-bit Megakernel for FP1.58
 
-## General Benchmarking Notes:
-* **Metrics**:
-    * TPS: Tokens/sec or Throughput = #decode tokens/(prefill+decode time)
-    * TTFT: Time to first token = prefill time
-    * TPOT: Time per output token = decode time/#decode tokens
-    * Prefill Throughput: #prefill tokens/prefill time
-    * Decode Throughput: #decode tokens/decode time
-    * Latency: prefill + decode time
+## Setup:
+Manual Docker pull and run if not using VastAI or RunPod:
+```
+docker pull ghcr.io/vipulsharma18/low-bit-inference:main
+docker run --gpus all -d ghcr.io/vipulsharma18/low-bit-inference:main
+```
 
-* **Compiler Mode and Options Map**: 'default': {}, 'reduce-overhead': {'triton,cudagraphs': True}, 'max-autotune-no-cudagraphs': {'max_autotune': True, 'coordinate_descent_tuning': True}, 'max-autotune': {'max_autotune': True, 'triton.cudagraphs': True, 'coordinate_descent_tuning': True}
+GitHub setup within the container:
+```
+gh auth login
+git config --global user.email "vipuls181999@gmail.com"
+git config --global user.name "Vipul Sharma"
+```
 
-* **Prefill Compilation**: Since we have a known prompt length, we can do compilation for prefill stage as well. In practice, we'd do compile with different prompt lengths before serving to ensure compile cache is hit. Such issues don't occur in the decode stage as the input is always 1 token long (with a static KV cache only, i.e., the KV don't change length and the query is 1 length).
+Toy config for quick testing:
+```
+import torch
+from low_bit_inference.utils.config_utils import get_config
+from low_bit_inference.hf_loader import load_model_tokenizer_prompt_cache
+config = get_config()
+model, tokenizer, prompt, past_key_values = load_model_tokenizer_prompt_cache(config)
+tokenized_prompt = tokenizer([config.prompt], return_tensors="pt").to(config.device)
+```
 
-* **Decoding**: HF by default uses greedy decoding but we can do speculative decoding, and structured/guided generation to speed-up generation at the cost of VRAM size and memory access.
-
-* **Tokenizer**: The tokenizer should be a Rust-based (fast) implementation, not the default Python one. HF-Transformers' AutoTokenizer automatically uses a Rust-based implementation and falls back to Python if Rust implementation is not available. But for a new model, we'll need to create our own Rust-based implementation.
-
-* **Profiling interpretability**: Run with CUDA_LAUNCH_BLOCKING=1 to make GPU-CPU sync after each kernel, to get more interpretable profiling results for each kernel.
+> Note: .vscode folder has a launch.json file with different debugging and testing launch configurations for easy use.
 
 ## References:
 1. A. Hoque, L. Wright, C.-C. Yang, M. Srivatsa, and R. Ganti, “Accelerating a Triton Fused Kernel for W4A16 Quantized Inference with SplitK work decomposition,” Feb. 22, 2024, arXiv: arXiv:2402.00025. doi: 10.48550/arXiv.2402.00025.
