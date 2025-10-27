@@ -1,3 +1,7 @@
+"""
+Source/ref: https://github.com/dropbox/gemlite/blob/master/gemlite/helper.py
+"""
+import os
 import torch
 import gemlite
 from hqq.core.quantize import HQQLinear, BaseQuantizeConfig
@@ -5,6 +9,15 @@ from hqq.core.quantize import HQQLinear, BaseQuantizeConfig
 
 #Replaces all linear layers with the corresponding processor
 def patch_model(model, device, processor, dtype=torch.bfloat16, skip_modules=[]):
+    """
+    Helper function to quantize the whole model from cpu device. 
+    The group_size parameter is only used in HQQ for W_nbits <=4, all the other configs do not use this parameter.
+    """
+    if(hasattr(processor, "from_hqqlinear")):
+        try:
+            from hqq.core.quantize import HQQLinear, BaseQuantizeConfig
+        except ImportException:
+            print("This processor requires the `hqq` package. Install it via `pip install hqq`.")
     #Name modules
     for name, module in model.named_modules():
         module.name = name
@@ -71,3 +84,28 @@ def monkeypatch_gemlite():
 
     gemlite.helper.A16Wn_HQQ_INT.from_linear = from_linear
     gemlite.helper.A8Wn_HQQ_INT_dynamic.from_linear = from_linear
+
+def get_default_cache_config(root_path = None):
+    if root_path is None:
+      try:
+        root_path = os.path.join(gemlite.__path__[0], "configs/")
+      except ModuleNotFoundError as e:
+        raise e
+    
+    def get_tags(path):
+        return [f.split('.')[0] for f in os.listdir(path)]
+
+    name = torch.cuda.get_device_properties(0).name.lower().replace(' ', '_')
+    tags = get_tags(root_path)
+    tags.sort(key=len, reverse=True)
+    print("Picking from configs:", tags)
+
+    selected_tag = None
+    for tag in tags:
+        if(tag in name):
+            selected_tag = os.path.join(root_path, tag + '.json')
+            break
+    if selected_tag is None:
+      print("Warning: Do manual autotune, no cached config found.")
+
+    return selected_tag

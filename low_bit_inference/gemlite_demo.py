@@ -7,9 +7,9 @@ so we can try to match/compare the TorchAO and GemLite performance and be aware 
 import torch
 
 import gemlite
+from .utils.gemlite_utils import get_default_cache_config
 gemlite.reset_config()
-# fast for fast startup, but slow perf. max for slow startup, but best perf.
-gemlite.set_autotune("fast")
+gemlite.load_config(get_default_cache_config())
 
 import gc
 from omegaconf import OmegaConf
