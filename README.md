@@ -102,8 +102,8 @@ Similar to TorchAO, GemLite provides different quantization configs in the gemli
 ## Setup:
 Manual Docker pull and run if not using VastAI or RunPod:
 ```
-docker pull ghcr.io/vipulsharma18/low-bit-inference:main
-docker run --gpus all -d ghcr.io/vipulsharma18/low-bit-inference:main
+docker pull ghcr.io/vipulsharma18/survey-of-quantization-formats:main
+docker run --gpus all -d ghcr.io/vipulsharma18/survey-of-quantization-formats:main
 ```
 
 GitHub setup within the container:
