@@ -17,7 +17,7 @@ A survey of various quantization formats, such as MXFP8 and NVFP4, and contempor
 | TorchAO | bf16 | fp8 | TBD |
 | TorchAO | bf16 | int4 | 105.58 |
 | GemLite | bf16 | mxfp8 | TBD |
-| GemLite | bf16 | int4 | TBD |
+| GemLite | bf16 | int4 | 82.33 |
 | GemLite | mxfp8 | mxfp8 | TBD |
 | GemLite | nvfp4 | nvfp4 | TBD |
 | GemLite | bf16 | fp1.58 | TBD |
