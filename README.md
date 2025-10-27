@@ -27,8 +27,8 @@ A survey of various quantization formats, such as MXFP8 and NVFP4, and contempor
 ## Benchmarking Roadmap:
 - [x] Profile performance characteristics: get throughput, latency, memory, and FLOPs util.
 - [x] TorchAO weights only quantization for linear layers.
-    - [ ] Debugging: torchao weights only config cause cuda oom when doing tps only profiling for more than 1 iteration. For some dtypes, if we enable quantization of lm_head, then it ooms even on the first profiling iteration.
-- [ ] Gemlite weights and activations quantization for linear layers.
+- [x] Gemlite weights only, weights & activations, and extreme-bit quantization for linear layers.
+- [ ] CUDAGraph Memory Debugging: Both GemLite and TorchAO can CUDA OOM when profiling for more than 1 iterations. This is because of CUDAGraphs taking up too much space. Need to find a solution to record numbers for all configurations.
 
 ## Setup:
 Manual Docker pull and run if not using VastAI or RunPod:
