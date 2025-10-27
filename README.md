@@ -1,12 +1,12 @@
-# Low Bit Inference:
+# Getting Started with Quantization:
 
 [![Docker](https://github.com/vipulSharma18/low-bit-inference/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/vipulSharma18/low-bit-inference/actions/workflows/docker-publish.yml) [![Run on VastAI](https://img.shields.io/badge/Run_on-VastAI-blue)](https://cloud.vast.ai?ref_id=288801&template_id=9b22ab4bd296c4a6f1ce3f6eece5e6b4) [![Run on Runpod](https://img.shields.io/badge/Run_on-Runpod-green)](https://console.runpod.io/deploy?template=q0ucwygekf&ref=9969n21w)
 
-A survey of various quantization formats, such as MXFP8 and NVFP4, and contemporary tools used for quantization, including TorchAO and GemLite, with inference of Llama-3.1 as an example.
+A survey of modern quantization formats (e.g., MXFP8, NVFP4) and inference optimization tools (e.g., TorchAO, GemLite), illustrated through the example of Llama-3.1 inference.
 
 ## Project Summary & Presentation:
-* Survey of quantization presentation slides: https://docs.google.com/presentation/d/1fEeao2TyFgooLXeNd0r6hLvC93czzdQLRbBAVWHddCQ/edit?usp=sharing
-* Recording from the Eleuther AI ML Performance Reading Group: https://www.youtube.com/watch?v=NpQv0R0w_qY 
+* Slides covering the survey of quantization formats: https://docs.google.com/presentation/d/1fEeao2TyFgooLXeNd0r6hLvC93czzdQLRbBAVWHddCQ/edit?usp=sharing
+* Corresponding recording from the Eleuther AI ML performance reading group: https://www.youtube.com/watch?v=NpQv0R0w_qY 
 
 ## Benchmarking Results (on 1 RTX 4090):
 | Library | Activation Bits | Weight Bits | Throughput (tokens/sec) |
@@ -93,7 +93,7 @@ The gemlite_linear object can then be used just like a torch linear layer.
 Similar to TorchAO, GemLite provides different quantization configs in the gemlite.helper module:               
 * Weight only quantization supports MXFP8, MXFP4, NVFP4, INT8, FP8. Examples: A16W8, A16W4, A16W2, A16W1, A16W158.
 * Activation and weight quantization: A8W8, A8W4, A8W2, A8W1, A8W158.
-* 4 bit activation is also supported with configs like A4W8, and A4W4.
+* 4-bit activation is also supported with configs like A4W8, and A4W4.
 * Actual quantization options:               
     * **A16**: A16W8, A16Wn, A16W8_INT, A16Wn_HQQ_INT, A16W8_HQQ_INT, A16W4_HQQ_INT, A16W2_HQQ_INT, A16W1_HQQ_INT, A16Wn_MXFP, A16W8_MXFP, A16W4_MXFP
     * **A8**: A8W8_dynamic, A8W8_INT8_dynamic, A8W8_FP8_dynamic, A8Wn_HQQ_INT_dynamic, A8W4_HQQ_INT_dynamic, A8W2_HQQ_INT_dynamic, A8W8_MXFP_dynamic, A8Wn_MXFP_dynamic, A8W4_MXFP_dynamic
@@ -122,25 +122,25 @@ Similar to TorchAO, GemLite provides different quantization configs in the gemli
 
 * **Compiler Mode and Options Map**: 'default': {}, 'reduce-overhead': {'triton,cudagraphs': True}, 'max-autotune-no-cudagraphs': {'max_autotune': True, 'coordinate_descent_tuning': True}, 'max-autotune': {'max_autotune': True, 'triton.cudagraphs': True, 'coordinate_descent_tuning': True}
 
-* **Prefill Compilation**: Since we have a known prompt length, we're doing compilation for prefill stage as well. In practice, we'd do compile with different prompt lengths before serving to ensure compile cache is hit. Such issues don't occur in the decode stage as the input is always 1 token long (with a static KV cache, i.e., the KV don't change length and the query is 1 length).
+* **Prefill Compilation**: Since we have a known prompt length, we can do compilation for prefill stage as well. In practice, we'd do compile with different prompt lengths before serving to ensure compile cache is hit. Such issues don't occur in the decode stage as the input is always 1 token long (with a static KV cache only, i.e., the KV don't change length and the query is 1 length).
 
 * **Decoding**: HF by default uses greedy decoding but we can do speculative decoding, and structured/guided generation to speed-up generation at the cost of VRAM size and memory access.
 
-* **Tokenizer**: The tokenizer should be a Rust-based implementation, not python. HF-Transformers' AutoTokenizer automatically prefers a Rust based implementation and falls back to Python if Rust implementation not availble. But for a new model, we'll need to create our own Rust-based implementation.
+* **Tokenizer**: The tokenizer should be a Rust-based (fast) implementation, not the default Python one. HF-Transformers' AutoTokenizer automatically uses a Rust-based implementation and falls back to Python if Rust implementation is not available. But for a new model, we'll need to create our own Rust-based implementation.
 
 * **Profiling interpretability**: Run with CUDA_LAUNCH_BLOCKING=1 to make GPU-CPU sync after each kernel, to get more interpretable profiling results for each kernel.
 
 ## References:
-[1] A. Hoque, L. Wright, C.-C. Yang, M. Srivatsa, and R. Ganti, “Accelerating a Triton Fused Kernel for W4A16 Quantized Inference with SplitK work decomposition,” Feb. 22, 2024, arXiv: arXiv:2402.00025. doi: 10.48550/arXiv.2402.00025.    
-[2] “Accelerating LLM Inference with GemLite, TorchAO and SGLang – PyTorch.” Accessed: Aug. 19, 2025. [Online]. Available: https://pytorch.org/blog/accelerating-llm-inference/    
-[3] M. Dehghankar, M. Erfanian, and A. Asudeh, “An Efficient Matrix Multiplication Algorithm for Accelerating Inference in Binary and Ternary Neural Networks,” May 02, 2025, arXiv: arXiv:2411.06360. doi: 10.48550/arXiv.2411.06360.    
-[4] S. Bekman, stas00/ml-engineering. (Aug. 20, 2025). Python. Accessed: Aug. 20, 2025. [Online]. Available: https://github.com/stas00/ml-engineering          
-[5] https://github.com/meta-pytorch/gpt-fast                    
-[6] https://pytorch.org/blog/accelerating-generative-ai-2/                     
-[7] https://huggingface.co/blog/kv-cache      
-[8] https://github.com/pytorch/pytorch/issues/157950        
-[9] Benchmarks on Llama-3.1-8B done by torchao team: https://github.com/pytorch/ao/tree/main/torchao/_models/llama       
-[10] S. Salaria, Z. Liu, and N. M. Gonzalez, “Meta-Metrics and Best Practices for System-Level Inference Performance Benchmarking,” Aug. 14, 2025, arXiv: arXiv:2508.10251. doi: 10.48550/arXiv.2508.10251.          
-[11] Z. Zhou et al., “A Survey on Efficient Inference for Large Language Models,” July 19, 2024, arXiv: arXiv:2404.14294. doi: 10.48550/arXiv.2404.14294.            
-[12] A. Gholami, S. Kim, Z. Dong, Z. Yao, M. W. Mahoney, and K. Keutzer, “A Survey of Quantization Methods for Efficient Neural Network Inference,” June 21, 2021, arXiv: arXiv:2103.13630. doi: 10.48550/arXiv.2103.13630.            
-[13] https://github.com/microsoft/BitBLAS            
+1. A. Hoque, L. Wright, C.-C. Yang, M. Srivatsa, and R. Ganti, “Accelerating a Triton Fused Kernel for W4A16 Quantized Inference with SplitK work decomposition,” Feb. 22, 2024, arXiv: arXiv:2402.00025. doi: 10.48550/arXiv.2402.00025.
+2. “Accelerating LLM Inference with GemLite, TorchAO and SGLang – PyTorch.” Accessed: Aug. 19, 2025. [Online]. Available: https://pytorch.org/blog/accelerating-llm-inference/
+3. M. Dehghankar, M. Erfanian, and A. Asudeh, “An Efficient Matrix Multiplication Algorithm for Accelerating Inference in Binary and Ternary Neural Networks,” May 02, 2025, arXiv: arXiv:2411.06360. doi: 10.48550/arXiv.2411.06360.
+4. S. Bekman, stas00/ml-engineering. (Aug. 20, 2025). Python. Accessed: Aug. 20, 2025. [Online]. Available: https://github.com/stas00/ml-engineering
+5. https://github.com/meta-pytorch/gpt-fast
+6. https://pytorch.org/blog/accelerating-generative-ai-2/
+7. https://huggingface.co/blog/kv-cache
+8. https://github.com/pytorch/pytorch/issues/157950
+9. Benchmarks on Llama-3.1-8B done by torchao team: https://github.com/pytorch/ao/tree/main/torchao/_models/llama
+10. S. Salaria, Z. Liu, and N. M. Gonzalez, “Meta-Metrics and Best Practices for System-Level Inference Performance Benchmarking,” Aug. 14, 2025, arXiv: arXiv:2508.10251. doi: 10.48550/arXiv.2508.10251.
+11. Z. Zhou et al., “A Survey on Efficient Inference for Large Language Models,” July 19, 2024, arXiv: arXiv:2404.14294. doi: 10.48550/arXiv.2404.14294.
+12. A. Gholami, S. Kim, Z. Dong, Z. Yao, M. W. Mahoney, and K. Keutzer, “A Survey of Quantization Methods for Efficient Neural Network Inference,” June 21, 2021, arXiv: arXiv:2103.13630. doi: 10.48550/arXiv.2103.13630.
+13. https://github.com/microsoft/BitBLAS            
