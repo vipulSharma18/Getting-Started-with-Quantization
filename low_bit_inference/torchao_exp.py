@@ -18,11 +18,10 @@ model, tokenizer, prompt, past_key_values = load_model_tokenizer_prompt_cache(co
 print(f"Model loaded {config.model_id}.")
 
 # compile the model here if you want
-torch.backends.cuda.matmul.allow_tf32 = True
+torch.backends.fp32_precision = "tf32"
 torch.backends.cuda.matmul.allow_bf16_reduced_precision_reduction = True
 torch.backends.cuda.matmul.allow_fp16_reduced_precision_reduction = True
 torch.backends.cuda.enable_flash_sdp(True)
-torch.backends.cudnn.allow_tf32 = True
 torch.backends.cudnn.deterministic = False
 torch.backends.cudnn.benchmark = True
 
@@ -54,10 +53,10 @@ def cache_init(past_key_values, model, config, kv_compiled=False):
 def model_quantize(causal_model, config, quantized=False):
 
     quantization_methods = {
-        "bf16_fp8" : torchao.quantization.Float8WeightOnlyConfig,
-        "bf16_int8" : torchao.quantization.Int8WeightOnlyConfig,
-        "bf16_int4" : torchao.quantization.Int4WeightOnlyConfig,
-        "default" : torchao.quantization.Int8WeightOnlyConfig,
+        "bf16_fp8" : torchao.quantization.Float8WeightOnlyConfig(),
+        "bf16_int8" : torchao.quantization.Int8WeightOnlyConfig(),
+        "bf16_int4" : torchao.quantization.Int4WeightOnlyConfig(use_hqq=True),
+        "default" : torchao.quantization.Int8WeightOnlyConfig(),
     }
 
     if not quantized:

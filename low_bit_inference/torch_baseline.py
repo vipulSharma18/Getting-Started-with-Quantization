@@ -14,8 +14,8 @@ print(f"Loading pretrained model and tokenizer: {config.model_id}.")
 model, tokenizer, prompt, past_key_values = load_model_tokenizer_prompt_cache(config)
 print(f"Model loaded {config.model_id}.")
 
-## compile the model here if you want
-torch.set_float32_matmul_precision('high')
+## compilation and backends configs
+torch.backends.fp32_precision = "tf32"
 
 model = model.to(config.device)
 print(f"Model moved to {config.device}, starting profiling.")

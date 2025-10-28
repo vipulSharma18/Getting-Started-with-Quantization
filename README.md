@@ -139,3 +139,14 @@ tokenized_prompt = tokenizer([config.prompt], return_tensors="pt").to(config.dev
 11. Z. Zhou et al., “A Survey on Efficient Inference for Large Language Models,” July 19, 2024, arXiv: arXiv:2404.14294. doi: 10.48550/arXiv.2404.14294.
 12. A. Gholami, S. Kim, Z. Dong, Z. Yao, M. W. Mahoney, and K. Keutzer, “A Survey of Quantization Methods for Efficient Neural Network Inference,” June 21, 2021, arXiv: arXiv:2103.13630. doi: 10.48550/arXiv.2103.13630.
 13. https://github.com/microsoft/BitBLAS            
+
+
+Please use the new API settings to control TF32 behavior, such as 
+torch.backends.cudnn.conv.fp32_precision = 'tf32'
+ or 
+ torch.backends.cuda.matmul.fp32_precision = 'ieee'.
+ 
+  Old settings, e.g, torch.backends.cuda.matmul.allow_tf32 = True, torch.backends.cudnn.allow_tf32 = True, allowTF32CuDNN() and allowTF32CuBLAS() will be deprecated after Pytorch 2.9. 
+  
+  Please see https://pytorch.org/docs/main/notes/cuda.html#tensorfloat-32-tf32-on-ampere-and-later-devices (Triggered internally at /pytorch/aten/src/ATen/Context.cpp:80.)
+  self.setter(val)
