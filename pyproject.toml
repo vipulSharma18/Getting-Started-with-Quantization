@@ -22,7 +22,7 @@ dependencies = [
 
 [dependency-groups]
 big_deps = [
-    "torchao",
+    "torchao>=0.14.0",
     "transformers",
     "gemlite",
     "hqq",

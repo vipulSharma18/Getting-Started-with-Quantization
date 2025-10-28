@@ -362,7 +362,7 @@ requires-dist = [
 big-deps = [
     { name = "gemlite", git = "https://github.com/dropbox/gemlite/" },
     { name = "hqq", git = "https://github.com/dropbox/hqq/" },
-    { name = "torchao", index = "https://download.pytorch.org/whl/cu128" },
+    { name = "torchao", specifier = ">=0.14.0", index = "https://download.pytorch.org/whl/cu128" },
     { name = "transformers" },
 ]
 
@@ -954,10 +954,10 @@ wheels = [
 
 [[package]]
 name = "torchao"
-version = "0.12.0+cu128"
+version = "0.14.1+cu128"
 source = { registry = "https://download.pytorch.org/whl/cu128" }
 wheels = [
-    { url = "https://download.pytorch.org/whl/cu128/torchao-0.12.0%2Bcu128-cp39-abi3-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:d0cd62cfc72694e64f5dcb37ec5886bdff6e5fd4dd704d1be45e63659db8f5fc" },
+    { url = "https://download.pytorch.org/whl/cu128/torchao-0.14.1%2Bcu128-cp310-abi3-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:c70ef7f6c749d8bafd984ca2ef2e7fc90e3197f5519b409cf29c5b6f24474a4b" },
 ]
 
 [[package]]
