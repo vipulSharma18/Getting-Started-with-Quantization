@@ -34,6 +34,7 @@ big_deps = [
 torch = { index = "pytorch-cu128" }
 torchvision = { index = "pytorch-cu128" }
 torchao = { index = "pytorch-cu128" }
+fbgemm_gpu_genai = { index = "pytorch-cu128" }
 hqq = { git = "git+https://github.com/dropbox/hqq/" }
 gemlite = { git = "git+https://github.com/dropbox/gemlite/" }
 

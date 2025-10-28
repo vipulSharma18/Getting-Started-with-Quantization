@@ -136,14 +136,21 @@ wheels = [
 
 [[package]]
 name = "fbgemm-gpu-genai"
-version = "1.4.1"
-source = { registry = "https://pypi.org/simple" }
+version = "1.4.1+cu128"
+source = { registry = "https://download.pytorch.org/whl/cu128" }
 dependencies = [
     { name = "numpy" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/20/07/0c4daf1213df6593ca19659f80cc21cdc7b11fe089895090fdc7b788f570/fbgemm_gpu_genai-1.4.1-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:7c7f0fa4f3423506021b4cfc7f9c1bec1ba022b92617ca8882c09304329bc029", size = 63256437, upload-time = "2025-10-24T06:27:22.018Z" },
-    { url = "https://files.pythonhosted.org/packages/d2/a4/8c47c9fdd2ac9b4ecd7459dbe11831b7b12cde550ddea6a124689dd7ff42/fbgemm_gpu_genai-1.4.1-cp313-cp313-manylinux_2_28_x86_64.whl", hash = "sha256:c30980f5a7cc365e2c83dc48418e50ecc6e708996e12117c22a9a435242854a8", size = 64199369, upload-time = "2025-10-24T06:27:04.509Z" },
+    { url = "https://download.pytorch.org/whl/cu128/fbgemm_gpu_genai-1.4.1%2Bcu128-cp312-cp312-manylinux_2_28_aarch64.whl" },
+    { url = "https://download.pytorch.org/whl/cu128/fbgemm_gpu_genai-1.4.1%2Bcu128-cp312-cp312-manylinux_2_28_x86_64.whl" },
+    { url = "https://download.pytorch.org/whl/cu128/fbgemm_gpu_genai-1.4.1%2Bcu128-cp313-cp313-manylinux_2_28_aarch64.whl" },
+    { url = "https://download.pytorch.org/whl/cu128/fbgemm_gpu_genai-1.4.1%2Bcu128-cp313-cp313-manylinux_2_28_x86_64.whl" },
+    { url = "https://download.pytorch.org/whl/cu128/fbgemm_gpu_genai-1.4.1%2Bcu128-cp313-cp313t-manylinux_2_28_aarch64.whl" },
+    { url = "https://download.pytorch.org/whl/cu128/fbgemm_gpu_genai-1.4.1%2Bcu128-cp313-cp313t-manylinux_2_28_x86_64.whl" },
+    { url = "https://download.pytorch.org/whl/cu128/fbgemm_gpu_genai-1.4.1%2Bcu128-cp314-cp314-manylinux_2_28_aarch64.whl" },
+    { url = "https://download.pytorch.org/whl/cu128/fbgemm_gpu_genai-1.4.1%2Bcu128-cp314-cp314t-manylinux_2_28_aarch64.whl" },
+    { url = "https://download.pytorch.org/whl/cu128/fbgemm_gpu_genai-1.4.1%2Bcu128-cp314-cp314t-manylinux_2_28_x86_64.whl" },
 ]
 
 [[package]]
@@ -374,7 +381,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 big-deps = [
-    { name = "fbgemm-gpu-genai", specifier = ">=1.4" },
+    { name = "fbgemm-gpu-genai", specifier = ">=1.4", index = "https://download.pytorch.org/whl/cu128" },
     { name = "gemlite", git = "https://github.com/dropbox/gemlite/" },
     { name = "hqq", git = "https://github.com/dropbox/hqq/" },
     { name = "nvidia-ml-py" },
