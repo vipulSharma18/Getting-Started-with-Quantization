@@ -45,10 +45,16 @@ class CacheLayerMixin(ABC):
 
     def reset(self) -> None:
         """Resets the cache values while preserving the objects"""
-        del self.keys
-        del self.values
-        self.keys = None
-        self.values = None
+        self.keys.zero_()
+        self.values.zero_()
+
+    def destroy(self):
+        if self.keys is not None:
+            del self.keys
+            self.keys = None
+        if self.values is not None:
+            del self.values
+            self.values = None
 
 class StaticLayer(CacheLayerMixin):
     """
@@ -66,7 +72,7 @@ class StaticLayer(CacheLayerMixin):
         super().__init__()
         self.max_cache_len = max_cache_len
 
-    def lazy_initialization(self, key_states: torch.Tensor, value_states: torch.Tensor):
+    def lazy_initialization(self, dummy_key_states: torch.Tensor, dummy_value_states: torch.Tensor):
         """
         Lazy initialization of the keys and values tensors. This allows to get all properties (dtype, device,
         num_heads in case of TP etc...) at runtime directly, which is extremely practical as it avoids moving
@@ -80,11 +86,11 @@ class StaticLayer(CacheLayerMixin):
         i.e. `mode="reduce-overhead"` is known to fail). But it will in general work correctly, and prefill should
         not be compiled anyway for performances!
         """
-        key_batch, key_heads, _, key_dim = key_states.shape
-        key_dtype, key_device = key_states.dtype, key_states.device
+        key_batch, key_heads, _, key_dim = dummy_key_states.shape
+        key_dtype, key_device = dummy_key_states.dtype, dummy_key_states.device
 
-        value_batch, value_heads, _, value_dim = value_states.shape
-        value_dtype, value_device = value_states.dtype, value_states.device
+        value_batch, value_heads, _, value_dim = dummy_value_states.shape
+        value_dtype, value_device = dummy_value_states.dtype, dummy_value_states.device
 
         assert (key_batch==value_batch) and (key_heads==value_heads) and (key_dim==value_dim) \
             and (key_dtype==value_dtype) and (key_device==value_device)
@@ -166,6 +172,7 @@ class Cache:
         layers: Optional[list[CacheLayerMixin]] = None,
     ):
         self.layers = layers if layers is not None else []
+        self.destroy_counter = 0
 
     def __repr__(self):
         return f"{self.__class__.__name__}(layers={self.layers})"
@@ -212,7 +219,8 @@ class Cache:
         fake_keys_tensor = torch.zeros((batch_size, num_heads, 0, head_dim), dtype=dtype, device=device)
         # Init all layers
         for layer in self.layers:
-            layer.lazy_initialization(fake_keys_tensor, fake_keys_tensor)
+            if layer.keys is None or layer.values is None:
+                layer.lazy_initialization(fake_keys_tensor, fake_keys_tensor)
 
     def get_seq_length(self, layer_idx: Optional[int] = 0) -> int:
         """Returns the sequence length of the cache for the given layer."""
@@ -244,6 +252,12 @@ class Cache:
         """Recursively reset all layers tensors"""
         for layer_idx in range(len(self.layers)):
             self.layers[layer_idx].reset()
+
+    def destroy_for_cudagraph_setup(self):
+        self.destroy_counter +=1 
+        assert self.destroy_counter <=1, "Destroying repeatedly, doing something wrong, cudagraphs need fixed input address."
+        for layer_idx in range(len(self.layers)):
+            self.layers[layer_idx].destroy()
 
     @property
     def max_batch_size(self) -> int:

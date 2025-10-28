@@ -50,6 +50,7 @@ print(f"Compile config: decode {config.compile_decode}, \
 def cache_init(past_key_values, model, config, kv_compiled=False):
     if not kv_compiled:
         # just doing this so that the key and vals are output of cudagraph and hence mutating them in update doesn't cause cudagraph skipping
+        past_key_values.destroy_for_cudagraph_setup()
         past_key_values.early_initialization = torch.compile(
             past_key_values.early_initialization,
             mode="reduce-overhead",

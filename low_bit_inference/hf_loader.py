@@ -35,6 +35,7 @@ def load_model_tokenizer_prompt_cache(config):
     print(f"Using prompt: {prompt}")
 
     model.generation_config.max_new_tokens = config.max_new_tokens
+    model.generation_config.eos_token_id = None  # to ensure constant length of decode during profiling
     model.generation_config.chat_template = config.chat_template
     model.generation_config.do_sample = config.do_sample
     model.generation_config.top_k = config.top_k

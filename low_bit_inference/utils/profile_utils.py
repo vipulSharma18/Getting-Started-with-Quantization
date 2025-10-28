@@ -128,9 +128,13 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
         for i in range(total_steps):
             print("="*30)
             print(f"Profiling iteration {i+1} out of total {total_steps}.")
-            torch.compiler.cudagraph_mark_step_begin()
-            past_key_values = cache_init(past_key_values, model, config, kv_compiled)
-            kv_compiled = True
+            if i>=compile_iter and (model.compile_decode or model.compile_prefill):
+                torch.compiler.cudagraph_mark_step_begin()
+                past_key_values = cache_init(past_key_values, model, config, kv_compiled)
+                kv_compiled = True
+            else:
+                # don't trigger compilation by assuming it's already compiled even when it never gets to
+                past_key_values = cache_init(past_key_values, model, config, kv_compiled=True)
 
             # mark step begin will release past cudagraph's memory, so clean it up
             gc.collect()
