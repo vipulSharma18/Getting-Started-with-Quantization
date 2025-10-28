@@ -1,8 +1,26 @@
 import gc
+import os
+from functools import partial
 from contextlib import nullcontext
+from datetime import datetime
 import torch
 from torchao.utils import get_model_size_in_bytes
 from torch.utils.flop_counter import FlopCounterMode
+
+
+def custom_trace_handler(prof, root_dir='./'):
+   # Prefix for file names.
+   TIME_FORMAT_STR: str = "%b_%d_%H_%M_%S"
+   timestamp = datetime.now().strftime(TIME_FORMAT_STR)
+   root_dir = os.path.abspath(root_dir)
+   file_prefix = os.path.join(root_dir, f"{timestamp}")
+
+   # Construct the trace file.
+   prof.export_chrome_trace(f"{file_prefix}.json.gz")
+
+   # Construct the memory timeline file.
+   prof.export_memory_timeline(f"{file_prefix}.raw.json.gz", device="cuda:0")
+   print("Logged profile at:", file_prefix)
 
 
 def compile_util(model):
@@ -109,7 +127,7 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
             torch.profiler.ProfilerActivity.CUDA,
         ]
         profiling_flag = True
-        trace_handler = torch.profiler.tensorboard_trace_handler(config.profiling_dir)
+        trace_handler = partial(custom_trace_handler, root_dir=config.profiling_dir)
         prof = torch.profiler.profile(
             activities = activities,
             schedule = profiling_schedule,
@@ -119,7 +137,7 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
             with_stack = profiling_flag,  # this will add considerable overhead, set it to False for benchmarking.
             with_flops = profiling_flag,
         )
-
+    print("Using profiler type:", type(prof))
     kv_compiled = False
     compile_iter = 1 # delay compile by 1 iter for quantization and/or flop counting
     flop_counter = FlopCounterMode(display=False, depth=None)
@@ -162,14 +180,22 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
 
                 with flop_context:
                     start.record()
-                    generated_token_ids = model.generate(
-                        **tokenized_prompt,
-                        past_key_values=past_key_values,
-                        prefill_start=prefill_start,
-                        prefill_end=prefill_end,
-                        decode_start=decode_start,
-                        decode_end=decode_end,
-                    )
+                    try:
+                        generated_token_ids = model.generate(
+                            **tokenized_prompt,
+                            past_key_values=past_key_values,
+                            prefill_start=prefill_start,
+                            prefill_end=prefill_end,
+                            decode_start=decode_start,
+                            decode_end=decode_end,
+                        )
+                    except Exception as e:
+                        error_file = os.path.join(config.profiling_dir, "error.txt")
+                        with open(error_file, 'w') as f:
+                            f.write(f"Error occurred during generation:\n{str(e)}\n")
+                        print(f"Error written to {error_file}")
+                        prof.step()
+                        exit(1)
                     end.record()
 
                 if i==0 and model.quantize:
