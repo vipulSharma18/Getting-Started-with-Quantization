@@ -75,7 +75,7 @@ def monkeypatch_gemlite():
 
     # for int hqq: first need to convert layer to hqqlinear before calling from_hqqlinear on it.
     def from_linear(self, layer, group_size=64):
-        dtype = layer.weight.dtype if layer.weight else torch.bfloat16
+        dtype = layer.weight.dtype if hasattr(layer.weight, 'dtype') else torch.bfloat16
         config_group_size = group_size if self.W_nbits<=4 else None
         quant_config   = BaseQuantizeConfig(nbits=self.W_nbits, group_size=config_group_size, axis=1)
         linear         = HQQLinear(layer, quant_config=quant_config, compute_dtype=dtype, device=self.device)
