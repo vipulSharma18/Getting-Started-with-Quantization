@@ -26,7 +26,7 @@ big_deps = [
     "transformers",
     "gemlite",
     "hqq",
-    "pynvml",
+    "nvidia-ml-py",
 ]
 
 [tool.uv.sources]
