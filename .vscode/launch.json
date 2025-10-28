@@ -27,6 +27,15 @@
             "justMyCode": true,
             "env": {"TORCH_TRACE": "log/compile"},
             "args": ["configs/profile_inductor.yaml", "tps_only=True", "skip_first=1", "warmup=3", "wait=0", "active=1", "profile_compile=True"]
+        },
+        {
+            "name": "Debug TorchAO CUDAGraph Memory",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "low_bit_inference.torchao_exp",
+            "justMyCode": true,
+            "env": {"TORCH_LOGS": "cudagraphs"},
+            "args": ["configs/profile_inductor_torchao.yaml", "tps_only=True", "skip_first=1", "warmup=2", "wait=1", "active=1", "quantization_method=bf16_int8"]
         }
     ]
 }
