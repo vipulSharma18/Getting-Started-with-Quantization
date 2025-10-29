@@ -3,24 +3,62 @@ import os
 from functools import partial
 from contextlib import nullcontext
 from datetime import datetime
+from pickle import dump
 import torch
 from torchao.utils import get_model_size_in_bytes
 from torch.utils.flop_counter import FlopCounterMode
 
 
-def custom_trace_handler(prof, root_dir='./'):
-   # Prefix for file names.
-   TIME_FORMAT_STR: str = "%b_%d_%H_%M_%S"
-   timestamp = datetime.now().strftime(TIME_FORMAT_STR)
-   root_dir = os.path.abspath(root_dir)
-   file_prefix = os.path.join(root_dir, f"{timestamp}")
+class MemorySnapshot:
+    """
+    Track memory snapshosts every profiler step and during OOM events.
+    """
+    def __init__(self, path, device="cuda:0", max_entries=500000):
+        self.path = os.path.abspath(path)
+        assert os.path.exists(self.path), f"Invalid path: {self.path}"
+        os.makedirs(self.path, exist_ok=True)
+        print("Memory snapshots dir:", self.path)
+        self.device = device
+        self.max_entries = max_entries
+        self.initialized = False
+        try:
+            torch.cuda.memory._record_memory_history(max_entries=self.max_entries)
+            self.oom_observer = partial(self.step, self)
+            torch._C._cuda_attach_out_of_memory_observer(self.oom_observer)
+            self.initialized = True
+        except Exception as e:
+            print(e)
+            print("Failed to init MemorySnapshot, continuing without it.")
 
-   # Construct the trace file.
-   prof.export_chrome_trace(f"{file_prefix}.json.gz")
+    def step(self, *args, **kwargs):
+        if self.initialized:
+            timestamp = datetime.now().strftime("%b_%d_%H_%M_%S")
+            file = os.path.join(self.path, f"{timestamp}.pickle")
+            print("Logging memory snapshot to:", file)
+            snapshot = torch.cuda.memory_snapshot()
+            with open(file, 'wb') as f:
+                dump(snapshot, f)
+        else:
+            print("skipping memory snapshot cause it failed to get initialized.")
 
-   # Construct the memory timeline file.
-   prof.export_memory_timeline(f"{file_prefix}.json.gz", device="cuda:0")
-   print("Logged profile at:", file_prefix)
+def custom_trace_handler(prof, memory_snapshot=None, root_dir='./'):
+    """
+    Dump the timing and memory trace from torch profiler.
+    """
+    # Prefix for file names.
+    TIME_FORMAT_STR: str = "%b_%d_%H_%M_%S"
+    timestamp = datetime.now().strftime(TIME_FORMAT_STR)
+    root_dir = os.path.abspath(root_dir)
+    file_prefix = os.path.join(root_dir, f"{timestamp}")
+
+    # Construct the trace file.
+    prof.export_chrome_trace(f"{file_prefix}.json.gz")
+
+    # Construct the memory timeline file.
+    prof.export_memory_timeline(f"{file_prefix}.html", device="cuda:0")
+    print("Logged profile at:", file_prefix)
+    if memory_snapshot:
+        memory_snapshot.step()
 
 
 def compile_util(model):
@@ -127,7 +165,17 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
             torch.profiler.ProfilerActivity.CUDA,
         ]
         profiling_flag = True
-        trace_handler = partial(custom_trace_handler, root_dir=config.profiling_dir)
+        memory_snapshot = None
+        if config.oom_profile:
+            memory_snapshot = MemorySnapshot(path=config.profiling_dir,
+                device=config.device,
+                max_entries=config.memory_snapshot_max_entries,
+            )
+        trace_handler = partial(
+            custom_trace_handler,
+            memory_snapshot=memory_snapshot,
+            root_dir=config.profiling_dir
+        )
         prof = torch.profiler.profile(
             activities = activities,
             schedule = profiling_schedule,
@@ -166,7 +214,7 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
             prefill_end = torch.cuda.Event(enable_timing=True)
             decode_start = torch.cuda.Event(enable_timing=True)
             decode_end = torch.cuda.Event(enable_timing=True)
-            
+
             if i==0:
                 flop_context = flop_counter
             else:
@@ -177,10 +225,9 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
                     model.quantization_function(model, config, quantized=False)
                 if i==compile_iter:
                     compile_util(model)
-
-                with flop_context:
-                    start.record()
-                    try:
+                try:
+                    with flop_context:
+                        start.record()
                         generated_token_ids = model.generate(
                             **tokenized_prompt,
                             past_key_values=past_key_values,
@@ -189,16 +236,16 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
                             decode_start=decode_start,
                             decode_end=decode_end,
                         )
-                    except Exception as e:
-                        error_file = os.path.join(config.profiling_dir, "error.txt")
-                        with open(error_file, 'w') as f:
-                            f.write(f"Error occurred during generation:\n{str(e)}\n")
-                        print(f"Error written to {error_file}")
-                        prof.step()
-                        exit(1)
-                    end.record()
+                        end.record()
+                except Exception as e:
+                    error_file = os.path.join(config.profiling_dir, "error.txt")
+                    with open(error_file, 'w') as f:
+                        f.write(f"Error occurred during generation:\n{str(e)}\n")
+                    print(f"Error written to {error_file}")
+                    exit(1)
 
                 if i==0 and model.quantize:
+                    # might want some cleanup after quantization and model forward pass, like finalizing autoquant
                     model.quantization_function(model, config, quantized=True)
             torch.cuda.synchronize()
             generated_tokens = tokenizer.batch_decode(generated_token_ids[0], skip_special_tokens=True)
@@ -276,5 +323,5 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
         if not config.tps_only and prof.profiler is not None:
             prof.export_chrome_trace(config.profiling_dir + "/trace.json")
             print("Manually exported the trace.")
-    except Exception:
-        print("Trace was already saved. Exiting.")
+    except Exception as e:
+        print("Trace was already saved. Exiting.\n", e)
