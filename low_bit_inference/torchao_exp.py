@@ -53,15 +53,15 @@ def cache_init(past_key_values, model, config, kv_compiled=False):
 
 def model_quantize(causal_model, config, quantized=False):
 
-    quantization_methods = {
-        "bf16_fp8" : torchao.quantization.Float8WeightOnlyConfig(),
-        "bf16_int8" : torchao.quantization.Int8WeightOnlyConfig(),
-        "bf16_int4" : torchao.quantization.Int4WeightOnlyConfig(use_hqq=True),
-        "default" : torchao.quantization.Int8WeightOnlyConfig(),
-    }
-
     if not quantized:
-        method = quantization_methods[config["quantization_method"]]
+        quantization_methods = {
+            "bf16_fp8" : torchao.quantization.Float8WeightOnlyConfig,
+            "bf16_int8" : torchao.quantization.Int8WeightOnlyConfig,
+            "bf16_int4" : torchao.quantization.Int4WeightOnlyConfig,
+            "default" : torchao.quantization.Int8WeightOnlyConfig,
+        }
+        kwargs = {"use_hqq": True} if config["quantization_method"]=="bf16_int4" else {}
+        method = quantization_methods[config["quantization_method"]](**kwargs)
         quantize_(causal_model.model, method)
     else:
         pass
