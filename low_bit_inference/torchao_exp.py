@@ -54,6 +54,9 @@ def cache_init(past_key_values, model, config, kv_compiled=False):
     return past_key_values
 
 def model_quantize(causal_model, config, quantized=False):
+    def filter_fn(module, fqn):
+        # Exempt embedding layer from quantization
+        return fqn not in ["embed_tokens", "lm_head"]
 
     if not quantized:
         quantization_methods = {
@@ -64,7 +67,7 @@ def model_quantize(causal_model, config, quantized=False):
         }
         kwargs = {"use_hqq": True} if config["quantization_method"]=="bf16_int4" else {}
         method = quantization_methods[config["quantization_method"]](**kwargs)
-        quantize_(causal_model.model, method)
+        quantize_(causal_model.model, method, filter_fn=filter_fn)
         torch.cuda.empty_cache()
         gc.collect()
     else:

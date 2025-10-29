@@ -8,7 +8,7 @@ from hqq.core.quantize import HQQLinear, BaseQuantizeConfig
 
 
 #Replaces all linear layers with the corresponding processor
-def patch_model(model, device, processor, skip_modules=['lm_head', 'vision', 'visual'], group_size=64):
+def patch_model(model, device, processor, skip_modules=['lm_head', 'vision', 'visual', 'embed_tokens'], group_size=64):
     """
     Helper function to quantize the whole model from cpu device. 
     The group_size parameter is only used in HQQ for W_nbits <=4, all the other configs do not use this parameter.
