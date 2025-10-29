@@ -25,7 +25,7 @@ class MemorySnapshot:
             torch.cuda.memory._record_memory_history(max_entries=self.max_entries)
             self.initialized = True
             # uses the current state of the object to create a partial function
-            self.oom_observer = partial(self.step, self)
+            self.oom_observer = partial(self.step, self=self)
             torch._C._cuda_attach_out_of_memory_observer(self.oom_observer)
         except Exception as e:
             print(e)
