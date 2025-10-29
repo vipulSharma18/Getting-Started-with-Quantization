@@ -247,7 +247,9 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
                     with open(error_file, 'w') as f:
                         f.write(f"Error occurred during generation:\n{str(e)}\n")
                     print(f"Error written to {error_file}")
-                    exit(1)
+                    torch.cuda.empty_cache()
+                    gc.collect()
+                    os._exit(1)
 
                 if i==0 and model.quantize:
                     # might want some cleanup after quantization and model forward pass, like finalizing autoquant
