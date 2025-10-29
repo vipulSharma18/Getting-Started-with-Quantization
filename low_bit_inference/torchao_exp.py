@@ -28,6 +28,7 @@ torch.backends.cudnn.benchmark = True
 torch._inductor.config.benchmark_kernel = True
 torch._inductor.config.benchmark_fusion = True
 torch._inductor.config.freezing = True
+torch._inductor.config.freezing_discard_parameters = True
 
 assert config.compile_decode and config.quantize
 print(f"Compile config: decode {config.compile_decode}, \
