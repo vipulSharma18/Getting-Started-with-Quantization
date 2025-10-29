@@ -247,8 +247,6 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
                         del model, past_key_values
                         torch.cuda.empty_cache()
                         gc.collect()
-                        # try to salvage some profiling information from the exception event if possible.
-                        prof.step()
                     finally:
                         os._exit(1)
 
