@@ -25,20 +25,24 @@ class MemorySnapshot:
             torch.cuda.memory._record_memory_history(max_entries=self.max_entries)
             self.initialized = True
             # uses the current state of the object to create a partial function
-            self.oom_observer = partial(self.step, self=self)
+            self.oom_observer = partial(MemorySnapshot.log, path=self.path)
             torch._C._cuda_attach_out_of_memory_observer(self.oom_observer)
         except Exception as e:
             print(e)
             print("Failed to init MemorySnapshot, continuing without it.")
 
+    @staticmethod
+    def log(device=None, alloc=None, device_alloc=None, device_free=None, path=None, *args, **kwargs):
+        timestamp = datetime.now().strftime("%b_%d_%H_%M_%S")
+        file = os.path.join(path, f"{timestamp}.pickle")
+        print("Logging memory snapshot to:", file)
+        snapshot = torch.cuda.memory_snapshot()
+        with open(file, 'wb') as f:
+            dump(snapshot, f)
+
     def step(self, *args, **kwargs):
         if self.initialized:
-            timestamp = datetime.now().strftime("%b_%d_%H_%M_%S")
-            file = os.path.join(self.path, f"{timestamp}.pickle")
-            print("Logging memory snapshot to:", file)
-            snapshot = torch.cuda.memory_snapshot()
-            with open(file, 'wb') as f:
-                dump(snapshot, f)
+            MemorySnapshot.log(path=self.path)
         else:
             print("skipping memory snapshot cause it failed to get initialized.")
 
