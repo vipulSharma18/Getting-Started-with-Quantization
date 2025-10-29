@@ -22,7 +22,7 @@ class MemorySnapshot:
         self.max_entries = max_entries
         self.initialized = False
         try:
-            torch.cuda.memory._record_memory_history(max_entries=self.max_entries)
+            torch.cuda.memory._record_memory_history(max_entries=self.max_entries, device=self.device)
             self.initialized = True
             # uses the current state of the object to create a partial function
             self.oom_observer = partial(MemorySnapshot.log, path=self.path)
@@ -36,9 +36,7 @@ class MemorySnapshot:
         timestamp = datetime.now().strftime("%b_%d_%H_%M_%S")
         file = os.path.join(path, f"{timestamp}.pickle")
         print("Logging memory snapshot to:", file)
-        snapshot = torch.cuda.memory_snapshot()
-        with open(file, 'wb') as f:
-            dump(snapshot, f)
+        torch.cuda.memory._dump_snapshot(file)
 
     def step(self, *args, **kwargs):
         if self.initialized:
@@ -56,8 +54,8 @@ def custom_trace_handler(prof, memory_snapshot=None, root_dir='./'):
     root_dir = os.path.abspath(root_dir)
     file_prefix = os.path.join(root_dir, f"{timestamp}")
 
-    # Construct the trace file.
     prof.export_chrome_trace(f"{file_prefix}.json.gz")
+    prof.export_memory_timeline(f"{file_prefix}.html")
 
     print("Logged profile at:", file_prefix)
     if memory_snapshot:
@@ -185,6 +183,7 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
             on_trace_ready = trace_handler,
             record_shapes = profiling_flag,
             with_stack = profiling_flag,  # this will add considerable overhead, set it to False for benchmarking.
+            profile_memory = profiling_flag,
             with_flops = profiling_flag,
         )
     print("Using profiler type:", type(prof))
