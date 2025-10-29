@@ -406,7 +406,7 @@ def trace(data):
                 out.write(f"{e}\n")
         out.write(f"TOTAL MEM: {Bytes(count)}")
 
-    for i, d in enumerate(data["device_traces"]):
+    for i, d in enumerate(data["traces"]):
         if d:
             out.write(f"Device {i} ----------------\n")
             format(d)
@@ -447,14 +447,14 @@ def _format_viz(data, viz_kind, device):
 
 
 def filter_alloc_free_pairs(data):
-    for dev_id in range(len(data["device_traces"])):
+    for dev_id in range(len(data["traces"])):
         # set of indexes of trace events for alloc-free pairs
         filterSet = set()
         # map from addr to index of alloc event
         allocMap = {}
         # set of addrs from free_requested events
         freeRequested = set()
-        for idx, event in enumerate(data["device_traces"][dev_id]):
+        for idx, event in enumerate(data["traces"][dev_id]):
             if event["action"] == "alloc":
                 allocMap[event["addr"]] = idx
             elif event["action"] == "free_requested":
@@ -473,9 +473,9 @@ def filter_alloc_free_pairs(data):
         # Remove events whose index is in filterSet
         if filterSet:
             # Create a new list excluding events with indices in filterSet
-            data["device_traces"][dev_id] = [
+            data["traces"][dev_id] = [
                 event
-                for idx, event in enumerate(data["device_traces"][dev_id])
+                for idx, event in enumerate(data["traces"][dev_id])
                 if idx not in filterSet
             ]
 
@@ -533,7 +533,7 @@ def _profile_to_snapshot(profile):
 
     device_count = torch.cuda.device_count()
     snapshot: dict[str, list[Any]] = {
-        "device_traces": [[] for _ in range(device_count + 1)],
+        "traces": [[] for _ in range(device_count + 1)],
         "segments": [
             {
                 "device": device,
@@ -575,12 +575,12 @@ def _profile_to_snapshot(profile):
             "category": category,
         }
         if during_trace:
-            snapshot["device_traces"][device].append(r)
+            snapshot["traces"][device].append(r)
         return r
 
     def free(alloc, device):
         for e in ("free_requested", "free_completed"):
-            snapshot["device_traces"][device].append(
+            snapshot["traces"][device].append(
                 {
                     "action": e,
                     "addr": alloc["addr"],
@@ -774,7 +774,12 @@ if __name__ == "__main__":
         print(segsum(data))
     elif args.action == "trace":
         data = _read(args.input)
-        print(trace(data))
+        print(type(data))
+        print(data.keys())
+        print(type(data['segments']), len(data['segments']))
+        print(type(data['traces']), len(data['traces']))
+        print(data['segments'])
+        # print(trace(data))
     elif args.action == "compare":
         before = _read(args.before)
         after = _read(args.after)

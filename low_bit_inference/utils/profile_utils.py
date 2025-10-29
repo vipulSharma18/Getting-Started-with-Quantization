@@ -59,8 +59,6 @@ def custom_trace_handler(prof, memory_snapshot=None, root_dir='./'):
     # Construct the trace file.
     prof.export_chrome_trace(f"{file_prefix}.json.gz")
 
-    # Construct the memory timeline file.
-    prof.export_memory_timeline(f"{file_prefix}.html", device="cuda:0")
     print("Logged profile at:", file_prefix)
     if memory_snapshot:
         memory_snapshot.step()
@@ -186,7 +184,6 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
             schedule = profiling_schedule,
             on_trace_ready = trace_handler,
             record_shapes = profiling_flag,
-            profile_memory = profiling_flag,
             with_stack = profiling_flag,  # this will add considerable overhead, set it to False for benchmarking.
             with_flops = profiling_flag,
         )
