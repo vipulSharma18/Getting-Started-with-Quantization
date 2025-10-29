@@ -1,3 +1,4 @@
+import gc
 import torch
 import torchao
 from torchao.quantization import quantize_
@@ -64,6 +65,8 @@ def model_quantize(causal_model, config, quantized=False):
         kwargs = {"use_hqq": True} if config["quantization_method"]=="bf16_int4" else {}
         method = quantization_methods[config["quantization_method"]](**kwargs)
         quantize_(causal_model.model, method)
+        torch.cuda.empty_cache()
+        gc.collect()
     else:
         pass
 
