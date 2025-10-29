@@ -19,7 +19,7 @@ def custom_trace_handler(prof, root_dir='./'):
    prof.export_chrome_trace(f"{file_prefix}.json.gz")
 
    # Construct the memory timeline file.
-   prof.export_memory_timeline(f"{file_prefix}.raw.json.gz", device="cuda:0")
+   prof.export_memory_timeline(f"{file_prefix}.json.gz", device="cuda:0")
    print("Logged profile at:", file_prefix)
 
 
