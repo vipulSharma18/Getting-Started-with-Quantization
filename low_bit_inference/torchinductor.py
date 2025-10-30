@@ -26,7 +26,6 @@ torch.backends.cudnn.benchmark = True
 
 torch._inductor.config.benchmark_kernel = True
 torch._inductor.config.benchmark_fusion = True
-torch._inductor.config.triton.cudagraph_support_input_mutation = True
 
 model = model.to(config.device)
 print("Model moved to GPU, starting profiling.")
