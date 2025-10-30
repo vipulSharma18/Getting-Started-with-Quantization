@@ -53,8 +53,8 @@ def custom_trace_handler(prof, memory_snapshot=None, root_dir='./'):
     root_dir = os.path.abspath(root_dir)
     file_prefix = os.path.join(root_dir, f"{timestamp}")
 
-    print("Profiler exporting started. Path:", file_prefix)
-    prof.export_chrome_trace(f"{file_prefix}.json.gz")
+    # print("Profiler exporting started. Path:", file_prefix)
+    # prof.export_chrome_trace(f"{file_prefix}.json.gz")
     print("Chrome trace export done. Beginning memory timeline export.")
     prof.export_memory_timeline(f"{file_prefix}.html")
     print("Logged profile at:", file_prefix)

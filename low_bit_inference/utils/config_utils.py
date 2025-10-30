@@ -38,7 +38,7 @@ class ProfileConfig:
     repeat: int = 1
     tps_only: bool = False
     oom_profile: bool = False
-    memory_snapshot_max_entries: int = 500000
+    memory_snapshot_max_entries: int = 100000
     profile_compile: bool = False
 
     # inference args
