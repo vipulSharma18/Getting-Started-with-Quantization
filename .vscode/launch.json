@@ -33,7 +33,7 @@
             "type": "debugpy",
             "request": "launch",
             "module": "low_bit_inference.torchao_exp",
-            "justMyCode": true,
+            "justMyCode": false,
             "env": {"TORCH_LOGS": "cudagraphs"},
             "args": ["configs/profile_inductor_torchao.yaml", "tps_only=False", "oom_profile=True", "skip_first=0", "warmup=0", "wait=0", "active=1", "repeat=3", "quantization_method=bf16_int8", "max_new_tokens=10"]
         }
