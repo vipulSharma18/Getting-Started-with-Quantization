@@ -66,6 +66,8 @@ def model_quantize(causal_model, config, quantized=False):
         )
     else:
         causal_model.model.finalize_autoquant()
+    torch.cuda.empty_cache()
+    gc.collect()
 
 model.quantization_function = model_quantize
 
