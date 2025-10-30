@@ -38,8 +38,6 @@ torch.backends.cudnn.benchmark = True
 
 torch._inductor.config.benchmark_kernel = True
 torch._inductor.config.benchmark_fusion = True
-torch._inductor.config.freezing = True
-torch._inductor.config.freezing_discard_parameters = True
 
 model = model.to(config.device)
 print("Model moved to GPU, starting profiling.")
