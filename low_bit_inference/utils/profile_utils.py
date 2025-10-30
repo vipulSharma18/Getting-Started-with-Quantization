@@ -55,11 +55,13 @@ def custom_trace_handler(prof, memory_snapshot=None, root_dir='./'):
 
     print("Profiler exporting started. Path:", file_prefix)
     prof.export_chrome_trace(f"{file_prefix}.json.gz")
+    print("Chrome trace export done. Beginning memory timeline export.")
     prof.export_memory_timeline(f"{file_prefix}.html")
-
     print("Logged profile at:", file_prefix)
+
     if memory_snapshot:
         memory_snapshot.step()
+        print("Profiling step completed.")
 
 
 def compile_util(model):
