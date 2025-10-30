@@ -79,6 +79,8 @@ def compile_util(model):
             mode="default",
         )
 
+    torch.cuda.empty_cache()
+    gc.collect()
 
 def enable_inductor_profiling():
     torch._inductor.config.trace.enabled = True
