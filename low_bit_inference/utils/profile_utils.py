@@ -200,7 +200,7 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
             print("="*30)
             print(f"Profiling iteration {i+1} out of total {total_steps}.")
             if i>=compile_iter and (model.compile_decode or model.compile_prefill):
-                # torch.compiler.cudagraph_mark_step_begin()
+                torch.compiler.cudagraph_mark_step_begin()
                 past_key_values = cache_init(past_key_values, model, config, kv_compiled)
                 kv_compiled = True
             else:

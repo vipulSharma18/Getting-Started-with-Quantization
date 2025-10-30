@@ -45,10 +45,6 @@ class CacheLayerMixin(ABC):
 
     def reset(self) -> None:
         """Resets the cache values while preserving the objects"""
-        self.keys.zero_()
-        self.values.zero_()
-
-    def destroy(self):
         if self.keys is not None:
             del self.keys
             self.keys = None
@@ -172,7 +168,6 @@ class Cache:
         layers: Optional[list[CacheLayerMixin]] = None,
     ):
         self.layers = layers if layers is not None else []
-        self.destroy_counter = 0
 
     def __repr__(self):
         return f"{self.__class__.__name__}(layers={self.layers})"
@@ -252,12 +247,6 @@ class Cache:
         """Recursively reset all layers tensors"""
         for layer_idx in range(len(self.layers)):
             self.layers[layer_idx].reset()
-
-    def destroy_for_cudagraph_setup(self):
-        self.destroy_counter +=1 
-        assert self.destroy_counter <=1, "Destroying repeatedly, doing something wrong, cudagraphs need fixed input address."
-        for layer_idx in range(len(self.layers)):
-            self.layers[layer_idx].destroy()
 
     @property
     def max_batch_size(self) -> int:
