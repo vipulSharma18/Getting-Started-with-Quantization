@@ -3,7 +3,6 @@ import os
 from functools import partial
 from contextlib import nullcontext
 from datetime import datetime
-from pickle import dump
 import torch
 from torchao.utils import get_model_size_in_bytes
 from torch.utils.flop_counter import FlopCounterMode
@@ -224,11 +223,13 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
 
             with torch.inference_mode():
                 if i==0 and model.quantize:
+                    print("Quantization phase started.")
                     model.quantization_function(model, config, quantized=False)
-                    print("Quantization Phase Started.")
+                    print("Quantization first pass done. Might need finalization/warmup.")
                 if i==compile_iter:
+                    print("Compilation phase started.")
                     compile_util(model)
-                    print("Compilation phase initialized. Next 2 iterations might be warmup.")
+                    print("Compilation first pass done. Next 2 iterations might be warmup.")
                 try:
                     with flop_context:
                         start.record()
