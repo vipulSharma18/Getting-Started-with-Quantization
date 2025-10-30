@@ -1,3 +1,4 @@
+import gc
 import torch
 import torchao
 from omegaconf import OmegaConf
@@ -54,9 +55,11 @@ def cache_init(past_key_values, model, config, kv_compiled=False):
 
 def model_quantize(causal_model, config, quantized=False):
     # use torchao autoquant
-    def filter_fn(module, fqn):
+    def filter_fn(module, fqn, *args):
         # Exempt embedding layer from quantization
-        return fqn not in ["embed_tokens", "lm_head"]
+        flag = fqn not in ["embed_tokens", "lm_head"]
+        default_flag = torchao.quantization.quant_api._is_linear(module, fqn, *args)
+        return flag and default_flag
 
     if not quantized:
         causal_model.model = torchao.autoquant(

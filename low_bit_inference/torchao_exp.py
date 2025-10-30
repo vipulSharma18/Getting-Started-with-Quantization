@@ -54,9 +54,11 @@ def cache_init(past_key_values, model, config, kv_compiled=False):
     return past_key_values
 
 def model_quantize(causal_model, config, quantized=False):
-    def filter_fn(module, fqn):
+    def filter_fn(module, fqn, *args):
         # Exempt embedding layer from quantization
-        return fqn not in ["embed_tokens", "lm_head"]
+        flag = fqn not in ["embed_tokens", "lm_head"]
+        default_flag = torchao.quantization.quant_api._is_linear(module, fqn, *args)
+        return flag and default_flag
 
     if not quantized:
         quantization_methods = {
