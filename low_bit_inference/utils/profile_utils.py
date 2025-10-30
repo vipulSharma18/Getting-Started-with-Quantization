@@ -224,8 +224,10 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
             with torch.inference_mode():
                 if i==0 and model.quantize:
                     model.quantization_function(model, config, quantized=False)
+                    print("Quantization Phase Started.")
                 if i==compile_iter:
                     compile_util(model)
+                    print("Compilation phase initialized. Next 2 iterations might be warmup.")
                 try:
                     with flop_context:
                         start.record()
@@ -253,6 +255,7 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
                 if i==0 and model.quantize:
                     # might want some cleanup after quantization and model forward pass, like finalizing autoquant
                     model.quantization_function(model, config, quantized=True)
+                    print("Quantization phase ended.")
             torch.cuda.synchronize()
             generated_tokens = tokenizer.batch_decode(generated_token_ids[0], skip_special_tokens=True)
 
