@@ -24,8 +24,6 @@ A survey of modern quantization formats (e.g., MXFP8, NVFP4) and inference optim
 | GemLite | mxfp8 | mxfp8 | TBD | Weights & Activations quantization to use faster FP8 Tensor Cores instead of FP16 computations. |
 | GemLite | mxfp4 | mxfp4 | TBD | Use faster FP4 tensor cores available on Blackwell. |
 | GemLite | nvfp4 | nvfp4 | TBD | NVIDIA's custom FP4 precision format on Blackwell. |
-| GemLite | bf16 | fp1.58 | TBD | 3-bit weights encoding to speed up inference in memory bandwidth-bound inference. |
-| GemLite | int8 | fp1.58 | TBD | 3-bit weights with computations using INT8 tensor cores. |
 
 You can reproduce these results by using the commands in the benchmarks_commands.md file with the Docker container.
 
