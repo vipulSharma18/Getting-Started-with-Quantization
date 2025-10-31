@@ -12,8 +12,8 @@ A survey of modern quantization formats (e.g., MXFP8, NVFP4) and inference optim
 > The code is best viewed once you have the conceptual knowledge. The notes subsections below will help with navigating the code. 
 
 ## Benchmarking Results (on 1 GPU):
-| Library | Activation Bits | Weight Bits | Throughput (tokens/sec) 4090 | Throughput (tps) 5090 | Comments |
-|-------------|-------------|-----------------|-------------------------|-------------|
+| Library | Activation Bits | Weight Bits | 4090 Throughput (tokens/sec) | 5090 Throughput (tps) | Comments |
+|-------------|-------------|-----------------|-------------------------|-------------|-------------|
 | Torch-Eager | bf16 | bf16 | 37.52 |  | Baseline |
 | Torch-Compile | bf16 | bf16 | 48.71 |  | Faster due to compilation of decode. |
 | TorchAO | bf16 | Autoquant | 58.16 |  | Quantization of weights helps in memory bandwidth-bound inference, i.e., during decode. |
