@@ -5,23 +5,26 @@
 A survey of modern quantization formats (e.g., MXFP8, NVFP4) and inference optimization tools (e.g., TorchAO, GemLite), illustrated through the example of Llama-3.1 inference.
 
 ## Supporting Video and Slides:
-* Slides covering the survey of quantization formats: https://docs.google.com/presentation/d/1fEeao2TyFgooLXeNd0r6hLvC93czzdQLRbBAVWHddCQ/edit?usp=sharing
-* Accompanying recording from the Eleuther AI ML performance reading group: https://www.youtube.com/watch?v=NpQv0R0w_qY 
+* Recording from the Eleuther AI ML performance reading group on the survey of quantization formats: https://www.youtube.com/watch?v=NpQv0R0w_qY 
+* Slides from the above video (they don't cover everything talked about in the video): https://docs.google.com/presentation/d/1fEeao2TyFgooLXeNd0r6hLvC93czzdQLRbBAVWHddCQ/edit?usp=sharing
+
+> Note: I recommend reviewing the paper by Rouhani et al. [15] in the references, then watching the above video for the best learning experience.     
+> The code is best viewed once you have the conceptual knowledge. The notes subsections below will help with navigating the code. 
 
 ## Benchmarking Results (on 1 RTX 4090):
 | Library | Activation Bits | Weight Bits | Throughput (tokens/sec) | Comments |
 |-------------|-------------|-----------------|-------------------------|-------------|
 | Torch-Eager | bf16 | bf16 | 37.52 | Baseline |
 | Torch-Compile | bf16 | bf16 | 48.71 | Faster due to compilation of decode. |
-| TorchAO | bf16 | Autoquant | 58.16 | Quantization of weights helps in memory bandwidth bound inference, i.e., during decode. |
-| TorchAO | bf16 | fp8 | TBD | Explicitly reducing the weights precision to speed-up inference. |
+| TorchAO | bf16 | Autoquant | 58.16 | Quantization of weights helps in memory bandwidth-bound inference, i.e., during decode. |
+| TorchAO | bf16 | fp8 | TBD | Explicitly reducing the weights precision to speed up inference. |
 | TorchAO | bf16 | int4 | 105.58 | Further reduce the memory bandwidth load. |
 | GemLite | bf16 | mxfp8 | TBD | MXFP8 instead of torch native FP8 for model accuracy/quality. |
 | GemLite | bf16 | int4 | 82.33 | Sanity check for comparison with TorchAO. |
 | GemLite | mxfp8 | mxfp8 | TBD | Weights & Activations quantization to use faster FP8 Tensor Cores instead of FP16 computations. |
 | GemLite | nvfp4 | nvfp4 | TBD | Use faster FP4 tensor cores available on Blackwell. |
-| GemLite | bf16 | fp1.58 | TBD | 3 bit weights encoding to speed-up inference in memory bandwidth bound inference. |
-| GemLite | int8 | fp1.58 | TBD | 3 bit weights with computations using INT8 tensor cores. |
+| GemLite | bf16 | fp1.58 | TBD | 3-bit weights encoding to speed up inference in memory bandwidth-bound inference. |
+| GemLite | int8 | fp1.58 | TBD | 3-bit weights with computations using INT8 tensor cores. |
 
 You can reproduce these results by using the commands in the benchmarks_commands.md file with the Docker container.
 
@@ -36,11 +39,11 @@ You can reproduce these results by using the commands in the benchmarks_commands
 
 * **Compiler Mode and Options Map**: 'default': {}, 'reduce-overhead': {'triton,cudagraphs': True}, 'max-autotune-no-cudagraphs': {'max_autotune': True, 'coordinate_descent_tuning': True}, 'max-autotune': {'max_autotune': True, 'triton.cudagraphs': True, 'coordinate_descent_tuning': True}
 
-* **Prefill Compilation**: Since we have a known prompt length, we can do compilation for prefill stage as well. In practice, we'd do compile with different prompt lengths before serving to ensure compile cache is hit. Such issues don't occur in the decode stage as the input is always 1 token long (with a static KV cache only, i.e., the KV don't change length and the query is 1 length).
+* **Prefill Compilation**: Since we have a known prompt length, we can do compilation for the prefill stage as well. In practice, we'd compile with different prompt lengths before serving to ensure the compile cache is hit. Such issues don't occur in the decode stage as the input is always 1 token long (with a static KV cache only, i.e., the KV doesn't change length and the query is 1 length).
 
-* **Decoding**: HF by default uses greedy decoding but we can do speculative decoding, and structured/guided generation to speed-up generation at the cost of VRAM size and memory access.
+* **Decoding**: HF by default uses greedy decoding, but we can do speculative decoding, and structured/guided generation to speed up generation at the cost of VRAM size and memory access.
 
-* **Tokenizer**: The tokenizer should be a Rust-based (fast) implementation, not the default Python one. HF-Transformers' AutoTokenizer automatically uses a Rust-based implementation and falls back to Python if Rust implementation is not available. But for a new model, we'll need to create our own Rust-based implementation.
+* **Tokenizer**: The tokenizer should be a Rust-based (fast) implementation, not the default Python one. HF-Transformers' AutoTokenizer automatically uses a Rust-based implementation and falls back to Python if the Rust implementation is not available. But for a new model, we'll need to create our own Rust-based implementation.
 
 * **Profiling interpretability**: Run with CUDA_LAUNCH_BLOCKING=1 to make GPU-CPU sync after each kernel, to get more interpretable profiling results for each kernel.
 
@@ -52,7 +55,7 @@ You can reproduce these results by using the commands in the benchmarks_commands
 * quantize_affine: original fp32, fp16, bf16 tensor.      
 * dequantize_affine: quantized tensor o/p of above.       
 * choose_qparams_affine: fp32, bf16, fp16 example i/p tensor for calculating scaling factor.                
-* ZeroPointDomain: none, int or float, set dtype of zero point.             
+* ZeroPointDomain: none, int or float, set the dtype of the zero point.             
 
 > Note: Use bf16 model for all affine quants other than fp6, which works better with fp16.
 
