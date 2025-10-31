@@ -25,7 +25,7 @@ dependencies = [
 big_deps = [
     "torchao==0.13.0",
     "transformers",
-    "gemlite",
+    "gemlite>=0.5.1",
     "hqq",
     "nvidia-ml-py",
     "fbgemm_gpu==1.3",
