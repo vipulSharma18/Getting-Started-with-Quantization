@@ -138,4 +138,8 @@ tokenized_prompt = tokenizer([config.prompt], return_tensors="pt").to(config.dev
 10. S. Salaria, Z. Liu, and N. M. Gonzalez, “Meta-Metrics and Best Practices for System-Level Inference Performance Benchmarking,” Aug. 14, 2025, arXiv: arXiv:2508.10251. doi: 10.48550/arXiv.2508.10251.
 11. Z. Zhou et al., “A Survey on Efficient Inference for Large Language Models,” July 19, 2024, arXiv: arXiv:2404.14294. doi: 10.48550/arXiv.2404.14294.
 12. A. Gholami, S. Kim, Z. Dong, Z. Yao, M. W. Mahoney, and K. Keutzer, “A Survey of Quantization Methods for Efficient Neural Network Inference,” June 21, 2021, arXiv: arXiv:2103.13630. doi: 10.48550/arXiv.2103.13630.
-13. https://github.com/microsoft/BitBLAS            
+13. https://github.com/microsoft/BitBLAS
+14. “microxcaling/README.md at main · microsoft/microxcaling.” Accessed: Sept. 13, 2025. [Online]. Available: https://github.com/microsoft/microxcaling/blob/main/README.md    
+15. B. D. Rouhani et al., “Microscaling Data Formats for Deep Learning,” Oct. 19, 2023, arXiv: arXiv:2310.10537. doi: 10.48550/arXiv.2310.10537.      
+16. B. D. Rouhani et al., “OCP Microscaling Formats (MX) Specification”, [Online]. Available: https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf      
+17. “Half-Quadratic Quantization.” Accessed: Sept. 13, 2025. [Online]. Available: https://mobiusml.github.io/hqq_blog/
