@@ -13,6 +13,7 @@ warmup: 3
 active: 5
 repeat: 0
 tps_only: False
+kernel_profile: False
 oom_profile: False
 compile_decode: False
 compile_prefill: False

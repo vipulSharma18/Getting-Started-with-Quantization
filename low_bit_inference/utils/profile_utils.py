@@ -37,7 +37,7 @@ class MemorySnapshot:
     @staticmethod
     def log(device=None, alloc=None, device_alloc=None, device_free=None, path=None, *args, **kwargs):
         timestamp = datetime.now().strftime("%b_%d_%H_%M_%S")
-        file = os.path.join(path, f"{timestamp}.pickle")
+        file = os.path.join(path, f"memory_snapshot_{timestamp}.pickle")
         print("Logging memory snapshot to:", file)
         torch.cuda.memory._dump_snapshot(file)
 
@@ -47,7 +47,7 @@ class MemorySnapshot:
         else:
             print("skipping memory snapshot cause it failed to get initialized.")
 
-def custom_trace_handler(prof, memory_snapshot=None, root_dir='./'):
+def custom_trace_handler(prof, root_dir='./'):
     """
     Dump the timing and memory trace from torch profiler.
     """
@@ -58,14 +58,10 @@ def custom_trace_handler(prof, memory_snapshot=None, root_dir='./'):
     file_prefix = os.path.join(root_dir, f"{timestamp}")
 
     print("Profiler exporting started. Path:", file_prefix)
-    prof.export_chrome_trace(f"{file_prefix}.json.gz")
+    prof.export_chrome_trace(f"chrome_trace_{file_prefix}.json.gz")
     print("Chrome trace export done. Beginning memory timeline export.")
-    prof.export_memory_timeline(f"{file_prefix}.html")
+    prof.export_memory_timeline(f"memory_categories_{file_prefix}.html")
     print("Logged profile at:", file_prefix)
-
-    if memory_snapshot:
-        memory_snapshot.step()
-        print("Profiling step completed.")
 
 
 def compile_util(model):
@@ -165,25 +161,25 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
 
     # returns a dict of token_ids and attention_mask keys
     tokenized_prompt = tokenizer(prompt, return_tensors="pt").to(config.device)
-    memory_snapshot = None
 
     if config.tps_only:
         prof = NoProfiler()
-    else:
+        memory_snapshot = NoProfiler()
+    elif config.oom_profile:
+        print("Memory snapshots enabled.")
+        memory_snapshot = MemorySnapshot(path=config.profiling_dir,
+            device=config.device,
+            max_entries=config.memory_snapshot_max_entries,
+        )
+    elif config.kernel_profile:
+        print("Kernel level profiling enabled.")
         activities = [
             torch.profiler.ProfilerActivity.CPU,
             torch.profiler.ProfilerActivity.CUDA,
         ]
         profiling_flag = True
-        if config.oom_profile:
-            print("Memory snapshots enabled.")
-            memory_snapshot = MemorySnapshot(path=config.profiling_dir,
-                device=config.device,
-                max_entries=config.memory_snapshot_max_entries,
-            )
         trace_handler = partial(
             custom_trace_handler,
-            memory_snapshot=memory_snapshot,
             root_dir=config.profiling_dir
         )
         prof = torch.profiler.profile(
@@ -195,7 +191,7 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
             profile_memory = profiling_flag,
             with_flops = profiling_flag,
         )
-    print("Using profiler type:", type(prof))
+    print("Using profiler type:", type(prof), ", and memory snapshot:", type(memory_snapshot))
     kv_compiled = False
     compile_iter = 1 # delay compile by 1 iter for quantization and/or flop counting
     flop_counter = FlopCounterMode(display=False, depth=None)
@@ -282,9 +278,10 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
             decode_throughput = decode_tokens/decode_time
             tpot = decode_time/decode_tokens
             throughput = decode_tokens/latency
-            prof.step()
 
             # log metrics
+            prof.step()
+            memory_snapshot.step()
             curr_action = profiling_schedule(i)
             print(
                 f"Generated tokens (last 5): {generated_tokens[-5:]}, "
@@ -344,6 +341,7 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
     try:
         if not config.tps_only and prof.profiler is not None:
             prof.export_chrome_trace(config.profiling_dir + "/trace.json")
-            print("Manually exported the trace.")
+            memory_snapshot.step()
+            print("Manually exported the trace at end of script.")
     except Exception as e:
         print("Trace was already saved. Exiting.\n", e)

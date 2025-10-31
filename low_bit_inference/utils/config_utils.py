@@ -37,6 +37,7 @@ class ProfileConfig:
     active: int = 1
     repeat: int = 1
     tps_only: bool = False
+    kernel_profile: bool = False
     oom_profile: bool = False
     memory_snapshot_max_entries: int = 100000
     profile_compile: bool = False
