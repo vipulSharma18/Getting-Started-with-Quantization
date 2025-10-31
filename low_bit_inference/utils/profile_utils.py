@@ -162,9 +162,10 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
     # returns a dict of token_ids and attention_mask keys
     tokenized_prompt = tokenizer(prompt, return_tensors="pt").to(config.device)
 
+    prof = NoProfiler()
+    memory_snapshot = NoProfiler()
     if config.tps_only:
-        prof = NoProfiler()
-        memory_snapshot = NoProfiler()
+        print("Skipping kernel latency and memory profiling. Ignored oom_profile and kernel_profile configs.")    
     else:
         if config.oom_profile:
             print("Memory snapshots enabled.")

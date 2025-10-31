@@ -3,8 +3,13 @@
 > Note: Run with skip_first=1 wait=2 warmup=1 active=1 for small runs (1 flop and quant, 2 compile, 1 warmup, 1 measure).      
 > Note: Run with profile_compile=True to get profile trace of compilation process.      
 > Note: Run with TORCH_TRACE="log/compile" to generate dynamo logs that can be parsed with tlparse log/compile/* --overwrite. Alternatively, can use TORCH_LOGS="dynamic,guards,recompiles,perf_hints,fusion".      
-> Note: Run with oom_profile=True tps_only=False skip=0 warmup=0 wait=0 active=1 repeat=5 to get each step's memory and runtime trace.       
+> Note: Run with oom_profile=True tps_only=False skip_first=0 warmup=0 wait=0 active=1 repeat=5 to get each step's memory and runtime trace.       
 > Note: Run with kernel_profile=True tps_only=False to profile forward pass latency at the kernel level.
+
+Example:
+```
+python -m low_bit_inference.gemlite_exp configs/profile_inductor_gemlite.yaml tps_only=False quantization_method=mxfp8_mxfp8 kernel_profile=True oom_profile=True tps_only=False skip_first=0 warmup=0 wait=0 active=1 repeat=5
+```
 
 ### Basic torch, inductor, and torchao runs:
 ```
