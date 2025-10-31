@@ -40,6 +40,7 @@ python -m low_bit_inference.torchao_exp configs/profile_inductor_torchao.yaml tp
 
 ```
 python -m low_bit_inference.torchao_exp configs/profile_inductor_torchao.yaml tps_only=True quantization_method=bf16_fp8
+# current running job
 ```
 
 ### Gemlite weight only quantization configs:

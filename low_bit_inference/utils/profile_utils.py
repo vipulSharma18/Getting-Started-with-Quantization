@@ -1,5 +1,6 @@
 import gc
 import os
+import traceback
 from functools import partial
 from contextlib import nullcontext
 from datetime import datetime
@@ -249,7 +250,9 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
                 except Exception as e:
                     error_file = os.path.join(config.profiling_dir, "error.txt")
                     with open(error_file, 'w') as f:
-                        f.write(f"Error occurred during generation:\n{str(e)}\n")
+                        f.write(f"Error occurred during generation:\n{str(e)}\n\n")
+                        f.write("Traceback:\n")
+                        f.write(traceback.format_exc())
                     print(f"Error written to {error_file}")
                     try:
                         del model, past_key_values
