@@ -52,6 +52,10 @@ GPU util: FLOPs (total generate flops/latency): 0.9106460117336168 TFLOPs, FLOP 
 ```
 python -m low_bit_inference.torchao_exp configs/profile_inductor_torchao.yaml tps_only=True quantization_method=bf16_int4
 
+# sample results on rtx5090
+Profiling complete. Metrics: tokens per second (tps): 110.46259500545133, time to first token (ttft): 0.02517151985168457, time per output token (tpot): 0.008915862670898436, prefill throughput: 238.36594605444378, decode throughput: 112.16038181658757, latency: 1.8105791992187499, iterations: 5
+GPU util: FLOPs (total generate flops/latency): 0.131255948915432 TFLOPs, FLOP per token used (FLOPs/tps): 0.0011882388686319972 TFLOP/token, Bandwidth used (tps*model_size): 525.688244681752 GB/s, Power used in last sample period: 222.833 W.
+
 # sample results on rtx4090
 Profiling complete. Metrics: tokens per second (tps): 71.63311748869404, time to first token (ttft): 0.04302642593383789, time per output token (tpot): 0.013956582617187501, prefill throughput: 210.56828982102866, decode throughput: 71.87038832087492, latency: 14.0028458984375, iterations: 5
 GPU util: FLOPs (total generate flops/latency): 0.11367968853371617 TFLOPs, FLOP per token used (FLOPs/tps): 0.001586971117816538 TFLOP/token, Bandwidth used (tps*model_size): 340.89990183423555 GB/s, Power used in last sample period: 145.707 W.
