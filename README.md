@@ -18,7 +18,7 @@ A survey of modern quantization formats (e.g., MXFP8, NVFP4) and inference optim
 | Torch-Compile | bf16 | bf16 | 48.71 | Faster due to compilation of decode. |
 | TorchAO | bf16 | Autoquant | 58.16 | Quantization of weights helps in memory bandwidth-bound inference, i.e., during decode. |
 | TorchAO | bf16 | fp8 | TBD | Explicitly reducing the weights precision to speed up inference. |
-| TorchAO | bf16 | int4 | 105.58 | Further reduce the memory bandwidth load. |
+| TorchAO | bf16 | int4 | 71.63 | Further reduce the memory bandwidth load. |
 | GemLite | bf16 | mxfp8 | TBD | MXFP8 instead of torch native FP8 for model accuracy/quality. |
 | GemLite | bf16 | int4 | 82.33 | Sanity check for comparison with TorchAO. |
 | GemLite | mxfp8 | mxfp8 | TBD | Weights & Activations quantization to use faster FP8 Tensor Cores instead of FP16 computations. |

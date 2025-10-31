@@ -29,9 +29,8 @@ GPU util: FLOPs (total generate flops/latency): 0.9106460117336168 TFLOPs, FLOP 
 ### TorchAO weight only quantization configs:
 ```
 python -m low_bit_inference.torchao_exp configs/profile_inductor_torchao.yaml tps_only=True quantization_method=bf16_int4
-
-Profiling complete. Metrics: tokens per second (tps): 105.58340153538859, time to first token (ttft): 0.03942031326293945, time per output token (tpot): 0.009428716406249999, prefill throughput: 228.47623131299096, decode throughput: 106.06017183709037, latency: 9.47129453125, iterations: 5
-GPU util: FLOPs (total generate flops/latency): 0.05713749124097591 TFLOPs, FLOP per token used (FLOPs/tps): 0.0005411597884713445 TFLOP/token, Bandwidth used (tps*model_size): 421.0014105290168 GB/s, Power used in last sample period: 111.599 W.
+Profiling complete. Metrics: tokens per second (tps): 71.63311748869404, time to first token (ttft): 0.04302642593383789, time per output token (tpot): 0.013956582617187501, prefill throughput: 210.56828982102866, decode throughput: 71.87038832087492, latency: 14.0028458984375, iterations: 5
+GPU util: FLOPs (total generate flops/latency): 0.11367968853371617 TFLOPs, FLOP per token used (FLOPs/tps): 0.001586971117816538 TFLOP/token, Bandwidth used (tps*model_size): 340.89990183423555 GB/s, Power used in last sample period: 145.707 W.
 ```
 
 ```
