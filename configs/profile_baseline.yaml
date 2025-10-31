@@ -21,8 +21,8 @@ profile_compile: False
 quantize: False
 
 # prompt args
-prompt: "Write an essay about large language models."
-max_new_tokens: 1000
+prompt: "Hello, my name is"
+max_new_tokens: 200
 chat_template: ""
 do_sample: False
 top_k: null

@@ -51,6 +51,7 @@ class CacheLayerMixin(ABC):
         if self.values is not None:
             del self.values
             self.values = None
+        torch.cuda.empty_cache()
 
 class StaticLayer(CacheLayerMixin):
     """
