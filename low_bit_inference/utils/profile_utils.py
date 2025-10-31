@@ -165,32 +165,34 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
     if config.tps_only:
         prof = NoProfiler()
         memory_snapshot = NoProfiler()
-    elif config.oom_profile:
-        print("Memory snapshots enabled.")
-        memory_snapshot = MemorySnapshot(path=config.profiling_dir,
-            device=config.device,
-            max_entries=config.memory_snapshot_max_entries,
-        )
-    elif config.kernel_profile:
-        print("Kernel level profiling enabled.")
-        activities = [
-            torch.profiler.ProfilerActivity.CPU,
-            torch.profiler.ProfilerActivity.CUDA,
-        ]
-        profiling_flag = True
-        trace_handler = partial(
-            custom_trace_handler,
-            root_dir=config.profiling_dir
-        )
-        prof = torch.profiler.profile(
-            activities = activities,
-            schedule = profiling_schedule,
-            on_trace_ready = trace_handler,
-            record_shapes = profiling_flag,
-            with_stack = profiling_flag,  # this will add considerable overhead, set it to False for benchmarking.
-            profile_memory = profiling_flag,
-            with_flops = profiling_flag,
-        )
+    else:
+        if config.oom_profile:
+            print("Memory snapshots enabled.")
+            memory_snapshot = MemorySnapshot(path=config.profiling_dir,
+                device=config.device,
+                max_entries=config.memory_snapshot_max_entries,
+            )
+        if config.kernel_profile:
+            print("Kernel level profiling enabled.")
+            activities = [
+                torch.profiler.ProfilerActivity.CPU,
+                torch.profiler.ProfilerActivity.CUDA,
+            ]
+            profiling_flag = True
+            trace_handler = partial(
+                custom_trace_handler,
+                root_dir=config.profiling_dir
+            )
+            prof = torch.profiler.profile(
+                activities = activities,
+                schedule = profiling_schedule,
+                on_trace_ready = trace_handler,
+                record_shapes = profiling_flag,
+                with_stack = profiling_flag,  # this will add considerable overhead, set it to False for benchmarking.
+                profile_memory = profiling_flag,
+                with_flops = profiling_flag,
+            )
+
     print("Using profiler type:", type(prof), ", and memory snapshot:", type(memory_snapshot))
     kv_compiled = False
     compile_iter = 1 # delay compile by 1 iter for quantization and/or flop counting
