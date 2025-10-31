@@ -17,13 +17,13 @@ A survey of modern quantization formats (e.g., MXFP8, NVFP4) and inference optim
 | Torch-Eager | bf16 | bf16 | 37.52 | 55.44 | Baseline |
 | Torch-Compile | bf16 | bf16 | 48.71 | 83.04 | Faster due to compilation of decode. |
 | TorchAO | bf16 | Autoquant | 58.16 | 89.01 | Quantization of weights helps in memory bandwidth-bound inference, i.e., during decode. |
-| TorchAO | bf16 | fp8 | TBD | Explicitly reducing the weights precision to speed up inference. |
-| TorchAO | bf16 | int4 | 71.63 | Further reduce the memory bandwidth load. |
-| GemLite | bf16 | mxfp8 | 66.95 | MXFP8 instead of torch native FP8 for model accuracy/quality. |
-| GemLite | bf16 | int4 | 82.33 | Sanity check for comparison with TorchAO. |
-| GemLite | mxfp8 | mxfp8 | TBD | Weights & Activations quantization to use faster FP8 Tensor Cores instead of FP16 computations. |
-| GemLite | mxfp4 | mxfp4 | TBD | Use faster FP4 tensor cores available on Blackwell. |
-| GemLite | nvfp4 | nvfp4 | TBD | NVIDIA's custom FP4 precision format on Blackwell. |
+| TorchAO | bf16 | fp8 | TBD | TBD | Explicitly reducing the weights precision to speed up inference. |
+| TorchAO | bf16 | int4 | 71.63 | TBD | Further reduce the memory bandwidth load. |
+| GemLite | bf16 | mxfp8 | 66.95 | TBD | MXFP8 instead of torch native FP8 for model accuracy/quality. |
+| GemLite | bf16 | int4 | 82.33 | TBD | Sanity check for comparison with TorchAO. |
+| GemLite | mxfp8 | mxfp8 | TBD | TBD | Weights & Activations quantization to use faster FP8 Tensor Cores instead of FP16 computations. |
+| GemLite | mxfp4 | mxfp4 | TBD | TBD | Use faster FP4 tensor cores available on Blackwell. |
+| GemLite | nvfp4 | nvfp4 | TBD | TBD | NVIDIA's custom FP4 precision format on Blackwell. |
 
 You can reproduce these results by using the commands in the benchmarks_commands.md file with the Docker container.
 
