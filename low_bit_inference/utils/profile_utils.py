@@ -164,6 +164,7 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
 
     # returns a dict of token_ids and attention_mask keys
     tokenized_prompt = tokenizer(prompt, return_tensors="pt").to(config.device)
+    memory_snapshot = None
 
     if config.tps_only:
         prof = NoProfiler()
@@ -173,7 +174,6 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
             torch.profiler.ProfilerActivity.CUDA,
         ]
         profiling_flag = True
-        memory_snapshot = None
         if config.oom_profile:
             print("Memory snapshots enabled.")
             memory_snapshot = MemorySnapshot(path=config.profiling_dir,
