@@ -100,7 +100,6 @@ Similar to TorchAO, GemLite provides different quantization configs in the gemli
 - [ ] FP1.58 kernel from Microsoft BitBLAS: https://github.com/microsoft/BitBLAS
 - [ ] FP1.58 with kernel based on the paper, “An Efficient Matrix Multiplication Algorithm for Accelerating Inference in Binary and Ternary Neural Networks”.
 - [ ] A low-bit Megakernel for FP1.58
-- [ ] Extend analysis to RTX 5090 which might require environemnt update and fixing since blackwell is new and unstable.
 
 ## Setup:
 Manual Docker pull and run if not using VastAI or RunPod:
