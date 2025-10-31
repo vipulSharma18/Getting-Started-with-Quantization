@@ -226,6 +226,19 @@ wheels = [
 ]
 
 [[package]]
+name = "fbgemm-gpu-genai"
+version = "1.3.0+cu128"
+source = { registry = "https://download.pytorch.org/whl/cu128" }
+dependencies = [
+    { name = "numpy" },
+]
+wheels = [
+    { url = "https://download.pytorch.org/whl/cu128/fbgemm_gpu_genai-1.3.0%2Bcu128-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:754002376f6de86ed60a31a800152a9574dd40d0fea1c6a009498fd456ae2301" },
+    { url = "https://download.pytorch.org/whl/cu128/fbgemm_gpu_genai-1.3.0%2Bcu128-cp313-cp313-manylinux_2_28_x86_64.whl", hash = "sha256:eec9fbbc45df679cfdf85beaefa46d627094aeb08ab3912beed008dbc79cc14c" },
+    { url = "https://download.pytorch.org/whl/cu128/fbgemm_gpu_genai-1.3.0%2Bcu128-cp313-cp313t-manylinux_2_28_x86_64.whl", hash = "sha256:b8ceace071e95f1055573f926fa7df1789cffbf8a324710d3798e8e6ac8ec635" },
+]
+
+[[package]]
 name = "filelock"
 version = "3.20.0"
 source = { registry = "https://pypi.org/simple" }
@@ -562,6 +575,7 @@ dependencies = [
 [package.dev-dependencies]
 big-deps = [
     { name = "fbgemm-gpu" },
+    { name = "fbgemm-gpu-genai" },
     { name = "gemlite" },
     { name = "hqq" },
     { name = "nvidia-ml-py" },
@@ -582,6 +596,7 @@ requires-dist = [
 [package.metadata.requires-dev]
 big-deps = [
     { name = "fbgemm-gpu", specifier = "==1.3", index = "https://download.pytorch.org/whl/cu128" },
+    { name = "fbgemm-gpu-genai", specifier = "==1.3", index = "https://download.pytorch.org/whl/cu128" },
     { name = "gemlite", git = "https://github.com/dropbox/gemlite/" },
     { name = "hqq", git = "https://github.com/dropbox/hqq/" },
     { name = "nvidia-ml-py" },
