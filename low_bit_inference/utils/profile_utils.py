@@ -27,7 +27,7 @@ class MemorySnapshot:
             torch.cuda.memory._record_memory_history(max_entries=self.max_entries, device=self.device)
             self.initialized = True
             # uses the current state of the object to create a partial function
-            self.oom_observer = partial(MemorySnapshot.log, path=self.path)
+            self.oom_observer = partial(MemorySnapshot.log, path=self.path, iteration="OOM")
             torch._C._cuda_attach_out_of_memory_observer(self.oom_observer)
             print("CUDA OOM Observer attached.")
         except Exception as e:
@@ -35,15 +35,15 @@ class MemorySnapshot:
             print("Failed to init MemorySnapshot, continuing without it.")
 
     @staticmethod
-    def log(device=None, alloc=None, device_alloc=None, device_free=None, path=None, *args, **kwargs):
+    def log(device=None, alloc=None, device_alloc=None, device_free=None, path=None, iteration=0, *args, **kwargs):
         timestamp = datetime.now().strftime("%b_%d_%H_%M_%S")
-        file = os.path.join(path, f"memory_snapshot_{timestamp}.pickle")
+        file = os.path.join(path, f"memory_snapshot_{str(iteration)}_{timestamp}.pickle")
         print("Logging memory snapshot to:", file)
         torch.cuda.memory._dump_snapshot(file)
 
-    def step(self, *args, **kwargs):
+    def step(self, iteration=0, *args, **kwargs):
         if self.initialized:
-            MemorySnapshot.log(path=self.path)
+            MemorySnapshot.log(path=self.path, iteration=iteration)
         else:
             print("skipping memory snapshot cause it failed to get initialized.")
 
@@ -89,7 +89,7 @@ def enable_inductor_profiling():
 
 
 class NoProfiler(nullcontext):
-    def step(self):
+    def step(self, *args, **kwargs):
         """No-op step function that doesn't do anything."""
         pass
 
@@ -284,7 +284,7 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
 
             # log metrics
             prof.step()
-            memory_snapshot.step()
+            memory_snapshot.step(iteration=i+1)
             curr_action = profiling_schedule(i)
             print(
                 f"Generated tokens (last 5): {generated_tokens[-5:]}, "
@@ -344,7 +344,7 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
     try:
         if not config.tps_only and prof.profiler is not None:
             prof.export_chrome_trace(config.profiling_dir + "/trace.json")
-            memory_snapshot.step()
+            memory_snapshot.step(iteration=total_steps+1)
             print("Manually exported the trace at end of script.")
     except Exception as e:
         print("Trace was already saved. Exiting.\n", e)
