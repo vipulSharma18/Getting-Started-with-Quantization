@@ -57,6 +57,9 @@ python -m low_bit_inference.gemlite_exp configs/profile_inductor_gemlite.yaml tp
 
 ```
 python -m low_bit_inference.gemlite_exp configs/profile_inductor_gemlite.yaml tps_only=True quantization_method=bf16_mxfp8
+
+Profiling complete. Metrics: tokens per second (tps): 66.95707900014932, time to first token (ttft): 0.06158909378051758, time per output token (tpot): 0.014870641796875, prefill throughput: 146.13413610726815, decode throughput: 67.24704871472184, latency: 14.935041015625, iterations: 5
+GPU util: FLOPs (total generate flops/latency): 0.10658418404439747 TFLOPs, FLOP per token used (FLOPs/tps): 0.001591828461396289 TFLOP/token, Bandwidth used (tps*model_size): 552.3051143799872 GB/s, Power used in last sample period: 122.034 W.
 ```
 
 ```
