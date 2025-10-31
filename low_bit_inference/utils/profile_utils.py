@@ -1,6 +1,7 @@
 import gc
 import os
 import sys
+import time
 import traceback
 from functools import partial
 from contextlib import nullcontext
@@ -258,8 +259,9 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
                         f.write(traceback.format_exc())
                     print(f"Error written to {error_file}")
                     if memory_snapshot:
-                        print("Explicitly doing memory snapshot if the OOM observer fails to do it.")
-                        memory_snapshot.step()
+                        # allow time for CUDA OOM snapshot to be written to disk
+                        print("Sleeping for 10s.")
+                        time.sleep(10)
                     try:
                         del model, past_key_values
                         torch.cuda.empty_cache()
