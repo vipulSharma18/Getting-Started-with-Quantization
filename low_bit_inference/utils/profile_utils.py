@@ -1,5 +1,6 @@
 import gc
 import os
+import sys
 import traceback
 from functools import partial
 from contextlib import nullcontext
@@ -27,6 +28,7 @@ class MemorySnapshot:
             # uses the current state of the object to create a partial function
             self.oom_observer = partial(MemorySnapshot.log, path=self.path)
             torch._C._cuda_attach_out_of_memory_observer(self.oom_observer)
+            print("CUDA OOM Observer attached.")
         except Exception as e:
             print(e)
             print("Failed to init MemorySnapshot, continuing without it.")
@@ -173,6 +175,7 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
         profiling_flag = True
         memory_snapshot = None
         if config.oom_profile:
+            print("Memory snapshots enabled.")
             memory_snapshot = MemorySnapshot(path=config.profiling_dir,
                 device=config.device,
                 max_entries=config.memory_snapshot_max_entries,
@@ -259,7 +262,7 @@ def profile_model(model, tokenizer, prompt, config, past_key_values, cache_init)
                         torch.cuda.empty_cache()
                         gc.collect()
                     finally:
-                        os._exit(1)
+                        sys.exit(1)  # Use sys.exit instead of os._exit to allow proper cleanup
 
                 if i==0 and model.quantize:
                     # might want some cleanup after quantization and model forward pass, like finalizing autoquant
