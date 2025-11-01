@@ -130,6 +130,8 @@ Profiling complete. Metrics: tokens per second (tps): 136.6813193758208, time to
 GPU util: FLOPs (total generate flops/latency): 0.16241108901997708 TFLOPs, FLOP per token used (FLOPs/tps): 0.001188246424322327 TFLOP/token, Bandwidth used (tps*model_size): 680.2748145278941 GB/s, Power used in last sample period: 98.478 W.
 
 # rtx4090
+Profiling complete. Metrics: tokens per second (tps): 97.253625310197, time to first token (ttft): 0.06577233810424805, time per output token (tpot): 0.009941892700195314, prefill throughput: 91.51164026017065, decode throughput: 100.6093902701011, latency: 2.0569105712890625, iterations: 5
+GPU util: FLOPs (total generate flops/latency): 0.11553700690597626 TFLOPs, FLOP per token used (FLOPs/tps): 0.0011879969156672894 TFLOP/token, Bandwidth used (tps*model_size): 484.0397519001654 GB/s, Power used in last sample period: 150.55 W.
 ```
 
 ```
@@ -140,6 +142,8 @@ Profiling complete. Metrics: tokens per second (tps): 108.1547502692575, time to
 GPU util: FLOPs (total generate flops/latency): 0.12851429374499249 TFLOPs, FLOP per token used (FLOPs/tps): 0.0011882445609189493 TFLOP/token, Bandwidth used (tps*model_size): 869.1364738717975 GB/s, Power used in last sample period: 242.857 W.
 
 # rtx4090
+Profiling complete. Metrics: tokens per second (tps): 77.90920014466252, time to first token (ttft): 0.06643286972045898, time per output token (tpot): 0.0124891416015625, prefill throughput: 90.99952198699333, decode throughput: 80.07764982548187, latency: 2.5673256347656253, iterations: 5
+GPU util: FLOPs (total generate flops/latency): 0.09256686711722696 TFLOPs, FLOP per token used (FLOPs/tps): 0.001188137818708804 TFLOP/token, Bandwidth used (tps*model_size): 626.081862584185 GB/s, Power used in last sample period: 200.177 W.
 ```
 
 ### Gemlite weight and activation configs:
