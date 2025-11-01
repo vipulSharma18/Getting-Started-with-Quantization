@@ -17,14 +17,18 @@ A survey of modern quantization formats (e.g., MXFP8, NVFP4) and inference optim
 | Torch-Eager | bf16 | bf16 | 37.52 | 55.44 | Baseline |
 | Torch-Compile | bf16 | bf16 | 48.71 | 83.04 | Faster due to compilation of decode. |
 | TorchAO | bf16 | Autoquant | 58.16 | 89.01 | Quantization of weights helps in memory bandwidth-bound inference, i.e., during decode. |
-| TorchAO | bf16 | fp8 | TBD | TBD | Explicitly reducing the weights precision to speed up inference. |
-| TorchAO | bf16 | int8 | TBD | TBD | Further reduce the memory bandwidth load. |
+| TorchAO | bf16 | fp8 | TBD | 7.81 | Explicitly reducing the weights precision to speed up inference. |
+| TorchAO | bf16 | int8 | TBD | 86.23 | Further reduce the memory bandwidth load. |
 | TorchAO | bf16 | int4 | 71.63 | 110.46 | Further reduce the memory bandwidth load. |
-| GemLite | bf16 | mxfp8 | 66.95 | TBD | MXFP8 instead of torch native FP8 for model accuracy/quality. |
-| GemLite | bf16 | int4 | 82.33 | TBD | Sanity check for comparison with TorchAO. |
-| GemLite | mxfp8 | mxfp8 | TBD | TBD | Weights & Activations quantization to use faster FP8 Tensor Cores instead of FP16 computations. |
-| GemLite | mxfp4 | mxfp4 | TBD | TBD | Use faster FP4 tensor cores available on Blackwell. |
-| GemLite | nvfp4 | nvfp4 | TBD | TBD | NVIDIA's custom FP4 precision format on Blackwell. |
+| GemLite | bf16 | int8 | 66.95 | 108.15 | MXFP8 instead of torch native FP8 for model accuracy/quality. |
+| GemLite | bf16 | mxfp8 | 66.95 | 98.25 | MXFP8 instead of torch native FP8 for model accuracy/quality. |
+| GemLite | bf16 | int4 | 82.33 | 136.68 | Sanity check for comparison with TorchAO. |
+| GemLite | bf16 | mxfp4 | TBD | 121.00 | FP4 weights, but BF16 computations. |
+| GemLite | bf16 | int1 | TBD | 166.61 | Lowest memory bandwidth load possible. |
+|GemLite | int8 | int8 | TBD | 113.00 | INT8 Tensor cores for computation. |
+| GemLite | mxfp8 | mxfp8 | TBD | 97.02 | Weights & Activations quantization to use faster FP8 Tensor Cores instead of FP16 computations. |
+| GemLite | mxfp4 | mxfp4 | TBD | 101.54 | Use faster FP4 tensor cores available on Blackwell. |
+| GemLite | nvfp4 | nvfp4 | (MLIR error) | (MLIR error) | NVIDIA's custom FP4 precision format on Blackwell. |
 
 You can reproduce these results by using the commands in the benchmarks_commands.md file with the Docker container.
 
