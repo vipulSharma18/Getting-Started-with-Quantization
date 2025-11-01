@@ -11,7 +11,9 @@ A survey of modern quantization formats (e.g., MXFP8, NVFP4) and inference optim
 > Note: I recommend reviewing the paper by Rouhani et al. [15] in the references, then watching the above video for the best learning experience.     
 > The code is best viewed once you have the conceptual knowledge. The notes subsections below will help with navigating the code. 
 
-## Benchmarking Results (on 1 GPU):
+## Benchmarking Results:
+Model=Unsloth/Meta-Llama-3.1-8B-Instruct, New tokens=200, Prompt="Hello, my name is", 1 GPU.
+
 | Library | Activation Bits | Weight Bits | 4090 Throughput (tokens/sec) | 5090 Throughput (tps) | Comments |
 |-------------|-------------|-----------------|-------------------------|-------------|-------------|
 | Torch-Eager | bf16 | bf16 | 35.82 | 55.44 | Baseline |
@@ -30,7 +32,7 @@ A survey of modern quantization formats (e.g., MXFP8, NVFP4) and inference optim
 | GemLite | mxfp4 | mxfp4 | 87.00 | 101.54 | Use faster FP4 tensor cores available on Blackwell. |
 | GemLite | nvfp4 | nvfp4 | (MLIR error) | (MLIR error) | NVIDIA's custom FP4 precision format on Blackwell. |
 
-You can reproduce these results by using the commands in the benchmarks_commands.md file with the Docker container.
+You can reproduce these results by using the commands in the benchmarks_commands.md file with the Docker container. Sample profiling results corresponding to the above table are also present in that file as an example.
 
 ## General Benchmarking Notes:
 * **Metrics**:
