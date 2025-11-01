@@ -4,6 +4,8 @@
 
 A survey of modern quantization formats (e.g., MXFP8, NVFP4) and inference optimization tools (e.g., TorchAO, GemLite), illustrated through the example of Llama-3.1 inference.
 
+The project is "completed," and there are no plans for additions to it as of now. A successor to this project that might be of interest: [Inference Profiling Puzzles](https://github.com/vipulSharma18/Inference-Profiling-Puzzles).
+
 ## Supporting Video and Slides:
 * Recording from the Eleuther AI ML performance reading group on the survey of quantization formats: https://www.youtube.com/watch?v=NpQv0R0w_qY 
 * Slides from the above video (they don't cover everything talked about in the video): https://docs.google.com/presentation/d/1fEeao2TyFgooLXeNd0r6hLvC93czzdQLRbBAVWHddCQ/edit?usp=sharing
@@ -101,12 +103,12 @@ Similar to TorchAO, GemLite provides different quantization configs in the gemli
 * Just like TorchAO, GemLite focuses on linear layers. The current widespread belief in the quantization community is that non-linear layers don't behave well after quantization and adversely effect model performance. This leads to most work focusing on linear layers.
 
 ## Possible extensions:
-- [ ] Extend quantization to non-linear layers like the attention layer.
+- [ ] Extend quantization to non-linear layers.
 - [ ] Megakernel for Llama-3.1-8B: https://github.com/HazyResearch/Megakernels/blob/main/demos/low-latency-llama/llama.cuh , https://hazyresearch.stanford.edu/blog/2025-05-27-no-bubbles
 - [ ] llama.cpp deployment with our model: https://github.com/ggml-org/llama.cpp.
 - [ ] FP1.58 kernel from Microsoft BitBLAS: https://github.com/microsoft/BitBLAS
 - [ ] FP1.58 with kernel based on the paper, “An Efficient Matrix Multiplication Algorithm for Accelerating Inference in Binary and Ternary Neural Networks”.
-- [ ] A low-bit Megakernel for FP1.58
+- [ ] A low-bit Megakernel for FP1.58.
 
 ## Setup:
 Manual Docker pull and run if not using VastAI or RunPod:
