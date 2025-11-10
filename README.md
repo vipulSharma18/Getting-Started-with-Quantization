@@ -4,7 +4,7 @@
 
 A survey of modern quantization formats (e.g., MXFP8, NVFP4) and inference optimization tools (e.g., TorchAO, GemLite), illustrated through the example of Llama-3.1 inference.
 
-The project is "completed," and there are no plans for additions to it as of now. A successor to this project that might be of interest: [Inference Profiling & Optimization Guide](https://github.com/vipulSharma18/Inference-Profiling-and-Optimization-Guide).
+The project is "completed," and there are no plans to add to it at this time. A different project born out of the limitations and the bugs in public libraries observed during this project that might be of interest: [Inference Profiling & Optimization Worklog](https://github.com/vipulSharma18/Inference-Profiling-and-Optimization-Worklog).
 
 ## Supporting Video and Slides:
 * Recording from the Eleuther AI ML performance reading group on the survey of quantization formats: https://www.youtube.com/watch?v=NpQv0R0w_qY 
