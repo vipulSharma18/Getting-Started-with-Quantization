@@ -21,7 +21,7 @@ Model=Unsloth/Meta-Llama-3.1-8B-Instruct, New tokens=200, Prompt="Hello, my name
 | Torch-Eager | bf16 | bf16 | 35.82 | 55.44 | Baseline |
 | Torch-Compile | bf16 | bf16 | 51.90 | 83.04 | Faster due to compilation of decode. |
 | TorchAO | bf16 | Autoquant | 66.07 | 89.01 | Quantization of weights helps in memory bandwidth-bound inference, i.e., during decode. |
-| TorchAO | bf16 | fp8 | 4.68 | 7.81 | Explicitly reducing the weights precision to speed up inference. |
+| TorchAO | bf16 | fp8 | 4.68 | 7.81 | Explicitly reducing the weights precision to speed up inference. Follow-up to this unexpectedly low throughput is here: [TorchAO FP8 Worklog](https://github.com/vipulSharma18/Inference-Profiling-and-Optimization-Worklog/tree/main/torchao_float8) |
 | TorchAO | bf16 | int8 | 67.28 | 86.23 | Further reduce the memory bandwidth load. |
 | TorchAO | bf16 | int4 | 81.38 | 110.46 | Further reduce the memory bandwidth load. |
 | GemLite | bf16 | int8 | 77.90 | 108.15 | MXFP8 instead of torch native FP8 for model accuracy/quality. |
